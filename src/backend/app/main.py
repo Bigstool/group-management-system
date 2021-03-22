@@ -8,7 +8,12 @@ import shared
 
 def main():
     # load config file and init globals
-    app_config_path = sys.argv[1] if len(sys.argv) > 1 else "./app_config.prod.yml"
+    if len(sys.argv) > 1:
+        app_config_path = sys.argv[1]
+    elif os.getenv("ENV", "DEV") == "PROD":
+        app_config_path = "./app_config.yml"
+    else:
+        app_config_path = "./config/app_config.yml"
     shared.init(config_file=app_config_path)
 
     logger = shared.get_logger("main")

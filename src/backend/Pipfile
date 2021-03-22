@@ -8,16 +8,14 @@ coloredlogs = "*"
 pyjwt = "*"
 pyyaml = "*"
 durations = "*"
-bjoern = "*"
+bjoern = {version = "*", sys_platform = "== 'linux'"}
 flask = "*"
 flasgger = "*"
 flask-cors = "*"
 webargs = "*"
 pycryptodome = "*"
-mysql-connector-python = "*"
-sqlparse = "*"
 
 [dev-packages]
 
 [requires]
-python_version = "3.9"
+python_version = "3"

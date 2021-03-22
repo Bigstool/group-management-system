@@ -1,0 +1,39 @@
+version: "3.7"
+services:
+  mysql:
+    image: gms/mysql
+    build:
+      context: ..
+      dockerfile: docker/mysql.dockerfile
+    restart: always
+    expose:
+      - "3306"
+    volumes:
+      - "mysql:/var/lib/mysql/"
+      
+  backend:
+    image: gms/backend
+    build:
+      context: ..
+      dockerfile: docker/backend.dockerfile
+    tty: true
+    restart: always
+    depends_on:
+      - mysql
+    expose:
+      - "8080"
+  
+  nginx:
+    image: gms/nginx
+    build:
+      context: ..
+      dockerfile: docker/nginx.dockerfile
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+      - "443:443"
+
+volumes:
+  mysql:

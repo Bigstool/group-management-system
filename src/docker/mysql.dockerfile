@@ -1,0 +1,3 @@
+FROM mysql:8
+
+EXPOSE 3306

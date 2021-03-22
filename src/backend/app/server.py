@@ -1,7 +1,7 @@
+import os
 import time
 import traceback
 
-import bjoern
 from flasgger import Swagger
 from flask import Flask, request, g
 from werkzeug.exceptions import HTTPException
@@ -17,17 +17,17 @@ app = Flask("GMS")
 
 app.logger = logger
 
+
 # Before each request
 @app.before_request
 def before_request():
     g.start_time = time.time()
 
+
 # After request handler
 @app.after_request
 def after_request(response):
-    if request.path.startswith("/frps_handler"):
-        logger.debug(f"{request.remote_addr}: FRP({request.args['op']}) {response.status_code}")
-    elif request.path.startswith("/docs"):  # do not log document access
+    if request.path.startswith("/docs"):  # do not log document access
         pass
     elif response.status_code >= 500:
         logger.warning(f"{request.remote_addr}: {request.method} {request.path} {response.status_code}")
@@ -55,6 +55,7 @@ def err_handler(e):
     return MyResponse(status_code=500,
                       msg="Operation failed").build()
 
+
 # APIs
 app.register_blueprint(auth_api)
 
@@ -76,7 +77,7 @@ swagger_config = {
     "specs_route": "/docs/"
 }
 app.config['SWAGGER'] = {
-    "title": "VSAIS™ API Document",
+    "title": "GMS API Document",
     "uiversion": 3,
     "openapi": "3.0.3"
 }
@@ -85,13 +86,18 @@ swagger = Swagger(app, swagger_config)
 # CORS
 if bool(config.get("cors")):
     from flask_cors import CORS
+
     CORS(app)
 
 
 def run():
     logger.info(f"bjoern listening on 0.0.0.0:{config.get('listen_port', 8080)}")
-    # begin server loop
-    bjoern.run(app, host="0.0.0.0", port=config.get("listen_port", 8080))
+    if os.getenv("ENV", "DEV") == "PROD":
+        # begin server loop
+        import bjoern
+        bjoern.run(app, host="0.0.0.0", port=config.get("listen_port", 8080))
+    else:
+        app.run(host="0.0.0.0", port=config.get("listen_port", 8080))
 
 
 def stop():

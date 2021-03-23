@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "107b59116f15f96ff7efdc9b1fbf6f675e001e9ef913dfc5314ee89ba790e370"
+            "sha256": "beea71fe55e51a07793b2dda4144f2392efe4ab62cdad3fb3a77846d91cd6a7f"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -10,7 +10,7 @@
         "sources": [
             {
                 "name": "pypi",
-                "url": "https://pypi.tuna.tsinghua.edu.cn/simple/",
+                "url": "https://pypi.tuna.tsinghua.edu.cn/simple",
                 "verify_ssl": true
             }
         ]

@@ -20,8 +20,8 @@ def init(config_file: str):
     # init jwt util
     global jwt_util
     jwt_util = JwtUtil(
-        public_key=config.get("jwt_public_key", "./jwt.prod.key.pub"),
-        private_key=config.get("jwt_private_key", "./jwt.prod.key"),
+        public_key=config.get("jwt_public_key", "./jwt.key.pub"),
+        private_key=config.get("jwt_private_key", "./jwt.key"),
         algorithm=config.get("jwt_algorithm", "RS256")
     )
 

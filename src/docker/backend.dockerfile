@@ -2,7 +2,7 @@ FROM python:3-alpine
 
 WORKDIR /usr/src/app/
 
-COPY ./backend/Pipfile ./
+COPY ../backend/Pipfile ./
 
 # dependencies
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && \
@@ -11,7 +11,7 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
     pip install --no-cache-dir pipenv && \
     pipenv install
 
-COPY ./backend/app/ ./backend/config/app_config.yml ./backend/config/jwt/jwt.key ./backend/config/jwt/jwt.key.pub ./
+COPY ../backend/app/ ../backend/config/app_config.yml ../backend/config/jwt/jwt.key ../backend/config/jwt/jwt.key.pub ./
 
 EXPOSE 8080
 

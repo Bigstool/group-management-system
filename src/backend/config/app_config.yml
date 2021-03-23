@@ -1,6 +1,6 @@
-application_root: "/api"
+application_root: ""
 cors: true
-log_level: "INFO"
+log_level: "DEBUG"
 listen_port: 8080
 
 # jwt

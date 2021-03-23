@@ -35,6 +35,8 @@ jobs:
           cors: false
           log_level: "INFO"
           listen_port: 8080
+          jwt_private_key: "./jwt/jwt.key"
+          jwt_public_key: "./jwt/jwt.key.pub"
           mysql_host: mysql
           mysql_port: 3306
           mysql_database: ${{ secrets.MYSQL_DATABASE }}

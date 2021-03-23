@@ -1,7 +1,7 @@
 version: "3.8"
 services:
   mysql:
-    image: gms/mysql:latest
+    image: gms/mysql
     build:
       context: ..
       dockerfile: docker/mysql.dockerfile
@@ -16,7 +16,7 @@ services:
       - "mysql:/var/lib/mysql/"
       
   backend:
-    image: gms/backend:latest
+    image: gms/backend
     environment:
       ENV: PROD
     build:
@@ -30,11 +30,13 @@ services:
       - "8080"
   
   nginx:
-    image: gms/nginx:latest
+    image: gms/nginx
     build:
       context: ..
       dockerfile: docker/nginx.dockerfile
     restart: unless-stopped
+    depends_on:
+      - backend
     ports:
       - "8080:80"
       - "8443:443"

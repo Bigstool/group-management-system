@@ -75,11 +75,12 @@ jobs:
         env:
           SSH_KEY: ${{ secrets.SSH_KEY }}
           SSH_USER_HOST: ${{ secrets.SSH_USER_HOST }}
+          COMPOSE_PARAMIKO_SSH: 1
+          COMPOSE_DOCKER_CLI_BUILD: 0
         working-directory: ./src/docker
         run: |
           eval $(ssh-agent)
           ssh-add - <<< "$SSH_KEY"
           mkdir ~/.ssh/
           ssh-keyscan $(awk -F '@' '{print $2}' <<< $SSH_USER_HOST) > ~/.ssh/known_hosts
-          COMPOSE_PARAMIKO_SSH=1 docker-compose -H ssh://$SSH_USER_HOST build
-          COMPOSE_PARAMIKO_SSH=1 docker-compose -H ssh://$SSH_USER_HOST up -d
+          docker-compose -H ssh://$SSH_USER_HOST up -d --build

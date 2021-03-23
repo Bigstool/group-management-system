@@ -9,7 +9,7 @@ services:
       MYSQL_ROOT_PASSWORD:
       MYSQL_USER:
       MYSQL_PASSWORD:
-    restart: always
+    restart: unless-stopped
     expose:
       - "3306"
     volumes:
@@ -23,7 +23,7 @@ services:
       context: ..
       dockerfile: docker/backend.dockerfile
     tty: true
-    restart: always
+    restart: unless-stopped
     depends_on:
       - mysql
     expose:
@@ -34,12 +34,10 @@ services:
     build:
       context: ..
       dockerfile: docker/nginx.dockerfile
-    restart: always
-    depends_on:
-      - backend
+    restart: unless-stopped
     ports:
-      - "80:8080"
-      - "443:8443"
+      - "8080:80"
+      - "8443:443"
 
 volumes:
   mysql:

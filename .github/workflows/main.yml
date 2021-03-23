@@ -47,7 +47,6 @@ jobs:
           services.mysql.environment.MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
           
       - name: Create key file
-        working-directory: ./src/
         shell: bash
         env:
           JWT_PUBKEY: ${{ secrets.JWT_PUBKEY }}

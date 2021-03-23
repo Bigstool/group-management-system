@@ -12,7 +12,7 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
     CI=1 pipenv lock && \
     CI=1 pipenv install --system --deploy
 
-COPY ./backend/app/ ./backend/config/app_config.yml ./backend/config/jwt/jwt.key ./backend/config/jwt/jwt.key.pub ./
+COPY ./backend/app/ ./backend/config/ ./
 
 EXPOSE 8080
 

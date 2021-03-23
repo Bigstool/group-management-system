@@ -1,0 +1,7 @@
+# Ignore everything
+*
+
+# Whitelist
+!backend/
+!web/dist/
+!docker/

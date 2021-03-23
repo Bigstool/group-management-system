@@ -74,8 +74,10 @@ jobs:
         env:
           SSH_KEY: ${{ secrets.SSH_KEY }}
           SSH_USER_HOST: ${{ secrets.SSH_USER_HOST }}
+        working-directory: ./src/docker
         run: |
           eval $(ssh-agent)
           ssh-add - <<< "$SSH_KEY"
+          mkdir ~/.ssh/
           ssh-keyscan $(awk -F '@' '{print $2}' <<< $SSH_USER_HOST) > ~/.ssh/known_hosts
           DOCKER_HOST="ssh://$SSH_USER_HOST" docker-compose up --build -d

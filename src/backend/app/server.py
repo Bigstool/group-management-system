@@ -7,6 +7,7 @@ from flask import Flask, request, g
 from werkzeug.exceptions import HTTPException
 
 from blueprint.auth_api import auth_api
+from blueprint.user_api import user_api
 from shared import config, get_logger
 from utility.ApiException import ApiException
 from utility.MyResponse import MyResponse
@@ -58,6 +59,7 @@ def err_handler(e):
 
 # APIs
 app.register_blueprint(auth_api)
+app.register_blueprint(user_api)
 
 # Swagger docs
 swagger_config = {

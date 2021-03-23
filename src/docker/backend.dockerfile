@@ -5,7 +5,8 @@ WORKDIR /usr/src/app/
 COPY ./backend/Pipfile ./
 
 # dependencies
-RUN apk update && \
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && \
+    apk update && \
     apk add musl-dev libffi-dev openssl-dev libev-dev gcc && \
     pip install --no-cache-dir pipenv && \
     CI=1 pipenv lock && \

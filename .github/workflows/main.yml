@@ -24,7 +24,7 @@ jobs:
         uses: actions/checkout@v2
         
       # Generate essential file from secrets
-      - name: Variable Substitution
+      - name: Variable substitution
         uses: microsoft/variable-substitution@v1
         with:
           # comma separated list of XML/JSON/YAML files in which tokens are to be substituted. Files names must be specified relative to the folder-path.
@@ -43,23 +43,22 @@ jobs:
           mysql_pool_size: 32
           # docker-compose.yml
           services.mysql.environment.MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
-          services.mysql.environment.MYSQL_ROOT_USER: ${{ secrets.MYSQL_USER }}
+          services.mysql.environment.MYSQL_USER: ${{ secrets.MYSQL_USER }}
           services.mysql.environment.MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
           
-      - name: Create key file
+      - name: Create key files
         shell: bash
         env:
           JWT_PUBKEY: ${{ secrets.JWT_PUBKEY }}
           JWT_KEY: ${{ secrets.JWT_KEY }}
           DOMAIN_CERT_FULLCHAIN: ${{ secrets.DOMAIN_CERT_FULLCHAIN }}
           DOMAIN_CERT_KEY: ${{ secrets.DOMAIN_CERT_KEY }}
-          #SSH_KEY: ${{ secrets.SSH_KEY }}
-          #SSH_USER_HOST: ${{ secrets.SSH_USER_HOST }}
         run: |
-          'echo "$JWT_PUBKEY" > ./src/backend/config/jwt/jwt.key.pub'
-          'echo "$JWT_KEY" > ./src/backend/config/jwt/jwt.key'
-          'echo "$DOMAIN_CERT_FULLCHAIN" > ./src/docker/config/cert/fullchain.cer'
-          'echo "$DOMAIN_CERT_KEY" > ./src/docker/config/cert/key.pem'
+          echo "$JWT_PUBKEY" > ./src/backend/config/jwt/jwt.key.pub
+          echo "$JWT_KEY" > ./src/backend/config/jwt/jwt.key
+          echo "$DOMAIN_CERT_FULLCHAIN" > ./src/docker/config/cert/fullchain.cer
+          echo "$DOMAIN_CERT_KEY" > ./src/docker/config/cert/key.pem
+          
       # Generate dist file for web app
       - name: Install node
         uses: actions/setup-node@v2
@@ -68,7 +67,15 @@ jobs:
         working-directory: ./src/web
         run: |
           npm install
-          npm build
+          npm run build
       
       # Docker compose
-      
+      - name: Docker compose remote deployment
+        env:
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+          SSH_USER_HOST: ${{ secrets.SSH_USER_HOST }}
+        run: |
+          eval $(ssh-agent)
+          ssh-add - <<< "$SSH_KEY"
+          ssh-keyscan $(awk -F '@' '{print $2}' <<< $SSH_USER_HOST) > ~/.ssh/known_hosts
+          DOCKER_HOST="ssh://$SSH_USER_HOST" docker-compose up --build -d

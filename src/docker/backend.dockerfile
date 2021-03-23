@@ -5,11 +5,10 @@ WORKDIR /usr/src/app/
 COPY ./backend/Pipfile ./
 
 # dependencies
-RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && \
-    apk update && \
+RUN apk update && \
     apk add musl-dev libffi-dev openssl-dev libev-dev gcc && \
     pip install --no-cache-dir pipenv && \
-    pipenv install
+    CI=1 pipenv install
 
 COPY ./backend/app/ ./backend/config/app_config.yml ./backend/config/jwt/jwt.key ./backend/config/jwt/jwt.key.pub ./
 

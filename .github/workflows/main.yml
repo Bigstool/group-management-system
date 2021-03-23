@@ -47,6 +47,7 @@ jobs:
           services.mysql.environment.MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
           
       - name: Create key file
+        working-directory: ./src/
         shell: bash
         env:
           JWT_PUBKEY: ${{ secrets.JWT_PUBKEY }}
@@ -56,11 +57,10 @@ jobs:
           #SSH_KEY: ${{ secrets.SSH_KEY }}
           #SSH_USER_HOST: ${{ secrets.SSH_USER_HOST }}
         run: |
-          'ls -al'
-          'echo "$JWT_PUBKEY" > ./src/backend/config/jwt/jwt.key.pub'
-          'echo "$JWT_KEY" > ./src/backend/config/jwt/jwt.key'
-          'echo "$DOMAIN_CERT_FULLCHAIN" > ./src/docker/config/cert/fullchain.cer'
-          'echo "$DOMAIN_CERT_KEY" > ./src/docker/config/cert/key.pem'
+          'echo "$JWT_PUBKEY" > ./backend/config/jwt/jwt.key.pub'
+          'echo "$JWT_KEY" > ./backend/config/jwt/jwt.key'
+          'echo "$DOMAIN_CERT_FULLCHAIN" > ./docker/config/cert/fullchain.cer'
+          'echo "$DOMAIN_CERT_KEY" > ./docker/config/cert/key.pem'
       # Generate dist file for web app
       - name: Install node
         uses: actions/setup-node@v2

@@ -1,10 +1,14 @@
-version: "3.7"
+version: "3.8"
 services:
   mysql:
-    image: gms/mysql
+    image: gms/mysql:latest
     build:
       context: ..
       dockerfile: docker/mysql.dockerfile
+    environment:
+      MYSQL_ROOT_PASSWORD:
+      MYSQL_USER:
+      MYSQL_PASSWORD:
     restart: always
     expose:
       - "3306"
@@ -12,7 +16,9 @@ services:
       - "mysql:/var/lib/mysql/"
       
   backend:
-    image: gms/backend
+    image: gms/backend:latest
+    environment:
+      ENV: PROD
     build:
       context: ..
       dockerfile: docker/backend.dockerfile
@@ -24,7 +30,7 @@ services:
       - "8080"
   
   nginx:
-    image: gms/nginx
+    image: gms/nginx:latest
     build:
       context: ..
       dockerfile: docker/nginx.dockerfile
@@ -32,8 +38,8 @@ services:
     depends_on:
       - backend
     ports:
-      - "80:80"
-      - "443:443"
+      - "80:8080"
+      - "443:8443"
 
 volumes:
   mysql:

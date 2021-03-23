@@ -70,6 +70,7 @@ jobs:
           npm run build
       
       # Docker compose
+      # https://github.com/docker/compose/issues/7686
       - name: Docker compose remote deployment
         env:
           SSH_KEY: ${{ secrets.SSH_KEY }}
@@ -80,4 +81,4 @@ jobs:
           ssh-add - <<< "$SSH_KEY"
           mkdir ~/.ssh/
           ssh-keyscan $(awk -F '@' '{print $2}' <<< $SSH_USER_HOST) > ~/.ssh/known_hosts
-          DOCKER_HOST="ssh://$SSH_USER_HOST" docker-compose up --build -d
+          COMPOSE_PARAMIKO_SSH=1 docker-compose -H ssh://$SSH_USER_HOST up --build -d

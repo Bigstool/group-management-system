@@ -42,9 +42,9 @@ jobs:
           mysql_password: ${{ secrets.MYSQL_PASSWORD }}
           mysql_pool_size: 32
           # docker-compose.yml
-          service.mysql.environment.MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
-          service.mysql.environment.MYSQL_ROOT_USER: ${{ secrets.MYSQL_USER }}
-          service.mysql.environment.MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+          services.mysql.environment.MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+          services.mysql.environment.MYSQL_ROOT_USER: ${{ secrets.MYSQL_USER }}
+          services.mysql.environment.MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
           
       - name: Create key file
         shell: bash
@@ -56,6 +56,7 @@ jobs:
           #SSH_KEY: ${{ secrets.SSH_KEY }}
           #SSH_USER_HOST: ${{ secrets.SSH_USER_HOST }}
         run: |
+          'ls -al'
           'echo "$JWT_PUBKEY" > ./src/backend/config/jwt/jwt.key.pub'
           'echo "$JWT_KEY" > ./src/backend/config/jwt/jwt.key'
           'echo "$DOMAIN_CERT_FULLCHAIN" > ./src/docker/config/cert/fullchain.cer'

@@ -12,6 +12,7 @@ bjoern = {version = "*", markers="sys_platform == 'linux'"}
 flask = "*"
 flasgger = "*"
 flask-cors = "*"
+Flask-SQLAlchemy = "*"
 webargs = "*"
 pycryptodome = "*"
 

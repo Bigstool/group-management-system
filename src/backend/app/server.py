@@ -8,7 +8,7 @@ from werkzeug.exceptions import HTTPException
 
 from blueprint.auth_api import auth_api
 from blueprint.user_api import user_api
-from shared import config, get_logger
+from shared import config, get_logger, db
 from utility.ApiException import ApiException
 from utility.MyResponse import MyResponse
 
@@ -60,6 +60,12 @@ def err_handler(e):
 # APIs
 app.register_blueprint(auth_api)
 app.register_blueprint(user_api)
+
+# SQLAlchemy
+app.config["SQLALCHEMY_DATABASE_URI"] = \
+    f"mysql://{config.get('mysql_user')}:{config.get('mysql_password')}@{config.get('mysql_host')}:{config.get('mysql_port')}/{config.get('mysql_database')}"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+db.init_app(app)
 
 # Swagger docs
 swagger_config = {

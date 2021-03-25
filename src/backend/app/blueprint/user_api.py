@@ -1,8 +1,14 @@
+import hmac
+import secrets
+import time
+import uuid
+
 from flask import Blueprint, request
 from webargs import fields, validate
 from webargs.flaskparser import parser
 
-from shared import get_logger
+from model.User import User
+from shared import get_logger, db
 from utility import MyValidator
 from utility.ApiException import *
 from utility.MyResponse import MyResponse
@@ -36,6 +42,8 @@ def create_user():
                 example: jeff.dean@internet.com
               alias:
                 type: string
+                min: 4
+                max: 32
                 description: user alias
                 example: Jeff Dean
               password:
@@ -56,11 +64,30 @@ def create_user():
     """
     args_json = parser.parse({
         "email": fields.Str(required=True, validate=validate.Email()),
-        "alias": fields.Str(missing=None),
+        "alias": fields.Str(missing=None, validate=validate.Length(min=4, max=32)),
         "password": fields.Str(required=True, validate=MyValidator.Sha1())
     }, request, location="json")
 
-    # TODO
+    email: str = args_json["email"]
+    alias: str = args_json["alias"]
+    password: str = args_json["password"]
+
+    # check duplicate email
+    old_user = User.query.filter_by(email=email).first()
+    if old_user is not None:
+        raise ApiDuplicateResourceException(f"Conflict: a user with the email already exists")
+
+    # Generate password
+    password_salt = secrets.token_bytes(16)
+    password_hash = hmac.new(password_salt, bytes.fromhex(password), "sha1").digest()
+
+    new_user = User(uuid=str(uuid.uuid4()),
+                    email=email,
+                    alias=alias,
+                    password_salt=password_salt,
+                    password_hash=password_hash,
+                    creation_time=int(time.time()))
+    db.session.add(new_user)
 
     return MyResponse(data=None).build()
 

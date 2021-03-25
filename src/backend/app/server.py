@@ -66,6 +66,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = \
     f"mysql://{config.get('mysql_user')}:{config.get('mysql_password')}@{config.get('mysql_host')}:{config.get('mysql_port')}/{config.get('mysql_database')}"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db.init_app(app)
+# TODO check database exists, init database with tables if necessary
 
 # Swagger docs
 swagger_config = {

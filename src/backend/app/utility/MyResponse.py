@@ -5,7 +5,7 @@ from flask import g
 
 @dataclass
 class MyResponse:
-    data: Union[dict, list] = None
+    data: Union[dict, list, None] = None
     status_code: int = 200
     msg: str = "Operation_successful"
     err_code: str = None

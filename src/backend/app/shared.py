@@ -4,11 +4,13 @@ import coloredlogs
 import yaml
 
 from utility.JwtUtil import JwtUtil
+from flask_sqlalchemy import SQLAlchemy
 
 config: dict
 
 jwt_util: JwtUtil
 
+db: SQLAlchemy
 
 def init(config_file: str):
     # load config
@@ -16,7 +18,10 @@ def init(config_file: str):
         global config
         config = yaml.load(file, Loader=yaml.FullLoader)
 
-    # must init db before others
+    # init db
+    global db
+    db = SQLAlchemy()
+
     # init jwt util
     global jwt_util
     jwt_util = JwtUtil(

@@ -6,6 +6,7 @@ from flask import Blueprint, request
 from webargs import fields, validate
 from webargs.flaskparser import parser
 
+from model.User import User
 from shared import get_logger, jwt_util, config
 from utility import MyValidator
 from utility.ApiException import *
@@ -103,15 +104,17 @@ def sign_in():
     password: str = args_form["password"]
 
     # check password
-    user = None # TODO get user object by email
+    user = User.query.filter_by(email=username).first()
     if user is None:
         logger.debug(f"Login fail: no such user")
         raise ApiPermissionException("Permission denied: invalid credential")
-    password_hash = hmac.new(bytes.fromhex(user["password_salt"]), bytes.fromhex(password), "sha1").hexdigest()
-    if not password_hash.lower() == user["password_hash"].lower():
+    password_hash = hmac.new(user.password_salt, bytes.fromhex(password), "sha1").digest()
+    if not password_hash.lower() == user.password_hash.lower():
         logger.debug(f"Login fail: password mismatch")
         raise ApiPermissionException("Permission denied: invalid credential")
-    uuid = user["uuid"]
+
+    uuid = str(user.uuid)
+    print(uuid)
 
     # sign token
     new_access_token: str = jwt_util.encode_token({

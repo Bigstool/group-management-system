@@ -8,7 +8,7 @@ from webargs import fields, validate
 from webargs.flaskparser import parser
 
 from model.User import User
-from shared import get_logger, db
+from shared import get_logger, db, jwt_util
 from utility import MyValidator
 from utility.ApiException import *
 from utility.MyResponse import MyResponse
@@ -80,7 +80,6 @@ def create_user():
     # Generate password
     password_salt = secrets.token_bytes(16)
     password_hash = hmac.new(password_salt, bytes.fromhex(password), "sha1").digest()
-
     new_user = User(uuid=str(uuid.uuid4()),
                     email=email,
                     alias=alias,
@@ -88,7 +87,7 @@ def create_user():
                     password_hash=password_hash,
                     creation_time=int(time.time()))
     db.session.add(new_user)
-
+    db.session.commit()
     return MyResponse(data=None).build()
 
 
@@ -121,11 +120,18 @@ def get_user_profile(user_uuid):
     """
     args_query = parser.parse({
         "user_uuid": fields.Str(required=True, validate=MyValidator.Uuid())
-    }, request, location="query")
+    }, request, location="path")
 
     # TODO
+    uuid: str = args_query["user_uuid"]
+    print('uuid')
+    user=User.query.filter_by(uuid=uuid).first()
+    email = user.email
+    alias = user.alias
+    bio = user.bio
 
-    return MyResponse(data=None).build()
+
+    return MyResponse(data={'alias':alias, 'email':email, 'bio':bio}).build()
 
 
 @user_api.route("/user/<user_uuid>", methods=["PATCH"])
@@ -163,9 +169,39 @@ def update_user_profile(user_uuid):
               type: object
     """
     args_query = parser.parse({
-        "user_uuid": fields.Str(required=True, validate=MyValidator.Uuid())
-    })
+        "user_uuid": fields.Str(required=True, validate=MyValidator.Uuid())}, request, location="path")
+
 
     # TODO
+    args_json = parser.parse({
+        "email": fields.Str(missing=None, validate=validate.Email()),
+        "alias": fields.Str(missing=None, validate=validate.Length(min=4, max=32)),
+        "bio": fields.Str(missing=None, validate=validate.Length(max=1000))
+    }, request, location="json")
+    email: str = args_json["email"]
+    alias: str = args_json["alias"]
+    bio: str = args_json["bio"]
 
-    return MyResponse(data=None).build()
+    uuid_in: str = args_query["user_uuid"]
+    token = request.headers.get('Authorization')
+    token = str.replace(str(token), 'Bearer ', '')
+    token_info = jwt_util.decode_token(token,audience='access')
+    uuid = token_info['uuid']
+    expire_time = token_info['exp']
+    if(uuid_in!=uuid):
+        raise ApiPermissionException('You cannot update other user\'s profile!')
+    if(expire_time<time.time()):
+        raise ApiTokenException('Token is expired, please refresh the token!')
+    user = User.query.filter_by(uuid=uuid).first()
+    if user is None:
+        logger.debug(f"Update fail: no such user")
+        raise ApiPermissionException("Permission denied: invalid credential")
+    if email:
+        user.email = email
+    if alias:
+        user.alias = alias
+    if bio:
+        user.bio = bio
+    db.session.commit()
+
+    return MyResponse(data=None,msg='query success').build()

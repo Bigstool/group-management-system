@@ -10,7 +10,6 @@ class JwtUtil:
                  private_key,
                  public_key,
                  algorithm):
-        pass
         self.algorithm = algorithm
         with open(public_key, 'rb') as public_key_file, open(private_key, 'rb') as private_key_file:
             self.public_key = public_key_file.read()

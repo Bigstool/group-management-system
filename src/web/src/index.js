@@ -1,13 +1,15 @@
-import App from './pages/App';
-import Login from './pages/Login';
+import './global';
+import "antd/dist/antd.css";
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {
     BrowserRouter as Router,
     Switch,
-    Route,
-    Link
+    Route
 } from "react-router-dom";
+import App from './pages/App';
+import Login from './pages/Login';
+import NotFound from "./pages/404";
 
 
 ReactDOM.render((
@@ -25,6 +27,9 @@ ReactDOM.render((
             </Route>
             <Route path="/login">
                 <Login/>
+            </Route>
+            <Route path="*">
+                <NotFound/>
             </Route>
         </Switch>
     </Router>

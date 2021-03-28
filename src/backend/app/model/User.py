@@ -1,8 +1,8 @@
 from shared import db
-import uuid
+
 
 class User(db.Model):
-    uuid = db.Column('uuid', db.String(36), default=uuid.uuid4().hex, primary_key=True)
+    uuid = db.Column('uuid', db.BINARY(16), primary_key=True)
     email = db.Column('email', db.String(256), unique=True)
     alias = db.Column('alias', db.String(256), nullable=True)
     bio = db.Column('bio', db.Text, nullable=True)
@@ -12,7 +12,3 @@ class User(db.Model):
 
     def __repr__(self):
         return f"<User {self.uuid}: {self.email}>"
-
-    def gen_id(self):
-        return uuid.uuid4().hex
-

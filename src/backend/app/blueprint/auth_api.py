@@ -1,4 +1,5 @@
 import hmac
+import uuid
 from datetime import datetime, timedelta
 
 from durations import Duration
@@ -17,6 +18,7 @@ auth_api = Blueprint("auth_api", __name__)
 
 access_token_exp: int = Duration(config.get("access_token_validation_period", "1h")).to_seconds()
 refresh_token_exp: int = Duration(config.get("refresh_token_validation_period", "30d")).to_seconds()
+
 
 # webargs parser error handler
 @parser.error_handler
@@ -105,20 +107,21 @@ def sign_in():
 
     # check password
     user = User.query.filter_by(email=username).first()
+
     if user is None:
         logger.debug(f"Login fail: no such user")
         raise ApiPermissionException("Permission denied: invalid credential")
+
     password_hash = hmac.new(user.password_salt, bytes.fromhex(password), "sha1").digest()
-    if not password_hash.lower() == user.password_hash.lower():
+    if password_hash != user.password_hash:
         logger.debug(f"Login fail: password mismatch")
         raise ApiPermissionException("Permission denied: invalid credential")
 
-    uuid = str(user.uuid)
-    print(uuid)
+    user_uuid = str(uuid.UUID(bytes=user.uuid))
 
     # sign token
     new_access_token: str = jwt_util.encode_token({
-        "uuid": uuid,
+        "uuid": user_uuid,
         "operator_type": scope,
         "nbf": datetime.utcnow(),
         "exp": datetime.utcnow() + timedelta(seconds=access_token_exp),
@@ -126,7 +129,7 @@ def sign_in():
         "aud": "access"
     })
     new_refresh_token: str = jwt_util.encode_token({
-        "uuid": uuid,
+        "uuid": user_uuid,
         "operator_type": scope,
         "nbf": datetime.utcnow(),
         "exp": datetime.utcnow() + timedelta(seconds=refresh_token_exp),
@@ -236,4 +239,3 @@ def refresh_token():
         "scope": scope,
         "token_type": "bearer"
     }).build()
-

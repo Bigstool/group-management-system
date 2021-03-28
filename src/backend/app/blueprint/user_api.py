@@ -146,10 +146,10 @@ def update_user_profile(user_uuid):
           schema:
             type: object
             properties:
-              email:
-                type: string
-                description: user email
-                example: jeff.dean@internet.com
+              # email:
+              #   type: string
+              #   description: user email
+              #   example: jeff.dean@internet.com
               alias:
                 type: string
                 description: user alias
@@ -167,27 +167,28 @@ def update_user_profile(user_uuid):
             schema:
               type: object
     """
-    args_query = parser.parse({
+    args_path = parser.parse({
         "user_uuid": fields.Str(required=True, validate=MyValidator.Uuid())}, request, location="path")
 
-
-    # TODO
     args_json = parser.parse({
-        "email": fields.Str(missing=None, validate=validate.Email()),
+        # "email": fields.Str(missing=None, validate=validate.Email()),
         "alias": fields.Str(missing=None, validate=validate.Length(min=4, max=32)),
         "bio": fields.Str(missing=None, validate=validate.Length(max=1000))
     }, request, location="json")
-    email: str = args_json["email"]
-    alias: str = args_json["alias"]
-    bio: str = args_json["bio"]
 
-    uuid_in: str = args_query["user_uuid"]
+    user_uuid: str = args_path["user_uuid"]
+    # new_email: str = args_json["email"]
+    new_alias: str = args_json["alias"]
+    new_bio: str = args_json["bio"]
+
+    # TODO extract to utility
     token = request.headers.get('Authorization')
     token = str.replace(str(token), 'Bearer ', '')
-    token_info = jwt_util.decode_token(token,audience='access')
-    uuid = token_info['uuid']
-    expire_time = token_info['exp']
-    if(uuid_in!=uuid):
+    token_info = jwt_util.decode_token(token, audience='access')
+    # TODO attention
+    uuid_in_token = token_info['uuid']
+
+    if (user_uuid != uuid_in_token):
         raise ApiPermissionException('You cannot update other user\'s profile!')
 
     user = User.query.filter_by(uuid=uuid.UUID(uuid_in_token).bytes).first()
@@ -195,12 +196,13 @@ def update_user_profile(user_uuid):
     if user is None:
         logger.debug(f"Update fail: no such user")
         raise ApiPermissionException("Permission denied: invalid credential")
-    if email:
-        user.email = email
-    if alias:
-        user.alias = alias
-    if bio:
-        user.bio = bio
+    # TODO attention
+    # if new_email is not None:
+    #     user.email = new_email
+    if new_alias is not None:
+        user.alias = new_alias
+    if new_bio is not None:
+        user.bio = new_bio
     db.session.commit()
 
-    return MyResponse(data=None,msg='query success').build()
+    return MyResponse(data=None, msg='query success').build()

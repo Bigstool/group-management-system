@@ -1,9 +1,9 @@
-import React from 'react'
+import React from 'react';
 
 export default class App extends React.PureComponent {
     render() {
         return (
-            <div>Hello I'm App</div>
-        )
+            <div>The main app after login</div>
+        );
     }
 }

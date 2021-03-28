@@ -63,13 +63,14 @@ app.register_blueprint(user_api)
 
 # SQLAlchemy
 app.config["SQLALCHEMY_DATABASE_URI"] = \
-    f"mysql://{config.get('mysql_user')}:{config.get('mysql_password')}@{config.get('mysql_host')}:{config.get('mysql_port')}/{config.get('mysql_database')}"
+    f"mysql+mysqlconnector://{config.get('mysql_user')}:{config.get('mysql_password')}@{config.get('mysql_host')}:{config.get('mysql_port')}/{config.get('mysql_database')}"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db.init_app(app)
 
-# TODO check database exists, init database with tables if necessary
-app.app_context().push()
-db.create_all()
+# init database
+with app.app_context():
+    db.create_all() # create if table not exists
+
 # Swagger docs
 swagger_config = {
     "headers": [

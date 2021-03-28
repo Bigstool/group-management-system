@@ -80,7 +80,7 @@ def create_user():
     # Generate password
     password_salt = secrets.token_bytes(16)
     password_hash = hmac.new(password_salt, bytes.fromhex(password), "sha1").digest()
-    new_user = User(uuid=str(uuid.uuid4()),
+    new_user = User(uuid=uuid.uuid4().bytes,
                     email=email,
                     alias=alias,
                     password_salt=password_salt,
@@ -122,16 +122,15 @@ def get_user_profile(user_uuid):
         "user_uuid": fields.Str(required=True, validate=MyValidator.Uuid())
     }, request, location="path")
 
-    # TODO
-    uuid: str = args_query["user_uuid"]
+    user_uuid: str = args_query["user_uuid"]
     print('uuid')
-    user=User.query.filter_by(uuid=uuid).first()
-    email = user.email
-    alias = user.alias
-    bio = user.bio
+    user = User.query.filter_by(uuid=uuid.UUID(user_uuid).bytes).first()
 
-
-    return MyResponse(data={'alias':alias, 'email':email, 'bio':bio}).build()
+    return MyResponse(data={
+        "alias": user.alias,
+        "email": user.email,
+        "bio": user.bio
+    }).build()
 
 
 @user_api.route("/user/<user_uuid>", methods=["PATCH"])
@@ -190,9 +189,9 @@ def update_user_profile(user_uuid):
     expire_time = token_info['exp']
     if(uuid_in!=uuid):
         raise ApiPermissionException('You cannot update other user\'s profile!')
-    if(expire_time<time.time()):
-        raise ApiTokenException('Token is expired, please refresh the token!')
-    user = User.query.filter_by(uuid=uuid).first()
+
+    user = User.query.filter_by(uuid=uuid.UUID(uuid_in_token).bytes).first()
+
     if user is None:
         logger.debug(f"Update fail: no such user")
         raise ApiPermissionException("Permission denied: invalid credential")

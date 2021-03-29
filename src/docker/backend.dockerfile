@@ -1,14 +1,14 @@
-FROM python:3-alpine
+FROM python:3
 
 WORKDIR /usr/src/app/
 
 COPY ./backend/Pipfile ./
 
 # dependencies
-RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && \
-    apk update && \
-    apk add rust musl-dev libffi-dev openssl-dev libev-dev gcc cargo python3-dev && \
-    pip install --no-cache-dir pipenv && \
+RUN sed -i "s@http://deb.debian.org@http://mirrors.aliyun.com@g" /etc/apt/sources.list && \
+    apt update && \
+    apt install -y libev-dev && \
+    pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --no-cache-dir pipenv && \
     CI=1 pipenv lock && \
     CI=1 pipenv install --system --deploy
 

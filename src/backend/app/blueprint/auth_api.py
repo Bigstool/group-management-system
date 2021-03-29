@@ -1,6 +1,7 @@
 import hmac
 import uuid
 from datetime import datetime, timedelta
+from hashlib import sha1
 
 from durations import Duration
 from flask import Blueprint, request
@@ -105,19 +106,29 @@ def sign_in():
     username: str = args_form["username"]
     password: str = args_form["password"]
 
-    # check password
-    user = User.query.filter_by(email=username).first()
+    if scope == "USER":
+        # check password
+        user = User.query.filter_by(email=username).first()
 
-    if user is None:
-        logger.debug(f"Login fail: no such user")
-        raise ApiPermissionException("Permission denied: invalid credential")
+        if user is None:
+            logger.debug(f"Login fail: no such user")
+            raise ApiPermissionException("Permission denied: invalid credential")
 
-    password_hash = hmac.new(user.password_salt, bytes.fromhex(password), "sha1").digest()
-    if password_hash != user.password_hash:
-        logger.debug(f"Login fail: password mismatch")
-        raise ApiPermissionException("Permission denied: invalid credential")
+        password_hash = hmac.new(user.password_salt, bytes.fromhex(password), "sha1").digest()
+        if password_hash != user.password_hash:
+            logger.debug(f"Login fail: password mismatch")
+            raise ApiPermissionException("Permission denied: invalid credential")
 
-    user_uuid = str(uuid.UUID(bytes=user.uuid))
+        user_uuid = str(uuid.UUID(bytes=user.uuid))
+    elif scope == "ADMIN":
+        password_hash = sha1(config.get("admin_password").encode()).hexdigest()
+        if password_hash != password:
+            logger.warning(f"Admin login fail: password mismatch")
+            raise ApiPermissionException("Permission denied: invalid credential")
+
+        user_uuid = "0"
+    else:
+        raise ApiInvalidInputException("Invalid input: unsupported scope")
 
     # sign token
     new_access_token: str = jwt_util.encode_token({

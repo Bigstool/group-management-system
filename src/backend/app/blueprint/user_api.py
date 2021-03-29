@@ -150,10 +150,10 @@ def update_user_profile(user_uuid):
               #   type: string
               #   description: user email
               #   example: jeff.dean@internet.com
-              alias:
-                type: string
-                description: user alias
-                example: Jeff Dean
+              # alias:
+              #   type: string
+              #   description: user alias
+              #   example: Jeff Dean
               bio:
                 type: string
                 description: user bio
@@ -172,13 +172,13 @@ def update_user_profile(user_uuid):
 
     args_json = parser.parse({
         # "email": fields.Str(missing=None, validate=validate.Email()),
-        "alias": fields.Str(missing=None, validate=validate.Length(min=4, max=32)),
+        # "alias": fields.Str(missing=None, validate=validate.Length(min=4, max=32)),
         "bio": fields.Str(missing=None, validate=validate.Length(max=1000))
     }, request, location="json")
 
     user_uuid: str = args_path["user_uuid"]
     # new_email: str = args_json["email"]
-    new_alias: str = args_json["alias"]
+    # new_alias: str = args_json["alias"]
     new_bio: str = args_json["bio"]
 
     # TODO extract to utility
@@ -199,8 +199,8 @@ def update_user_profile(user_uuid):
     # TODO attention
     # if new_email is not None:
     #     user.email = new_email
-    if new_alias is not None:
-        user.alias = new_alias
+    # if new_alias is not None:
+    #     user.alias = new_alias
     if new_bio is not None:
         user.bio = new_bio
     db.session.commit()

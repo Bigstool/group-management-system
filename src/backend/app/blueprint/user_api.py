@@ -8,9 +8,10 @@ from webargs import fields, validate
 from webargs.flaskparser import parser
 
 from model.User import User
-from shared import get_logger, db, jwt_util
+from shared import get_logger, db
 from utility import MyValidator
 from utility.ApiException import *
+from utility.Auth import Auth
 from utility.MyResponse import MyResponse
 
 logger = get_logger(__name__)
@@ -68,9 +69,14 @@ def create_user():
         "password": fields.Str(required=True, validate=MyValidator.Sha1())
     }, request, location="json")
 
-    email: str = args_json["email"]
+    email: str = args_json["email"].lower()
     alias: str = args_json["alias"]
     password: str = args_json["password"]
+
+    # limit access to admin only
+    user_info = Auth.get_payload(request)
+    if user_info["uuid"] != "0":
+        raise ApiPermissionException("Permission denied: not logged in as admin")
 
     # check duplicate email
     old_user = User.query.filter_by(email=email).first()
@@ -181,11 +187,7 @@ def update_user_profile(user_uuid):
     # new_alias: str = args_json["alias"]
     new_bio: str = args_json["bio"]
 
-    # TODO extract to utility
-    token = request.headers.get('Authorization')
-    token = str.replace(str(token), 'Bearer ', '')
-    token_info = jwt_util.decode_token(token, audience='access')
-    # TODO attention
+    token_info = Auth.get_payload(request)
     uuid_in_token = token_info['uuid']
 
     if (user_uuid != uuid_in_token):
@@ -196,7 +198,6 @@ def update_user_profile(user_uuid):
     if user is None:
         logger.debug(f"Update fail: no such user")
         raise ApiPermissionException("Permission denied: invalid credential")
-    # TODO attention
     # if new_email is not None:
     #     user.email = new_email
     # if new_alias is not None:

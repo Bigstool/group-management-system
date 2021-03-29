@@ -19,6 +19,7 @@ pycryptodome = "*"
 
 [dev-packages]
 pytest = "*"
+requests = "*"
 
 [requires]
 python_version = "3"

@@ -2,6 +2,8 @@ application_root: ""
 cors: true
 log_level: "DEBUG"
 listen_port: 8080
+admin_username: superuser
+admin_password: resurepus
 
 # jwt
 jwt_private_key: "./config/jwt/jwt.key"

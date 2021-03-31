@@ -99,6 +99,16 @@ def get_group_list():
                     type: string
                     description: group description
                     example: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque a ultricies diam. Donec ultrices tortor non lobortis mattis. Mauris euismod tellus ipsum, et porta mi scelerisque ac.
+                  creator:
+                    type: object
+                    description: the user who created the group
+                    properties:
+                      alias:
+                        type: string
+                        example: Ming Li
+                      email:
+                        type: string
+                        example: Ming.Li@example.com
                   creation_time:
                     type: integer
                     description: group creation time, unix timestamp

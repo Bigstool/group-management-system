@@ -133,6 +133,36 @@ def get_user_profile(user_uuid):
                   type: string
                   description: user bio
                   example: I write O(1/n) algorithms
+                joined_group:
+                  type: object
+                  properties:
+                    uuid:
+                      type: string
+                      description: group uuid
+                      example: b86a6406-14ca-4459-80ea-c0190fc43bd3
+                    name:
+                      type: string
+                      description: group name
+                      example: Jaxzefalk
+                    description:
+                      type: string
+                      description: group description
+                      example: Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                created_group:
+                  type: object
+                  properties:
+                    uuid:
+                      type: string
+                      description: group uuid
+                      example: b86a6406-14ca-4459-80ea-c0190fc43bd3
+                    name:
+                      type: string
+                      description: group name
+                      example: Jaxzefalk
+                    description:
+                      type: string
+                      description: group description
+                      example: Lorem ipsum dolor sit amet, consectetur adipiscing elit.
     """
     args_query = parser.parse({
         "user_uuid": fields.Str(required=True, validate=MyValidator.Uuid())
@@ -141,6 +171,8 @@ def get_user_profile(user_uuid):
     user_uuid: str = args_query["user_uuid"]
     print('uuid')
     user = User.query.filter_by(uuid=uuid.UUID(user_uuid).bytes).first()
+
+    # TODO return created group / joined group
 
     return MyResponse(data={
         "alias": user.alias,

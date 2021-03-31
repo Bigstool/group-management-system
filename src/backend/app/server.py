@@ -9,6 +9,7 @@ from werkzeug.exceptions import HTTPException
 from blueprint.application_api import application_api
 from blueprint.auth_api import auth_api
 from blueprint.group_api import group_api
+from blueprint.system_api import system_api
 from blueprint.user_api import user_api
 from shared import config, get_logger, db
 from utility.ApiException import ApiException
@@ -64,6 +65,7 @@ app.register_blueprint(auth_api)
 app.register_blueprint(user_api)
 app.register_blueprint(group_api)
 app.register_blueprint(application_api)
+app.register_blueprint(system_api)
 
 # SQLAlchemy
 app.config["SQLALCHEMY_DATABASE_URI"] = \

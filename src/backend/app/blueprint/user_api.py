@@ -26,10 +26,17 @@ def handle_error(error, req, schema, *, error_status_code, error_headers):
 
 @user_api.route("/user", methods=["POST"])
 def create_user():
-    """Create a new user
+    """
+    Create a new user
     ---
     tags:
       - user
+
+    description: |
+      ## Constrains
+      * operator must be admin
+      * email must be unique
+
     requestBody:
       required: true
       content:
@@ -104,6 +111,8 @@ def get_user_profile(user_uuid):
     tags:
       - user
 
+    description: |
+
     parameters:
       - name: user_uuid
         in: path
@@ -169,8 +178,11 @@ def get_user_profile(user_uuid):
     }, request, location="path")
 
     user_uuid: str = args_query["user_uuid"]
-    print('uuid')
+
     user = User.query.filter_by(uuid=uuid.UUID(user_uuid).bytes).first()
+
+    # TODO raise ApiResourceNotFoundException if user not exists
+    # raise ApiResourceNotFoundException("Not found: invalid user uuid")
 
     # TODO return created group / joined group
 
@@ -187,6 +199,10 @@ def update_user_profile(user_uuid):
     ---
     tags:
       - user
+
+    description: |
+      ## Constrains
+      * operator must be the user to be modified
 
     parameters:
       - name: user_uuid
@@ -243,7 +259,7 @@ def update_user_profile(user_uuid):
     uuid_in_token = token_info['uuid']
 
     if (user_uuid != uuid_in_token):
-        raise ApiPermissionException('You cannot update other user\'s profile!')
+        raise ApiPermissionException('Permission denied: you cannot update other user\'s profile!')
 
     user = User.query.filter_by(uuid=uuid.UUID(uuid_in_token).bytes).first()
 

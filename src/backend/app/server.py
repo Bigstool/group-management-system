@@ -6,6 +6,7 @@ from flasgger import Swagger
 from flask import Flask, request, g
 from werkzeug.exceptions import HTTPException
 
+from blueprint.application_api import application_api
 from blueprint.auth_api import auth_api
 from blueprint.group_api import group_api
 from blueprint.user_api import user_api
@@ -62,6 +63,7 @@ def err_handler(e):
 app.register_blueprint(auth_api)
 app.register_blueprint(user_api)
 app.register_blueprint(group_api)
+app.register_blueprint(application_api)
 
 # SQLAlchemy
 app.config["SQLALCHEMY_DATABASE_URI"] = \

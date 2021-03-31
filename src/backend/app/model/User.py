@@ -14,4 +14,4 @@ class User(db.Model):
     r_group = db.relationship("Group", backref="creator", lazy=True, uselist=False)
 
     def __repr__(self):
-        return f"<User {self.uuid}: {self.email}>"
+        return f"<User {self.uuid.hex()}: {self.email}>"

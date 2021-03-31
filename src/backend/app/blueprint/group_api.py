@@ -10,6 +10,7 @@ from webargs.flaskparser import parser
 from model.Group import Group
 from model.GroupApplication import GroupApplication
 from model.GroupComment import GroupComment
+from model.GroupFavorite import GroupFavorite
 from shared import get_logger, db
 from utility import MyValidator
 from utility.ApiException import *
@@ -97,6 +98,10 @@ def get_group_list():
                     type: string
                     description: group uuid
                     example: b86a6406-14ca-4459-80ea-c0190fc43bd3
+                  favorite:
+                    type: bool
+                    description: whether the group is starred by the user
+                    example: true
                   name:
                     type: string
                     description: group name
@@ -157,6 +162,10 @@ def get_group_info(group_uuid):
             schema:
               type: object
               properties:
+                favorite:
+                  type: bool
+                  description: whether the group is starred by the user
+                  example: true
                 name:
                   type: string
                   description: group name
@@ -358,6 +367,106 @@ def merge_group():
                 type: string
                 description: the uuid of the target group to join
                 example: 16fc2db7-cac0-46c2-a0e3-2da6cec54abb
+
+    responses:
+      200:
+        description: query success
+        content:
+          application/json:
+            schema:
+              type: object
+    """
+    pass # TODO
+
+
+@group_api.route("/group/<group_uuid>/favorite", methods=["POST"])
+def favorite_group(group_uuid):
+    """Favorite a group
+    ---
+    tags:
+      - group
+
+    description: |
+
+    parameters:
+      - name: group_uuid
+        in: path
+        required: true
+        description: group uuid
+        schema:
+          type: string
+          example: 16fc2db7-cac0-46c2-a0e3-2da6cec54abb
+
+    responses:
+      200:
+        description: query success
+        content:
+          application/json:
+            schema:
+              type: object
+    """
+    pass # TODO
+
+@group_api.route("/group/<group_uuid>/favorite", methods=["DELETE"])
+def undo_favorite_group(group_uuid):
+    """Undo favorite a group
+        ---
+        tags:
+          - group
+
+        description: |
+
+        parameters:
+          - name: group_uuid
+            in: path
+            required: true
+            description: group uuid
+            schema:
+              type: string
+              example: 16fc2db7-cac0-46c2-a0e3-2da6cec54abb
+
+        responses:
+          200:
+            description: query success
+            content:
+              application/json:
+                schema:
+                  type: object
+        """
+    pass  # TODO
+
+@group_api.route("/group/<group_uuid>/comment", methods=["POST"])
+def add_comment(group_uuid):
+    """Add a comment to group
+    ---
+    tags:
+      - group
+
+    description: |
+      ## Constrains
+      * operator must be group member / group owner / admin
+
+    parameters:
+      - name: group_uuid
+        in: path
+        required: true
+        description: group uuid
+        schema:
+          type: string
+          example: 16fc2db7-cac0-46c2-a0e3-2da6cec54abb
+
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              content:
+                type: string
+                description: comment content
+                max: 4096
+                example: Good idea!
 
     responses:
       200:

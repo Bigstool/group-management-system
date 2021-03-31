@@ -7,6 +7,7 @@ from flask import Blueprint, request
 from webargs import fields, validate
 from webargs.flaskparser import parser
 
+from model.Group import Group
 from shared import get_logger, db
 from utility import MyValidator
 from utility.ApiException import *
@@ -144,8 +145,30 @@ def get_group_info(group_uuid):
                   type: string
                   description: group proposal
                   example: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque a ultricies diam. Donec ultrices tortor non lobortis mattis. Mauris euismod tellus ipsum, et porta mi scelerisque ac.
+                creator:
+                  type: object
+                  description: the user who created the group
+                  properties:
+                    alias:
+                      type: string
+                      example: Ming Li
+                    email:
+                      type: string
+                      example: Ming.Li@example.com
+                member:
+                  type: array
+                  items:
+                    type: object
+                    description: the user who has joined the group
+                    properties:
+                      alias:
+                        type: string
+                        example: Ming Li
+                      email:
+                        type: string
+                        example: Ming.Li@example.com
                 comment:
-                  type: list
+                  type: array
                   items:
                     type: object
                     properties:

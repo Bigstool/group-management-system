@@ -33,6 +33,14 @@ def create_application(group_uuid):
     tags:
       - application
 
+    description: |
+      ## Constrains
+      * operator must not have possessed group or joined group
+      * operator can have only one application for a group
+      * application can only be created if system state is GROUPING
+      * application can only be created if the group application_enabled=true
+      * application can only be created if the group member count < system max member per group settings
+
     requestBody:
       required: true
       content:
@@ -63,6 +71,10 @@ def get_application_list(group_uuid):
     ---
     tags:
       - application
+
+    description: |
+      ## Constrains
+      * operator must be group owner
 
     responses:
       200:
@@ -111,6 +123,13 @@ def update_application_info(application_uuid):
     ---
     tags:
       - application
+
+    description: |
+      ## Constrains
+      * operator must be group owner / applicant
+      * application state can be set to REVOKE if system state is GROUPING
+      * application can only be set to APPROVED if applicant has no other APPROVED application
+      * other PENDING applications of the applicant would be set to REVOKE if current application is APPROVED
 
     parameters:
       - name: application_uuid

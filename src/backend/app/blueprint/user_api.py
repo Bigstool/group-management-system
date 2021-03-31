@@ -103,6 +103,16 @@ def get_user_profile(user_uuid):
     ---
     tags:
       - user
+
+    parameters:
+      - name: user_uuid
+        in: path
+        required: true
+        description: user uuid
+        schema:
+          type: string
+          example: 16fc2db7-cac0-46c2-a0e3-2da6cec54abb
+
     responses:
       200:
         description: query success
@@ -145,6 +155,16 @@ def update_user_profile(user_uuid):
     ---
     tags:
       - user
+
+    parameters:
+      - name: user_uuid
+        in: path
+        required: true
+        description: user uuid
+        schema:
+          type: string
+          example: 16fc2db7-cac0-46c2-a0e3-2da6cec54abb
+
     requestBody:
       required: true
       content:

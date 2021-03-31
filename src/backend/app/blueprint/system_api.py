@@ -50,6 +50,10 @@ def get_sys_config():
                   description: state of current system
                   enum: ["GROUPING", "PROPOSING", "FINISHED"]
                   example: GROUPING
+                group_member_number:
+                  type: array
+                  description: range of group member
+                  example: [7, 9]
     """
     pass # TODO
 
@@ -84,5 +88,9 @@ def patch_sys_config():
                     description: state of current system
                     enum: ["GROUPING", "PROPOSING", "FINISHED"]
                     example: GROUPING
+                  group_member_number:
+                    type: array
+                    description: range of group member
+                    example: [7, 9]
     """
     pass # TODO

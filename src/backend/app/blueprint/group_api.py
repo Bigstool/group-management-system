@@ -33,6 +33,10 @@ def create_group():
     tags:
       - group
 
+    description: |
+      ## Constrains
+      * operator must have no created group or joined group
+
     requestBody:
       required: true
       content:
@@ -77,6 +81,8 @@ def get_group_list():
     tags:
       - group
 
+    description: |
+
     responses:
       200:
         description: query success
@@ -99,7 +105,7 @@ def get_group_list():
                     type: string
                     description: group description
                     example: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque a ultricies diam. Donec ultrices tortor non lobortis mattis. Mauris euismod tellus ipsum, et porta mi scelerisque ac.
-                  creator:
+                  owner:
                     type: object
                     description: the user who created the group
                     properties:
@@ -117,6 +123,10 @@ def get_group_list():
                     type: integer
                     description: count of joined members
                     example: 4
+                  application_enable:
+                    type: boolean
+                    description: whether this group accept new application
+                    example: true
     """
     pass # TODO
 
@@ -127,6 +137,8 @@ def get_group_info(group_uuid):
     ---
     tags:
       - group
+
+    description: |
 
     parameters:
       - name: group_uuid
@@ -157,7 +169,7 @@ def get_group_info(group_uuid):
                   type: string
                   description: group proposal
                   example: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque a ultricies diam. Donec ultrices tortor non lobortis mattis. Mauris euismod tellus ipsum, et porta mi scelerisque ac.
-                creator:
+                owner:
                   type: object
                   description: the user who created the group
                   properties:
@@ -167,6 +179,11 @@ def get_group_info(group_uuid):
                     email:
                       type: string
                       example: Ming.Li@example.com
+                proposal_submission:
+                  type: string
+                  description: state of group submission
+                  enum: ["PENDING", "SUBMITTED", "SUBMITTED_LATE"]
+                  example: PENDING
                 member:
                   type: array
                   items:
@@ -179,6 +196,10 @@ def get_group_info(group_uuid):
                       email:
                         type: string
                         example: Ming.Li@example.com
+                application_enabled:
+                  type: boolean
+                  description: whether this group accept new application
+                  example: true
                 comment:
                   type: array
                   items:
@@ -213,6 +234,20 @@ def update_group_info(group_uuid):
     tags:
       - group
 
+    description: |
+      ## Constrains
+      * operator must be group owner / admin
+      * if operator not admin, then name/description/proposal/owner_uuid/application_enabled can be changed if system state is GROUPING/PROPOSING and proposal_state is PENDING
+      * owner_uuid must be one of group member uuid
+
+      example state transition for submission:
+      ```
+      PENDING┬SUBMITTED┬APPROVED
+             │         └REJECTED─SUBMITTED─APPROVED
+             └SUBMITTED_LATE┬APPROVED_LATE
+                            └REJECT_LATE─SUBMITTED_LATE─APPROVED_LATE
+      ```
+
     parameters:
       - name: group_uuid
         in: path
@@ -231,17 +266,28 @@ def update_group_info(group_uuid):
             properties:
               name:
                   type: string
-                  description: group name
+                  description: new group name
                   example: Jaxzefalk
               description:
                 type: string
-                description: group description
-                example: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque a ultricies diam. Donec ultrices tortor non lobortis mattis. Mauris euismod tellus ipsum, et porta mi scelerisque ac.
+                description: new group description
+                example: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque a ultricies diam. Donec ultrices tortor non lobortis mattis.
+              owner_uuid:
+                type: string
+                description: new group owner uuid
               proposal:
                 type: string
-                description: group proposal
-                example: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque a ultricies diam. Donec ultrices tortor non lobortis mattis. Mauris euismod tellus ipsum, et porta mi scelerisque ac.
-
+                description: new group proposal
+                example: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque a ultricies diam. Donec ultrices tortor non lobortis mattis.
+              proposal_state:
+                type: string
+                description: new state of group submission
+                enum: ["PENDING", "SUBMITTED", "SUBMITTED_LATE", "APPROVED", "APPROVED_LATE", "REJECT", "REJECT_LATE"]
+                example: SUBMITTED
+              application_enabled:
+                type: boolean
+                description: whether this group accept new application
+                example: true
     responses:
       '200':
         description: query success
@@ -259,6 +305,11 @@ def delete_group(group_uuid):
     ---
     tags:
       - group
+
+    description: |
+      ## Constrains
+      * operator must be group owner / admin
+      * if operator not admin, then group can only be deleted if system state is GROUPING
 
     parameters:
       - name: group_uuid
@@ -286,6 +337,11 @@ def merge_group():
     ---
     tags:
       - group
+
+    description: |
+      ## Constrains
+      * operator must be group owner / admin
+      * if operator not admin, then group can only be merged if system state is GROUPING
 
     requestBody:
       required: true

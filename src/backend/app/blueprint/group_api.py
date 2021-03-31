@@ -8,6 +8,8 @@ from webargs import fields, validate
 from webargs.flaskparser import parser
 
 from model.Group import Group
+from model.GroupApplication import GroupApplication
+from model.GroupComment import GroupComment
 from shared import get_logger, db
 from utility import MyValidator
 from utility.ApiException import *

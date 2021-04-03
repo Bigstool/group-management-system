@@ -10,6 +10,7 @@ import {
 import App from './pages/App';
 import Login from './pages/Login';
 import NotFound from "./pages/404";
+import Admin from "./pages/Admin";
 
 
 ReactDOM.render((
@@ -24,6 +25,9 @@ ReactDOM.render((
         <Switch>
             <Route exact path="/">
                 <App/>
+            </Route>
+            <Route path="/lemon">
+                <Admin/>
             </Route>
             <Route path="/login">
                 <Login/>

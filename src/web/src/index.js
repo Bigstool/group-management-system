@@ -7,11 +7,9 @@ import {
     Switch,
     Route
 } from "react-router-dom";
-import App from './pages/App';
+import Home from './pages/Home';
 import Login from './pages/Login';
 import NotFound from "./pages/404";
-import Admin from "./pages/Admin";
-
 
 ReactDOM.render((
     <Router>
@@ -24,10 +22,7 @@ ReactDOM.render((
         */}
         <Switch>
             <Route exact path="/">
-                <App/>
-            </Route>
-            <Route path="/lemon">
-                <Admin/>
+                <Home/>
             </Route>
             <Route path="/login">
                 <Login/>

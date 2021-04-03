@@ -2,9 +2,11 @@ import React from 'react';
 import {Row, Col} from 'antd';
 import {Form, Input, Button, Checkbox} from 'antd';
 import {Card} from 'antd';
+import './Login.scss';
 
 export default class Login extends React.PureComponent {
     render() {
+
         const layout = {
             labelCol: {span: 8},
             wrapperCol: {span: 16},
@@ -21,7 +23,7 @@ export default class Login extends React.PureComponent {
             console.log('Failed:', errorInfo);
         };
         return (
-            <Row align="middle" justify="center" style={{minHeight: '100%'}}>
+            <Row className={"LoginForm"} align="middle" justify="center">
                 <Col>
                     <Card title={"Login"}>
                         <Form

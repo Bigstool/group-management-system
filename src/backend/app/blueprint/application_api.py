@@ -112,6 +112,10 @@ def get_group_application_list(group_uuid):
                     type: object
                     description: the user who created the group
                     properties:
+                      uuid:
+                        type: string
+                        description: user uuid
+                        example: b86a6406-14ca-4459-80ea-c0190fc43bd3
                       alias:
                         type: string
                         example: Ming Li
@@ -126,11 +130,6 @@ def get_group_application_list(group_uuid):
                     type: integer
                     description: group creation time, unix timestamp
                     example: 1617189103
-                  state:
-                    type: string
-                    description: current state of the application
-                    example: PENDING
-                    enum: ["PENDING", "APPROVED", "REJECTED", "REVOKED"]
     """
     pass  # TODO
 
@@ -171,6 +170,10 @@ def get_user_application_list(user_uuid):
                     type: object
                     description: the user who created the group
                     properties:
+                      uuid:
+                        type: string
+                        description: group uuid
+                        example: b86a6406-14ca-4459-80ea-c0190fc43bd3
                       name:
                         type: string
                         example: Jaxzefalk
@@ -185,37 +188,21 @@ def get_user_application_list(user_uuid):
                     type: integer
                     description: group creation time, unix timestamp
                     example: 1617189103
-                  state:
-                    type: string
-                    description: current state of the application
-                    example: PENDING
-                    enum: ["PENDING", "APPROVED", "REJECTED", "REVOKED"]
     """
     pass  # TODO
 
 
-@application_api.route("/application/<application_uuid>", methods=["PATCH"])
-def update_application_info(application_uuid):
-    """Update information of the application
+@application_api.route("/application/accepted", methods=["POST"])
+def accept_application():
+    """Accept the application
     ---
     tags:
       - application
 
     description: |
       ## Constrains
-      * operator must be group owner / applicant
-      * application state can be set to REVOKE if system state is GROUPING
-      * application can only be set to APPROVED if applicant has no other APPROVED application
-      * other PENDING applications of the applicant would be set to REVOKE if current application is APPROVED
-
-    parameters:
-      - name: application_uuid
-        in: path
-        required: true
-        description: application uuid
-        schema:
-          type: string
-          example: 16fc2db7-cac0-46c2-a0e3-2da6cec54abb
+      * operator must be the group owner
+      * application removed after the operation
 
     requestBody:
       required: true
@@ -224,15 +211,45 @@ def update_application_info(application_uuid):
           schema:
             type: object
             properties:
-              comment:
+              uuid:
                 type: string
-                description: application comment
-                example: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque a ultricies diam.
-              state:
+                description: application uuid
+                example: 16fc2db7-cac0-46c2-a0e3-2da6cec54abb
+
+    responses:
+      '200':
+        description: query success
+        content:
+          application/json:
+            schema:
+              type: object
+    """
+    pass  # TODO
+
+
+@application_api.route("/application/rejected", methods=["POST"])
+def reject_application():
+    """Reject the application
+    ---
+    tags:
+      - application
+
+    description: |
+      ## Constrains
+      * operator must be the group owner
+      * application removed after the operation
+
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              uuid:
                 type: string
-                description: application state
-                enum: ["PENDING", "APPROVED", "REJECTED", "REVOKED"]
-                example: PENDING
+                description: application uuid
+                example: 16fc2db7-cac0-46c2-a0e3-2da6cec54abb
 
     responses:
       '200':

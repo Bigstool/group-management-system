@@ -182,6 +182,10 @@ def get_group_info(group_uuid):
                   type: object
                   description: the user who created the group
                   properties:
+                    uuid:
+                      type: string
+                      description: user uuid
+                      example: 16fc2db7-cac0-46c2-a0e3-2da6cec54abb
                     alias:
                       type: string
                       example: Ming Li
@@ -199,6 +203,10 @@ def get_group_info(group_uuid):
                     type: object
                     description: the user who has joined the group
                     properties:
+                      uuid:
+                        type: string
+                        description: user uuid
+                        example: 16fc2db7-cac0-46c2-a0e3-2da6cec54abb
                       alias:
                         type: string
                         example: Ming Li
@@ -222,6 +230,10 @@ def get_group_info(group_uuid):
                         type: object
                         description: the user who made the comment
                         properties:
+                          uuid:
+                            type: string
+                            description: user uuid
+                            example: 16fc2db7-cac0-46c2-a0e3-2da6cec54abb
                           alias:
                             type: string
                             example: Ming Li
@@ -249,7 +261,7 @@ def update_group_info(group_uuid):
       * if operator not admin, then name/description/proposal/owner_uuid/application_enabled can be changed if system state is GROUPING/PROPOSING and proposal_state is PENDING
       * owner_uuid must be one of group member uuid
 
-      example state transition for submission:
+      example `proposal_state` transition for submission:
       ```
       PENDING┬SUBMITTED┬APPROVED
              │         └REJECTED─SUBMITTED─APPROVED
@@ -401,7 +413,7 @@ def merge_group():
                 type: string
                 description: the group uuid of whom to be merged
                 example: 16fc2db7-cac0-46c2-a0e3-2da6cec54abb
-              source_group_uuid:
+              target_group_uuid:
                 type: string
                 description: the uuid of the target group to join
                 example: 16fc2db7-cac0-46c2-a0e3-2da6cec54abb

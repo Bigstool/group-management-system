@@ -72,7 +72,7 @@ def create_group():
             schema:
               type: object
     """
-    pass # TODO
+    pass  # TODO
 
 
 @group_api.route("/group", methods=["GET"])
@@ -133,7 +133,7 @@ def get_group_list():
                     description: whether this group accept new application
                     example: true
     """
-    pass # TODO
+    pass  # TODO
 
 
 @group_api.route("/group/<group_uuid>", methods=["GET"])
@@ -233,7 +233,7 @@ def get_group_info(group_uuid):
                   description: group creation time, unix timestamp
                   example: 1617189103
     """
-    pass # TODO
+    pass  # TODO
 
 
 @group_api.route("/group/<group_uuid>", methods=["PATCH"])
@@ -305,7 +305,7 @@ def update_group_info(group_uuid):
             schema:
               type: object
     """
-    pass # TODO
+    pass  # TODO
 
 
 @group_api.route("/group/<group_uuid>", methods=["DELETE"])
@@ -325,6 +325,44 @@ def delete_group(group_uuid):
         in: path
         required: true
         description: group uuid
+        schema:
+          type: string
+          example: 16fc2db7-cac0-46c2-a0e3-2da6cec54abb
+
+    responses:
+      200:
+        description: query success
+        content:
+          application/json:
+            schema:
+              type: object
+    """
+    pass  # TODO
+
+
+@group_api.route("/group/<group_uuid>/member/<user_uuid>", methods=["DELETE"])
+def remove_member(group_uuid, user_uuid):
+    """Remove the member from group
+    ---
+    tags:
+      - group
+
+    description: |
+      ## Constrains
+      * operator must be the group member / group owner
+
+    parameters:
+      - name: group_uuid
+        in: path
+        required: true
+        description: group uuid
+        schema:
+          type: string
+          example: 16fc2db7-cac0-46c2-a0e3-2da6cec54abb
+      - name: user_uuid
+        in: path
+        required: true
+        description: user uuid
         schema:
           type: string
           example: 16fc2db7-cac0-46c2-a0e3-2da6cec54abb
@@ -376,7 +414,7 @@ def merge_group():
             schema:
               type: object
     """
-    pass # TODO
+    pass  # TODO
 
 
 @group_api.route("/group/<group_uuid>/favorite", methods=["POST"])
@@ -405,7 +443,8 @@ def favorite_group(group_uuid):
             schema:
               type: object
     """
-    pass # TODO
+    pass  # TODO
+
 
 @group_api.route("/group/<group_uuid>/favorite", methods=["DELETE"])
 def undo_favorite_group(group_uuid):
@@ -434,6 +473,7 @@ def undo_favorite_group(group_uuid):
                   type: object
         """
     pass  # TODO
+
 
 @group_api.route("/group/<group_uuid>/comment", methods=["POST"])
 def add_comment(group_uuid):
@@ -476,4 +516,4 @@ def add_comment(group_uuid):
             schema:
               type: object
     """
-    pass # TODO
+    pass  # TODO

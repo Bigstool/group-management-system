@@ -12,9 +12,11 @@ import Login from './pages/Login';
 import NotFound from "./pages/404";
 import {AuthProvider} from "./utilities/AuthProvider";
 import PrivateRoute from "./utilities/PrivateRoute";
+import HtmlHead from "./components/HtmlHead";
 
 ReactDOM.render((
     <AuthProvider>
+        <HtmlHead/>
         <Router>
             <Switch>
                 <PrivateRoute exact path="/">

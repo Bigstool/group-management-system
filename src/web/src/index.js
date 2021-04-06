@@ -1,4 +1,4 @@
-import './global';
+import './global.scss';
 import "antd/dist/antd.css";
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -13,8 +13,6 @@ import NotFound from "./pages/404";
 import {AuthProvider} from "./utilities/AuthProvider";
 import PrivateRoute from "./utilities/PrivateRoute";
 
-const app = document.createElement("div");
-document.body.appendChild(app);
 ReactDOM.render((
     <AuthProvider>
         <Router>
@@ -31,4 +29,4 @@ ReactDOM.render((
             </Switch>
         </Router>
     </AuthProvider>
-), app);
+), document.getElementById("react-app"));

@@ -181,17 +181,36 @@ def get_user_profile(user_uuid):
 
     user = User.query.filter_by(uuid=uuid.UUID(user_uuid).bytes).first()
 
-    # TODO raise ApiResourceNotFoundException if user not exists
-    # raise ApiResourceNotFoundException("Not found: invalid user uuid")
+    # TODO complete Leo
+    if user is None:
+        raise ApiResourceNotFoundException("Not found: invalid user uuid")
 
-    # TODO return created group / joined group
-
-    return MyResponse(data={
-        "alias": user.alias,
-        "email": user.email,
-        "bio": user.bio
-    }).build()
-
+    # TODO complete Leo
+    group =user.group
+    if group is None:
+        return MyResponse(data={
+            "alias": user.alias,
+            "email": user.email,
+            "bio": user.bio,
+            "created_group":None,
+            "joined_group:":None
+        }).build()
+    elif group.owner_uuid==user_uuid:
+        return MyResponse(data={
+            "alias": user.alias,
+            "email": user.email,
+            "bio": user.bio,
+            "created_group": {"uuid":group.uuid,"name":group.name, "description":group.description},
+            "joined_group:": None
+        }).build()
+    else:
+        return MyResponse(data={
+            "alias": user.alias,
+            "email": user.email,
+            "bio": user.bio,
+            "created_group": None,
+            "joined_group:": {"uuid": group.uuid, "name": group.name, "description": group.description}
+        }).build()
 
 @user_api.route("/user/<user_uuid>", methods=["PATCH"])
 def update_user_profile(user_uuid):

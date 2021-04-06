@@ -8,6 +8,7 @@ from webargs import fields, validate
 from webargs.flaskparser import parser
 
 from model.Group import Group
+from model.User import User
 from model.GroupApplication import GroupApplication
 from model.GroupComment import GroupComment
 from shared import get_logger, db
@@ -131,7 +132,29 @@ def get_group_application_list(group_uuid):
                     description: group creation time, unix timestamp
                     example: 1617189103
     """
-    pass  # TODO
+    # TODO complete Leo
+    args_query = parser.parse({
+        "group_uuid": fields.Str(required=True, validate=MyValidator.Uuid())
+    }, request, location="path")
+    group_uuid: str = args_query["group_uuid"]
+    group=Group.query.filter_by(uuid=uuid.UUID(group_uuid).bytes).first()
+    if group is None:
+        raise ApiResourceNotFoundException("No such group!")
+    token_info = Auth.get_payload(request)
+    uuid_in_token = token_info['uuid']
+    if uuid_in_token!=str(uuid.UUID(bytes=group.owner_uuid)):
+        raise ApiPermissionException("You are not the owner of this group!")
+    application_list= GroupApplication.query.filter_by(group_uuid=uuid.UUID(group_uuid).bytes).all()
+    response_list=[]
+    for application in application_list:
+        applicant = application.applicant
+        response_list.append({"applicant":{"alias":applicant.alias, "email":applicant.email, "uuid":str(uuid.UUID(bytes=applicant.uuid))},
+                              "comment":application.comment,"creation_time":application.creation_time,
+                              "uuid":str(uuid.UUID(bytes=application.uuid))})
+    return MyResponse(data=response_list, msg='query success').build()
+
+
+
 
 
 @application_api.route("/user/<user_uuid>/application", methods=["GET"])
@@ -142,7 +165,8 @@ def get_user_application_list(user_uuid):
       - application
 
     description: |
-      
+       ## Constrains
+      * operator must be himself
     parameters:
       - name: user_uuid
         in: path
@@ -189,7 +213,28 @@ def get_user_application_list(user_uuid):
                     description: group creation time, unix timestamp
                     example: 1617189103
     """
-    pass  # TODO
+    # TODO complete Leo
+    args_query = parser.parse({
+        "user_uuid": fields.Str(required=True, validate=MyValidator.Uuid())
+    }, request, location="path")
+    user_uuid: str = args_query["user_uuid"]
+    user=User.query.filter_by(uuid=uuid.UUID(user_uuid).bytes).first()
+    if user is None:
+        raise ApiResourceNotFoundException("No such user!")
+    token_info = Auth.get_payload(request)
+    uuid_in_token = token_info['uuid']
+    if uuid_in_token != user_uuid:
+        raise ApiPermissionException("You cannot view others' application!")
+    application_list = GroupApplication.query.filter_by(applicant_uuid=uuid.UUID(user_uuid).bytes).all()
+    response_list = []
+    for application in application_list:
+        applicant = application.applicant
+        response_list.append({"applicant": {"alias": applicant.alias, "email": applicant.email,
+                                            "uuid": str(uuid.UUID(bytes=applicant.uuid))},
+                              "comment": application.comment, "creation_time": application.creation_time,
+                              "uuid": str(uuid.UUID(bytes=application.uuid))})
+    return MyResponse(data=response_list, msg='query success').build()
+
 
 
 @application_api.route("/application/accepted", methods=["POST"])

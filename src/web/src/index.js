@@ -10,26 +10,25 @@ import {
 import Home from './pages/Home';
 import Login from './pages/Login';
 import NotFound from "./pages/404";
+import {AuthProvider} from "./utilities/AuthProvider";
+import PrivateRoute from "./utilities/PrivateRoute";
 
+const app = document.createElement("div");
+document.body.appendChild(app);
 ReactDOM.render((
-    <Router>
-        {/*
-          A <Switch> looks through all its children <Route>
-          elements and renders the first one whose path
-          matches the current URL. Use a <Switch> any time
-          you have multiple routes, but you want only one
-          of them to render at a time
-        */}
-        <Switch>
-            <Route exact path="/">
-                <Home/>
-            </Route>
-            <Route path="/login">
-                <Login/>
-            </Route>
-            <Route path="*">
-                <NotFound/>
-            </Route>
-        </Switch>
-    </Router>
-), document.body);
+    <AuthProvider>
+        <Router>
+            <Switch>
+                <PrivateRoute exact path="/">
+                    <Home/>
+                </PrivateRoute>
+                <Route path="/login">
+                    <Login/>
+                </Route>
+                <Route path="*">
+                    <NotFound/>
+                </Route>
+            </Switch>
+        </Router>
+    </AuthProvider>
+), app);

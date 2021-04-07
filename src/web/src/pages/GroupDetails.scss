@@ -1,0 +1,62 @@
+.head-margin{
+  margin: 0;
+  margin-top: 73.8px;
+}
+
+body .site-page-header {
+  border: 1px solid rgb(235, 237, 240);
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  z-index: 1;
+}
+
+.group-bar, .group-title, .group-short-description,
+.group-proposal, .group-comment-section, .group-members {
+  padding: 0px 24px;
+}
+
+.group-bar * {
+  margin: auto 0;
+}
+
+.group-bar .icon {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+}
+
+.group-bar .name {
+  display: inline-block;
+  font-size: 20px;
+  text-overflow: ellipsis; // overflow: hidden
+  margin-top: 4px;
+}
+
+.group-proposal .start-divider {
+
+}
+
+.group-proposal .end-divider {
+  margin-top: 16px;
+  margin-bottom: 4px;
+}
+
+.group-comment-section .comment .ant-comment-inner {
+  padding: 4px 0;
+}
+
+.group-comment-section .ant-divider-with-text.modified-since {
+  margin: 0 0;
+}
+
+.group-comment-section .ant-divider-inner-text {
+  color: rgba(0, 0, 0, 0.45);
+  font-size: 12px;
+}
+
+.bottom-margin {
+  margin: 0;
+  margin-top: 32px;
+}

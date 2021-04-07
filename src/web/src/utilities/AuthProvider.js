@@ -28,10 +28,18 @@ export class AuthProvider extends React.Component {
         this.checkUserToken()
     }
 
-
     /**
      * Get user object
-     * @returns {Object} if user logged in, return user object, else return null
+     * @typedef User
+     * @type {object}
+     * @property {string} uuid
+     * @property {string} role
+     * @property {string} accessToken
+     * @property {number} accessTokenExp
+     * @property {string} refreshToken
+     * @property {number} refreshTokenExp
+     *
+     * @returns {User|null} if user logged in, return user object, else return null
      */
     getUser() {
         return this.state.user;

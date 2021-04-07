@@ -18,14 +18,21 @@ module.exports = {
     module: {
         rules: [
             {
-                test: /\.(js|jsx)$/,
+                test: /\.(js|jsx|ts|tsx)$/,
                 exclude: /(node_modules|bower_components)/,
                 use: [
                     {
                         loader: "babel-loader",
                         options: {
-                            presets: ["@babel/preset-env", "@babel/preset-react"],
-                            plugins: ["@babel/plugin-proposal-class-properties"]
+                            presets: [
+                                "@babel/preset-env",
+                                "@babel/preset-typescript",
+                                "@babel/preset-react"
+                            ],
+                            plugins: [
+                                "@babel/plugin-proposal-class-properties",
+                                "@babel/plugin-transform-runtime"
+                            ]
                         }
                     }
                 ]
@@ -99,7 +106,10 @@ module.exports = {
         ]
     },
     resolve: {
-        extensions: ['.js', '.jsx', '.scss']
+        extensions: ['.ts', '.tsx', '.js', '.jsx', '.scss'],
+        fallback: {
+            "crypto": false
+        }
     },
     plugins: [
         new HtmlWebPackPlugin({

@@ -39,12 +39,14 @@ export class AuthProvider extends React.Component {
 
     /**
      * Check token expiration and refresh if needed
+     * Scheduled loop function
      */
     checkUserToken() {
+        let dispatched = false; // avoid set duplicate timeout
         const user = this.state.user;
         if (user && user["accessTokenExp"] < Date.now() / 1000 - TOKEN_EXPIRE_MARGIN) {  // access token expired
             if (user["refreshTokenExp"] > Date.now() / 1000) {  // refresh token not expired
-                // re-login use refresh token
+                dispatched = true;
                 axios({
                     url: API_URL + "/oauth2/refresh",
                     methods: "post",
@@ -57,12 +59,16 @@ export class AuthProvider extends React.Component {
                 }).catch(e => {
                     console.error(e);
                     this.logout();
+                }).finally(() => {
+                    setTimeout(this.checkUserToken, TOKEN_CHECK_INTERVAL * 1000);
                 });
             } else {    // refresh token expired
                 this.logout();
             }
         }
-        setTimeout(this.checkUserToken, TOKEN_CHECK_INTERVAL * 1000);
+        if (!dispatched) {
+            setTimeout(this.checkUserToken, TOKEN_CHECK_INTERVAL * 1000);
+        }
     }
 
     /**

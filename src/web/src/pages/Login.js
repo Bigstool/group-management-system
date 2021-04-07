@@ -11,14 +11,13 @@ export default class Login extends React.PureComponent {
     static contextType = AuthContext;
 
     render() {
-        // TODO redirect user if already logged in
+        // redirect user if already logged in
         if (this.context.user) {
             return <Redirect to={{pathname: "/"}}/>
         }
 
         const onFinish = (values) => {
-            let login_success = this.context.login();
-            console.log('Success:', values);
+            let login_success = this.context.login(values.email, values.password, values.remember);
         };
 
         const onFinishFailed = (errorInfo) => {

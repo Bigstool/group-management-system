@@ -3,65 +3,77 @@ import {Row, Col} from 'antd';
 import {Form, Input, Button, Checkbox} from 'antd';
 import {Card} from 'antd';
 import './Login.scss';
+import {AuthContext} from "../utilities/AuthProvider";
+import {Redirect} from "react-router-dom";
+import {Helmet} from "react-helmet";
 
 export default class Login extends React.PureComponent {
-    render() {
+    static contextType = AuthContext;
 
-        const layout = {
-            labelCol: {span: 8},
-            wrapperCol: {span: 16},
-        };
-        const tailLayout = {
-            wrapperCol: {offset: 8, span: 16},
-        };
+    render() {
+        // TODO redirect user if already logged in
+        if (this.context.user) {
+            return <Redirect to={{pathname: "/"}}/>
+        }
 
         const onFinish = (values) => {
+            let login_success = this.context.login();
             console.log('Success:', values);
         };
 
         const onFinishFailed = (errorInfo) => {
             console.log('Failed:', errorInfo);
         };
+
         return (
-            <Row className={"LoginForm"} align="middle" justify="center">
-                <Col>
-                    <Card title={"Login"}>
-                        <Form
-                            {...layout}
-                            name="basic"
-                            initialValues={{remember: true}}
-                            onFinish={onFinish}
-                            onFinishFailed={onFinishFailed}
-                        >
-                            <Form.Item
-                                label="E-mail"
-                                name="email"
-                                rules={[{required: true, message: 'Please input your e-mail!'}]}
+            <>
+                <Helmet>
+                    <title>GMS - Login</title>
+                </Helmet>
+                <Row className={"LoginForm"}
+                     align="middle"
+                     justify="center">
+                    <Col>
+                        <Card title={"Login"}>
+                            <Form labelCol={{span: 8}}
+                                  wrapperCol={{span: 16}}
+                                  name="basic"
+                                  initialValues={{remember: true}}
+                                  onFinish={onFinish}
+                                  onFinishFailed={onFinishFailed}
                             >
-                                <Input/>
-                            </Form.Item>
+                                <Form.Item label="E-mail"
+                                           name="email"
+                                           rules={[{required: true, message: 'Please input your e-mail!'}]}
+                                >
+                                    <Input/>
+                                </Form.Item>
 
-                            <Form.Item
-                                label="Password"
-                                name="password"
-                                rules={[{required: true, message: 'Please input your password!'}]}
-                            >
-                                <Input.Password/>
-                            </Form.Item>
+                                <Form.Item label="Password"
+                                           name="password"
+                                           rules={[{required: true, message: 'Please input your password!'}]}
+                                >
+                                    <Input.Password/>
+                                </Form.Item>
 
-                            <Form.Item {...tailLayout} name="remember" valuePropName="checked">
-                                <Checkbox>Remember me</Checkbox>
-                            </Form.Item>
+                                <Form.Item wrapperCol={{offset: 8, span: 16}}
+                                           name="remember"
+                                           valuePropName="checked">
+                                    <Checkbox>Remember me</Checkbox>
+                                </Form.Item>
 
-                            <Form.Item {...tailLayout}>
-                                <Button type="primary" htmlType="submit">
-                                    Login
-                                </Button>
-                            </Form.Item>
-                        </Form>
-                    </Card>
-                </Col>
-            </Row>
+                                <Form.Item wrapperCol={{offset: 8, span: 16}}>
+                                    <Button
+                                        type="primary"
+                                        htmlType="submit">
+                                        Login
+                                    </Button>
+                                </Form.Item>
+                            </Form>
+                        </Card>
+                    </Col>
+                </Row>
+            </>
         );
     }
 }

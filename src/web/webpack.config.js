@@ -24,7 +24,8 @@ module.exports = {
                     {
                         loader: "babel-loader",
                         options: {
-                            presets: ['@babel/preset-env', "@babel/preset-react"]
+                            presets: ["@babel/preset-env", "@babel/preset-react"],
+                            plugins: ["@babel/plugin-proposal-class-properties"]
                         }
                     }
                 ]
@@ -89,7 +90,7 @@ module.exports = {
                     {
                         loader: "file-loader",
                         options: {
-                            name: isDevelopment ? "[name].[ext]" : "[name].[hash].[ext]",
+                            name: isDevelopment ? "[name].[ext]" : "[name].[contenthash].[ext]",
                             outputPath: "assets/img"  //所有图片打包到 ./assets/img 目录
                         }
                     }
@@ -106,8 +107,8 @@ module.exports = {
             filename: "./index.html"
         }),
         new MiniCssExtractPlugin({
-            filename: isDevelopment ? '[name].css' : '[name].[hash].css',
-            chunkFilename: isDevelopment ? '[id].css' : '[id].[hash].css'
+            filename: isDevelopment ? '[name].css' : '[name].[contenthash].css',
+            chunkFilename: isDevelopment ? '[id].css' : '[id].[contenthash].css'
         })
     ]
 };

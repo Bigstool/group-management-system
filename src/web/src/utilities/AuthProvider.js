@@ -1,12 +1,16 @@
 import React from "react";
+import Storage from "./Storage";
 
 export const AuthContext = React.createContext();
 
 export class AuthProvider extends React.Component {
     constructor(props) {
         super(props);
-        // TODO: get user from local storage
-        this.state = { user: null };
+        // get user from local storage
+        this.state = {
+            user: JSON.parse(Storage.getItem("user"))
+        };
+        console.debug(`logged in as ${this.state.user.uuid}`);
         this.login = this.login.bind(this);
         this.logout = this.logout.bind(this);
     }
@@ -23,11 +27,17 @@ export class AuthProvider extends React.Component {
         // TODO: call login api
         // TODO: extract token
         // TODO: get user role
+        let user = {
+            "uuid": "",
+            "role": ""
+        }
+        // persist data
+        remember === true?
+            Storage.setLocalItem("user", JSON.stringify(user)) :
+            Storage.setSessionItem("user", JSON.stringify(user));
+        // update state
         this.setState({
-            user: {
-                "uuid": "",
-                "role": ""
-            }
+            user: user
         })
         return true;
     };

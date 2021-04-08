@@ -11,7 +11,7 @@ export default class PrivateRoute extends React.PureComponent {
             <Route
                 {...rest}
                 render={(props) => {
-                    return this.context.user === null ? (
+                    return (this.context.getUser() === null) ? (
                         <Redirect to={{
                             pathname: "/login",
                             state: {from: props.location}

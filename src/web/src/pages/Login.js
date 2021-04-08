@@ -10,20 +10,29 @@ import {Helmet} from "react-helmet";
 export default class Login extends React.PureComponent {
     static contextType = AuthContext;
 
+    constructor(props) {
+        super(props);
+        this.onFinish = this.onFinish.bind(this);
+        this.onFinishFailed = this.onFinishFailed.bind(this);
+    }
+
+    onFinish(values) {
+        try {
+            this.context.login(values.email, values.password, values.remember);
+        } catch (e) {
+
+        }
+    };
+
+    onFinishFailed(errorInfo) {
+        console.log('Failed:', errorInfo);
+    };
+
     render() {
-        // TODO redirect user if already logged in
-        if (this.context.user) {
+        // redirect user if already logged in
+        if (this.context.getUser() !== null) {
             return <Redirect to={{pathname: "/"}}/>
         }
-
-        const onFinish = (values) => {
-            let login_success = this.context.login();
-            console.log('Success:', values);
-        };
-
-        const onFinishFailed = (errorInfo) => {
-            console.log('Failed:', errorInfo);
-        };
 
         return (
             <>
@@ -39,8 +48,8 @@ export default class Login extends React.PureComponent {
                                   wrapperCol={{span: 16}}
                                   name="basic"
                                   initialValues={{remember: true}}
-                                  onFinish={onFinish}
-                                  onFinishFailed={onFinishFailed}
+                                  onFinish={this.onFinish}
+                                  onFinishFailed={this.onFinishFailed}
                             >
                                 <Form.Item label="E-mail"
                                            name="email"

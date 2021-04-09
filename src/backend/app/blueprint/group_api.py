@@ -74,7 +74,42 @@ def create_group():
             schema:
               type: object
     """
-    pass  # TODO
+    # check constrains
+    # system_state = SystemConfig.query.first().conf
+    # if system_state['system_state'] != "GROUPING":
+    #     raise ApiPermissionException("Permission denied: Grouping is finished, you cannot create a new group!")
+
+    args_json = parser.parse({
+        "name": fields.Str(required=True, validate=validate.Length(max=256)),
+        "description": fields.Str(required=True, validate=validate.Length(max=4096)),
+        "proposal": fields.Str(missing=None, validate=validate.Length(max=4096))
+    }, request, location="json")
+    name: str = args_json["name"].lower()
+    description: str = args_json["description"]
+    proposal: str = args_json["proposal"]
+
+    token_info = Auth.get_payload(request)
+    uuid_in_token = token_info['uuid']
+    if not (uuid_in_token == '0'):
+        user = User.query.filter_by(uuid=uuid.UUID(uuid_in_token).bytes).first()
+        # user_group = user.group
+        if user.group_id is not None:
+            raise ApiPermissionException(f'Permission denied: you are in group {user.group_id}, you cannot create a new group!')
+
+    # create a new group
+    new_group = Group(uuid=uuid.uuid4().bytes,
+                      name=name,
+                      description=description,
+                      proposal=proposal,
+                      proposal_state='PENDING',
+                      creation_time=int(time.time()),
+                      owner_uuid=uuid.UUID(uuid_in_token).bytes)
+    # update User db
+    user.group_id = new_group.uuid
+
+    db.session.add(new_group)
+    db.session.commit()
+    return MyResponse(data=None).build()
 
 
 @group_api.route("/group", methods=["GET"])
@@ -135,7 +170,23 @@ def get_group_list():
                     description: whether this group accept new application
                     example: true
     """
-    pass  # TODO
+    data = Group.query.all()
+    data_list = []
+    for group in data:
+        if GroupFavorite.query.filter_by(uuid=group.uuid):
+            favorite = True
+        else:
+            favorite = False
+        user = User.query.filter_by(uuid=group.owner_uuid).first()
+        data_list.append({"uuid": str(uuid.UUID(bytes=group.uuid)),
+                         "favorite": favorite,
+                          "name": group.name,
+                          "description": group.description,
+                          "owner": {"alias": user.alias, "email": user.email},
+                          "creation_time": group.creation_time, "member_count": group.member_num,
+                          "application_enabled": group.application_enabled})
+
+    return MyResponse(data=data_list).build()
 
 
 @group_api.route("/group/<group_uuid>", methods=["GET"])
@@ -247,7 +298,55 @@ def get_group_info(group_uuid):
                   description: group creation time, unix timestamp
                   example: 1617189103
     """
-    pass  # TODO
+    args_query = parser.parse({
+        "group_uuid": fields.Str(required=True, validate=MyValidator.Uuid())}, request, location="path")
+    group_uuid: str = args_query["group_uuid"]
+
+    group = Group.query.filter_by(uuid=uuid.UUID(group_uuid).bytes).first()
+    if group is None:
+        raise ApiResourceNotFoundException('Not found: No such group!')
+
+    # favorite info
+    token_info = Auth.get_payload(request)
+    uuid_in_token = token_info['uuid']
+    favorite_group_list = GroupFavorite.query.filter_by(user_uuid=uuid.UUID(uuid_in_token).bytes).all()
+    favorite = False
+    for fav_group in favorite_group_list:
+        if fav_group.group_uuid == group.uuid:
+            favorite = True
+            break
+
+    # owner info
+    owner = User.query.filter_by(uuid=group.owner_uuid).first()
+
+    # member_list info
+    members = User.query.filter_by(group_id=group.uuid).all()
+    member_list = []
+    for member in members:
+        member_list.append({'uuid': str(uuid.UUID(bytes=member.uuid)), 'alias': member.alias, 'email': member.email})
+
+    # comment info
+    comments = GroupComment.query.filter_by(group_uuid=group.uuid).all()
+    comment_list = []
+    for comment in comments:
+        author = User.query.filter_by(uuid=comment.author_uuid).first()
+        comment_list.append({'content': comment.content,
+                             'author': {'uuid': str(uuid.UUID(bytes=author.uuid)), 'alias': author.alias, 'email': author.email},
+                             'creation_time': comment.creation_time})
+
+    return MyResponse(data={
+        "favorite": favorite,
+        "name": group.name,
+        "description": group.description,
+        "proposal": group.proposal,
+        "owner": {'uuid': str(uuid.UUID(bytes=group.owner_uuid)), 'alias': owner.alias, 'email': owner.email},
+        "proposal_submission:": group.proposal_state,
+        "member:": member_list,
+        "application_enabled": group.application_enabled,
+        "comment": comment_list,
+        "creation_time": group.creation_time
+    }).build()
+
 
 
 @group_api.route("/group/<group_uuid>", methods=["PATCH"])
@@ -331,7 +430,7 @@ def update_group_info(group_uuid):
         "proposal_state":fields.Str(missing=None, validate=validate.OneOf(["PENDING", "SUBMITTED", "SUBMITTED_LATE", "APPROVED", "APPROVED_LATE", "REJECT", "REJECT_LATE"])),
         "application_enabled":fields.Boolean(missing=None)
     }, request, location="json")
-    group_uuid:str=args_path["group_uuid"]
+    group_uuid: str = args_path["group_uuid"]
     new_name: str = args_json["name"]
     new_description: str = args_json["description"]
     new_owner_uuid: str = args_json["owner_uuid"]
@@ -512,7 +611,22 @@ def favorite_group(group_uuid):
             schema:
               type: object
     """
-    pass  # TODO
+    # add a error report?
+    args_query = parser.parse({
+        "group_uuid": fields.Str(required=True, validate=MyValidator.Uuid())}, request, location="path")
+    group_uuid: str = args_query["group_uuid"]
+
+    token_info = Auth.get_payload(request)
+    uuid_in_token = token_info['uuid']
+    user = User.query.filter_by(uuid=uuid.UUID(uuid_in_token).bytes).first()
+
+    new_favorite = GroupFavorite(uuid=uuid.uuid4().bytes,
+                                 user_uuid=user.uuid,
+                                 group_uuid=uuid.UUID(group_uuid).bytes)
+
+    db.session.add(new_favorite)
+    db.session.commit()
+    return MyResponse(data=None).build()
 
 
 @group_api.route("/group/<group_uuid>/favorite", methods=["DELETE"])
@@ -541,7 +655,25 @@ def undo_favorite_group(group_uuid):
                 schema:
                   type: object
         """
-    pass  # TODO
+    token_info = Auth.get_payload(request)
+    uuid_in_token = token_info["uuid"]
+
+    args_query = parser.parse({
+        "group_uuid": fields.Str(required=True, validate=MyValidator.Uuid())}, request, location="path")
+    group_uuid: str = args_query["group_uuid"]
+
+    favorite_groups_by_user = GroupFavorite.query.filter_by(user_uuid=uuid.UUID(uuid_in_token).bytes).all()
+    undo_group = None
+    for group in favorite_groups_by_user:
+        if group.group_uuid == uuid.UUID(group_uuid).bytes:
+            undo_group = group
+    if undo_group is None:
+        raise ApiResourceNotFoundException("Not found: you cannot undo the favorite to this group!")
+
+    db.session.delete(undo_group)
+    db.session.commit()
+
+    return MyResponse(data=None).build()
 
 
 @group_api.route("/group/<group_uuid>/comment", methods=["POST"])
@@ -585,4 +717,27 @@ def add_comment(group_uuid):
             schema:
               type: object
     """
-    pass  # TODO
+    token_info = Auth.get_payload(request)
+    uuid_in_token = token_info['uuid']
+    user = User.query.filter_by(uuid=uuid.UUID(uuid_in_token).bytes).first()
+
+    args_query = parser.parse({
+        "group_uuid": fields.Str(required=True, validate=MyValidator.Uuid())}, request, location="path")
+    group_uuid: str = args_query["group_uuid"]
+
+    if user.group_id == uuid.UUID(group_uuid).bytes or uuid_in_token == '0':  # admin separately?
+        args_json = parser.parse({
+            "content": fields.Str(required=True, validate=validate.Length(max=4096))}, request, location="json")
+        content: str = args_json["content"]
+
+        new_comment = GroupComment(uuid=uuid.uuid4().bytes,
+                                   creation_time=int(time.time()),
+                                   author_uuid=user.uuid,
+                                   group_uuid=user.group_id,
+                                   content=content)
+        db.session.add(new_comment)
+        db.session.commit()
+    else:
+        raise ApiPermissionException("Permission denied: you cannot make a comment!")
+
+    return MyResponse(data=None).build()

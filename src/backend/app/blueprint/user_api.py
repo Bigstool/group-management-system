@@ -80,10 +80,10 @@ def create_user():
     alias: str = args_json["alias"]
     password: str = args_json["password"]
 
-    # limit access to admin only
-    user_info = Auth.get_payload(request)
-    if user_info["uuid"] != "0":
-        raise ApiPermissionException("Permission denied: not logged in as admin")
+    # # limit access to admin only
+    # user_info = Auth.get_payload(request)
+    # if user_info["uuid"] != "0":
+    #     raise ApiPermissionException("Permission denied: not logged in as admin")
 
     # check duplicate email
     old_user = User.query.filter_by(email=email).first()
@@ -187,6 +187,7 @@ def get_user_profile(user_uuid):
 
     # TODO complete Leo
     group =user.group
+
     if group is None:
         return MyResponse(data={
             "alias": user.alias,
@@ -195,12 +196,12 @@ def get_user_profile(user_uuid):
             "created_group":None,
             "joined_group:":None
         }).build()
-    elif group.owner_uuid==user_uuid:
+    elif group.owner_uuid==uuid.UUID(user_uuid).bytes:
         return MyResponse(data={
             "alias": user.alias,
             "email": user.email,
             "bio": user.bio,
-            "created_group": {"uuid":group.uuid,"name":group.name, "description":group.description},
+            "created_group": {"uuid":str(uuid.UUID(bytes=group.uuid)),"name":group.name, "description":group.description},
             "joined_group:": None
         }).build()
     else:

@@ -1,26 +1,22 @@
 # CPT202_GMS
 Official repository of the CPT202 Group Management System
 
-## Learning roadmap
+## Changes made
 
-### Backend
+* `role` field added to `User` model, values: enum("ADMIN", "USER")
 
-* RESTful API design
-* JWT
-* Flask
-    * Routing with blueprint
-    * Middleware
-    * Validation and sanitizing with `webargs`
-    * MySQL driver `python-mysql-connector`
-* MySQL basics
-    * CURD
-    * LEFT JOIN, INNER JOIN
-    * UUID_TO_BIN(), BIN_TO_UUID()
-    
-### Web
+## Task
 
-* NodeJS with nvm
-* React setup with webpack
-* JSX syntax
-* css flavor less/scss/sass
-* React basics
+[] Insert dummy data (TODO)
+
+[] Implement semester
+
+A `semester` string field must be added to each object, with default value `CURRENT`. 
+
+When archived by admin, all semester field of objects with value `CURRENT` must be changed to the admin defined keyword. 
+
+Add a filter `semester` to API `GET /group`
+
+Return the list of archived semester keywords in system API
+
+If semester of the user not `CURRENT`, disallow login. 

@@ -38,6 +38,7 @@ def create_group():
 
     description: |
       ## Constrains
+      * operator must be user
       * operator must have no created group or joined group
 
     requestBody:
@@ -90,12 +91,17 @@ def create_group():
 
     token_info = Auth.get_payload(request)
     uuid_in_token = token_info['uuid']
-    if not (uuid_in_token == '0'):
-        user = User.query.filter_by(uuid=uuid.UUID(uuid_in_token).bytes).first()
-        # user_group = user.group
-        if user.group_id is not None:
-            raise ApiPermissionException(
-                f'Permission denied: you are in group {user.group_id}, you cannot create a new group!')
+
+    if token_info["role"] == "ADMIN":
+        raise ApiPermissionException(
+            f"Permission denied: must logged in as USER"
+        )
+
+    user = User.query.filter_by(uuid=uuid.UUID(uuid_in_token).bytes).first()
+    # user_group = user.group
+    if user.group_id is not None:
+        raise ApiPermissionException(
+            f'Permission denied: you are in group {user.group_id}, you cannot create a new group!')
 
     # create a new group
     new_group = Group(uuid=uuid.uuid4().bytes,
@@ -450,7 +456,7 @@ def update_group_info(group_uuid):
     system_state = SystemConfig.query.first().conf
     token_info = Auth.get_payload(request)
     uuid_in_token = token_info['uuid']
-    if not (uuid_in_token == '0' or uuid_in_token == str(uuid.UUID(bytes=group.owner_uuid))):
+    if not (token_info["role"] == "ADMIN" or uuid_in_token == str(uuid.UUID(bytes=group.owner_uuid))):
         raise ApiPermissionException("You have no permission to update information of this group!")
     if uuid_in_token == str(uuid.UUID(bytes=group.owner_uuid)):
         if not (system_state['system_state'] == "GROUPING" or system_state['system_state'] == "PROPOSING"):
@@ -732,19 +738,20 @@ def add_comment(group_uuid):
         "group_uuid": fields.Str(required=True, validate=MyValidator.Uuid())}, request, location="path")
     group_uuid: str = args_query["group_uuid"]
 
-    if user.group_id == uuid.UUID(group_uuid).bytes or uuid_in_token == '0':  # admin separately?
-        args_json = parser.parse({
-            "content": fields.Str(required=True, validate=validate.Length(max=4096))}, request, location="json")
-        content: str = args_json["content"]
+    if user.group_id != uuid.UUID(group_uuid).bytes and token_info["role"] != "ADMIN":
+        raise ApiPermissionException(
+            "Permission denied: you must be admin, group owner or group member to make a comment")
 
-        new_comment = GroupComment(uuid=uuid.uuid4().bytes,
-                                   creation_time=int(time.time()),
-                                   author_uuid=user.uuid,
-                                   group_uuid=user.group_id,
-                                   content=content)
-        db.session.add(new_comment)
-        db.session.commit()
-    else:
-        raise ApiPermissionException("Permission denied: you cannot make a comment!")
+    args_json = parser.parse({
+        "content": fields.Str(required=True, validate=validate.Length(max=4096))}, request, location="json")
+    content: str = args_json["content"]
+
+    new_comment = GroupComment(uuid=uuid.uuid4().bytes,
+                               creation_time=int(time.time()),
+                               author_uuid=user.uuid,
+                               group_uuid=user.group_id,
+                               content=content)
+    db.session.add(new_comment)
+    db.session.commit()
 
     return MyResponse(data=None).build()

@@ -166,7 +166,7 @@ def get_user_application_list(user_uuid):
 
     description: |
        ## Constrains
-      * operator must be himself
+       * operator must be himself
     parameters:
       - name: user_uuid
         in: path

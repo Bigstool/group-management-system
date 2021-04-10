@@ -43,7 +43,7 @@ def get_sys_config():
               properties:
                 semester_id:
                   type: array
-                  item:
+                  items:
                     type: string
                     description: id of current semester
                     example: 2021-S1

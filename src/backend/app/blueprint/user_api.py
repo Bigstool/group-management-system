@@ -82,7 +82,7 @@ def create_user():
 
     # # limit access to admin only
     # user_info = Auth.get_payload(request)
-    # if user_info["uuid"] != "0":
+    # if user_info["role"] != "ADMIN":
     #     raise ApiPermissionException("Permission denied: not logged in as admin")
 
     # check duplicate email

@@ -246,11 +246,18 @@ def get_group_info(group_uuid):
                     email:
                       type: string
                       example: Ming.Li@example.com
-                proposal_submission:
+                proposal_state:
                   type: string
                   description: state of group submission
-                  enum: ["PENDING", "SUBMITTED", "SUBMITTED_LATE"]
+                  enum: ["PENDING", "SUBMITTED", "APPROVED", "REJECT"]
                   example: PENDING
+                proposal_late:
+                  type: number
+                  description: |
+                    timestamp(latest PENDING -> COMMIT operation) - timestamp(GROUPING DDL)
+                    negative number is possible because of submitted prior to the DDL
+                    unit: second
+                  example: 7485
                 member:
                   type: array
                   items:
@@ -362,14 +369,7 @@ def update_group_info(group_uuid):
       * operator must be group owner / admin
       * if operator not admin, then name/description/proposal/owner_uuid/application_enabled can be changed if system state is GROUPING/PROPOSING and proposal_state is PENDING
       * owner_uuid must be one of group member uuid
-
-      example `proposal_state` transition for submission:
-      ```
-      PENDING┬SUBMITTED┬APPROVED
-             │         └REJECTED─SUBMITTED─APPROVED
-             └SUBMITTED_LATE┬APPROVED_LATE
-                            └REJECT_LATE─SUBMITTED_LATE─APPROVED_LATE
-      ```
+      * refer to late-submission-states.jpg in /docs for proposal_state constrains
 
     parameters:
       - name: group_uuid
@@ -405,7 +405,7 @@ def update_group_info(group_uuid):
               proposal_state:
                 type: string
                 description: new state of group submission
-                enum: ["PENDING", "SUBMITTED", "SUBMITTED_LATE", "APPROVED", "APPROVED_LATE", "REJECT", "REJECT_LATE"]
+                enum: ["PENDING", "SUBMITTED", "APPROVED", "REJECT"]
                 example: SUBMITTED
               application_enabled:
                 type: boolean
@@ -429,7 +429,7 @@ def update_group_info(group_uuid):
         "owner_uuid": fields.Str(missing=None, validate=validate.Length(max=50)),
         "proposal": fields.Str(missing=None, validate=validate.Length(max=2000)),
         "proposal_state": fields.Str(missing=None, validate=validate.OneOf(
-            ["PENDING", "SUBMITTED", "SUBMITTED_LATE", "APPROVED", "APPROVED_LATE", "REJECT", "REJECT_LATE"])),
+            ["PENDING", "SUBMITTED", "APPROVED", "REJECT"])),
         "application_enabled": fields.Boolean(missing=None)
     }, request, location="json")
     group_uuid: str = args_path["group_uuid"]

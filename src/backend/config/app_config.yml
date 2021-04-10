@@ -2,7 +2,7 @@ application_root: ""
 cors: true
 log_level: "DEBUG"
 listen_port: 8080
-admin_username: superuser
+admin_username: superuser@test.com
 admin_password: resurepus
 
 # jwt

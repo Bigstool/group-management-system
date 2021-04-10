@@ -1,6 +1,10 @@
+import hmac
 import os
+import secrets
 import time
 import traceback
+import uuid
+from hashlib import sha1
 
 from flasgger import Swagger
 from flask import Flask, request, g
@@ -12,6 +16,7 @@ from blueprint.group_api import group_api
 from blueprint.notification_api import notification_api
 from blueprint.system_api import system_api
 from blueprint.user_api import user_api
+from model.User import User
 from shared import config, get_logger, db
 from utility.ApiException import ApiException
 from utility.MyResponse import MyResponse
@@ -77,7 +82,24 @@ db.init_app(app)
 
 # init database
 with app.app_context():
-    db.create_all() # create if table not exists
+    db.create_all()  # create if table not exists
+    # if user table empty
+    if not User.query.first():
+        logger.warning("Empty table, create admin")
+        # insert admin
+        password_sha1 = sha1(config["admin_password"].encode()).hexdigest()
+        password_salt = secrets.token_bytes(16)
+        password_hash = hmac.new(password_salt, bytes.fromhex(password_sha1), "sha1").digest()
+        admin_user = User(uuid=uuid.uuid4().bytes,
+                          email=config["admin_username"],
+                          alias="Admin",
+                          password_salt=password_salt,
+                          password_hash=password_hash,
+                          creation_time=int(time.time()),
+                          role="ADMIN")
+        db.session.add(admin_user)
+        db.session.commit()
+        # TODO insert dummy data
 
 # Swagger docs
 swagger_config = {

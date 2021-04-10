@@ -7,9 +7,9 @@ Official repository of the CPT202 Group Management System
 
 ## Task
 
-[] Insert dummy data (TODO)
+- [ ] Insert dummy data (TODO)
 
-[] Implement semester
+- [ ] Implement semester
 
 A `semester` string field must be added to each object, with default value `CURRENT`. 
 

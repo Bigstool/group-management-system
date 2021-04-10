@@ -100,6 +100,17 @@ with app.app_context():
         db.session.add(admin_user)
         db.session.commit()
         # TODO insert dummy data
+        # ----------------------
+        # Groups
+        # - Group A with name, title, description, proposal and some comments
+        # - Group B with name, title, description and proposal
+        #
+        # Users
+        # - User 1: a group owner of group A
+        # - User 2: A member of group A
+        # - User 3: A group owner of group B
+        # - User 4: A member of group B
+        # - User 5: A student that does not belong to any group
 
 # Swagger docs
 swagger_config = {

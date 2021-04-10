@@ -42,9 +42,11 @@ def get_sys_config():
               type: object
               properties:
                 semester_id:
-                  type: string
-                  description: id of current semester
-                  example: 2021S1
+                  type: array
+                  item:
+                    type: string
+                    description: id of current semester
+                    example: 2021-S1
                 system_state:
                   type: string
                   description: state of current system
@@ -55,7 +57,7 @@ def get_sys_config():
                   description: range of group member
                   example: [7, 9]
     """
-    pass # TODO
+    pass  # TODO
 
 
 @system_api.route("/sysconfig", methods=["PATCH"])
@@ -63,34 +65,34 @@ def patch_sys_config():
     """Get list of group
     ---
     tags:
-      - system
+     - system
 
     description: |
-      ## Constrains
-      * operator must be admin
+     ## Constrains
+     * operator must be admin
 
     responses:
-      200:
-        description: query success
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                type: object
-                properties:
-                  semester_id:
-                    type: string
-                    description: id of current semester
-                    example: 2021S1
-                  system_state:
-                    type: string
-                    description: state of current system
-                    enum: ["GROUPING", "PROPOSING", "FINISHED"]
-                    example: GROUPING
-                  group_member_number:
-                    type: array
-                    description: range of group member
-                    example: [7, 9]
-    """
-    pass # TODO
+     200:
+       description: query success
+       content:
+         application/json:
+           schema:
+             type: array
+             items:
+               type: object
+               properties:
+                 semester_id:
+                   type: string
+                   description: id of current semester
+                   example: 2021S1
+                 system_state:
+                   type: string
+                   description: state of current system
+                   enum: ["GROUPING", "PROPOSING", "FINISHED"]
+                   example: GROUPING
+                 group_member_number:
+                   type: array
+                   description: range of group member
+                   example: [7, 9]
+   """
+    pass  # TODO

@@ -11,7 +11,7 @@ user_email = "test@local.com"
 user_alias = "Tech Staff"
 user_password = "123123"
 user_bio = "Lorem ipsum"
-admin_username = "superuser"
+admin_username = "superuser@test.com"
 admin_password = "resurepus"
 
 
@@ -20,8 +20,7 @@ def test_admin_sign_in():
     r = requests.post(f"{api}/oauth2/token", data={
         "grant_type": "password",
         "username": admin_username,
-        "password": sha1(admin_password.encode()).hexdigest(),
-        "scope": "ADMIN"
+        "password": sha1(admin_password.encode()).hexdigest()
     })
     assert r.status_code == 200
     user_token_access = r.json()["data"]["access_token"]
@@ -50,8 +49,7 @@ def test_user_sign_in():
     r = requests.post(f"{api}/oauth2/token", data={
         "grant_type": "password",
         "username": user_email,
-        "password": sha1(user_password.encode()).hexdigest(),
-        "scope": "USER"
+        "password": sha1(user_password.encode()).hexdigest()
     })
     assert r.status_code == 200
     user_token_access = r.json()["data"]["access_token"]

@@ -41,17 +41,18 @@ def get_sys_config():
             schema:
               type: object
               properties:
-                semester_id:
-                  type: array
-                  items:
-                    type: string
-                    description: id of current semester
-                    example: 2021-S1
                 system_state:
-                  type: string
-                  description: state of current system
-                  enum: ["GROUPING", "PROPOSING", "FINISHED"]
-                  example: GROUPING
+                  type: object
+                  description: important time of current system
+                  properties:
+                    grouping_ddl:
+                      type: number
+                      description: timestamp of grouping
+                      example: 1618054160
+                    proposing_ddl:
+                      type: number
+                      description: timestamp of proposing
+                      example: 1618054160
                 group_member_number:
                   type: array
                   description: range of group member
@@ -81,15 +82,18 @@ def patch_sys_config():
              items:
                type: object
                properties:
-                 semester_id:
-                   type: string
-                   description: id of current semester
-                   example: 2021S1
                  system_state:
-                   type: string
-                   description: state of current system
-                   enum: ["GROUPING", "PROPOSING", "FINISHED"]
-                   example: GROUPING
+                   type: object
+                   description: important time of current system
+                   properties:
+                     grouping_ddl:
+                       type: number
+                       description: timestamp of grouping
+                       example: 1618054160
+                     proposing_ddl:
+                       type: number
+                       description: timestamp of proposing
+                       example: 1618054160
                  group_member_number:
                    type: array
                    description: range of group member

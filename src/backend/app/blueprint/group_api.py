@@ -254,8 +254,12 @@ def get_group_info(group_uuid):
                 proposal_late:
                   type: number
                   description: |
+                    late submission duration in seconds
+
                     timestamp(latest PENDING -> COMMIT operation) - timestamp(GROUPING DDL)
+
                     negative number is possible because of submitted prior to the DDL
+                    
                     unit: second
                   example: 7485
                 member:

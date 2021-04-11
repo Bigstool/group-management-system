@@ -1,11 +1,18 @@
 import React from 'react';
-import {Row, Col} from 'antd';
+import {Row, Col, Alert} from 'antd';
 import {Form, Input, Button, Checkbox} from 'antd';
+import {LockOutlined, MailOutlined} from '@ant-design/icons';
 import {Card} from 'antd';
 import './Login.scss';
 import {AuthContext} from "../utilities/AuthProvider";
 import {Redirect} from "react-router-dom";
 import {Helmet} from "react-helmet";
+
+const ERROR = {
+    WRONG_PASSWORD: 0,
+    INTERNAL_ERROR: 1,
+    NETWORK_ISSUE: 2
+}
 
 export default class Login extends React.PureComponent {
     static contextType = AuthContext;
@@ -13,26 +20,54 @@ export default class Login extends React.PureComponent {
     constructor(props) {
         super(props);
         this.onFinish = this.onFinish.bind(this);
-        this.onFinishFailed = this.onFinishFailed.bind(this);
+        this.onInputChange = this.onInputChange.bind(this);
+        this.state = {
+            "login": false,
+            "error": null
+        }
     }
 
-    onFinish(values) {
+    async onFinish(values) {
+        this.setState({
+            "login": true,
+            "error": null
+        });
         try {
-            this.context.login(values.email, values.password, values.remember);
+            await this.context.login(values.email, values.password, values.remember);
         } catch (e) {
-            // TODO
+            if (e.response && e.response.status === 403) {
+                this.setState({
+                    "error": ERROR.WRONG_PASSWORD
+                });
+            } else if (e.response && e.response.status >= 500) {
+                this.setState({
+                    "error": ERROR.INTERNAL_ERROR
+                });
+            } else {
+                this.setState({
+                    "error": ERROR.NETWORK_ISSUE
+                });
+            }
+        } finally {
+            this.setState({
+                "login": false
+            })
         }
     };
 
-    onFinishFailed(errorInfo) {
-        console.log('Failed:', errorInfo);
-    };
+    onInputChange() {
+        this.setState({
+            "error": null
+        })
+    }
 
     render() {
         // redirect user if already logged in
         if (this.context.getUser() !== null) {
             return <Redirect to={{pathname: "/"}}/>
         }
+
+        const error = this.state["error"]
 
         return (
             <>
@@ -43,39 +78,58 @@ export default class Login extends React.PureComponent {
                      align="middle"
                      justify="center">
                     <Col>
-                        <Card title={"Login"}>
-                            <Form labelCol={{span: 8}}
-                                  wrapperCol={{span: 16}}
-                                  name="basic"
-                                  initialValues={{remember: true}}
-                                  onFinish={this.onFinish}
-                                  onFinishFailed={this.onFinishFailed}
+                        <Card title={"Login to GMS"}>
+                            {error !== null &&
+                            <>
+                                <Alert message={
+                                    error === ERROR.WRONG_PASSWORD && "Wrong username or password" ||
+                                    error === ERROR.INTERNAL_ERROR && "Server error" ||
+                                    error === ERROR.NETWORK_ISSUE && "Network problem"
+                                } type="error" showIcon/>
+                                <br/>
+                            </>}
+                            <Form
+                                name="normal_login"
+                                className="login-form"
+                                initialValues={{remember: true}}
+                                onFinish={this.onFinish}
                             >
-                                <Form.Item label="E-mail"
-                                           name="email"
-                                           rules={[{required: true, message: 'Please input your e-mail!'}]}
+                                <Form.Item
+                                    name="email"
+                                    rules={[{required: true, message: 'Please input your Username!'}]}
                                 >
-                                    <Input/>
+                                    <Input prefix={<MailOutlined/>}
+                                           placeholder="Email"
+                                           onChange={this.onInputChange}/>
                                 </Form.Item>
-
-                                <Form.Item label="Password"
-                                           name="password"
-                                           rules={[{required: true, message: 'Please input your password!'}]}
+                                <Form.Item
+                                    name="password"
+                                    rules={[{required: true, message: 'Please input your Password!'}]}
                                 >
-                                    <Input.Password/>
+                                    <Input
+                                        prefix={<LockOutlined/>}
+                                        type="password"
+                                        placeholder="Password"
+                                        onChange={this.onInputChange}
+                                    />
+                                </Form.Item>
+                                <Form.Item>
+                                    <Form.Item name="remember" valuePropName="checked" noStyle>
+                                        <Checkbox>Remember me</Checkbox>
+                                    </Form.Item>
+
+                                    <a href=""
+                                       hidden={true}>
+                                        Forgot password
+                                    </a>
                                 </Form.Item>
 
-                                <Form.Item wrapperCol={{offset: 8, span: 16}}
-                                           name="remember"
-                                           valuePropName="checked">
-                                    <Checkbox>Remember me</Checkbox>
-                                </Form.Item>
-
-                                <Form.Item wrapperCol={{offset: 8, span: 16}}>
-                                    <Button
-                                        type="primary"
-                                        htmlType="submit">
-                                        Login
+                                <Form.Item>
+                                    <Button type="primary"
+                                            htmlType="submit"
+                                            block={true}
+                                            loading={this.state["login"]}>
+                                        Log in
                                     </Button>
                                 </Form.Item>
                             </Form>

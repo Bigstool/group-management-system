@@ -1,10 +1,10 @@
 import React from "react";
 import Storage from "./Storage";
 import querystring from "querystring";
-import sha1 from "crypto-js/sha1";
+import SHA1 from "crypto-js/sha1";
 import axios from "axios";
 
-const API_URL = "//gms.bigstool.com/api";
+const API_URL = "https://gms.bigstool.com/api";
 const TOKEN_EXPIRE_MARGIN = 60; // seconds
 const TOKEN_CHECK_INTERVAL = 10;    // seconds
 
@@ -143,16 +143,15 @@ export class AuthProvider extends React.Component {
      */
     async login(username, password, remember) {
         // call login api
-        let passwordHash = sha1(password);
+        let passwordHash = SHA1(password).toString();
         let res;
         try {
             res = await axios({
                 url: API_URL + "/oauth2/token",
-                methods: "post",
+                method: "post",
                 data: querystring.stringify({
-                    grant_type: password,
+                    grant_type: "password",
                     password: passwordHash,
-                    scope: "USER",
                     username: username
                 })
             })

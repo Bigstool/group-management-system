@@ -3,31 +3,29 @@ import "antd/dist/antd.css";
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {
-    BrowserRouter as Router,
+    HashRouter as Router,
     Switch,
     Route
 } from "react-router-dom";
-import Home from './pages/Home';
+import GroupList from './pages/GroupList';
 import Login from './pages/Login';
 import NotFound from "./pages/404";
 import {AuthProvider} from "./utilities/AuthProvider";
 import PrivateRoute from "./utilities/PrivateRoute";
 import HtmlHead from "./components/HtmlHead";
+import GroupDetails from "./pages/GroupDetails";
+import UserProfile from "./pages/UserProfile";
 
 ReactDOM.render((
     <AuthProvider>
         <HtmlHead/>
         <Router>
             <Switch>
-                <PrivateRoute exact path="/">
-                    <Home/>
-                </PrivateRoute>
-                <Route path="/login">
-                    <Login/>
-                </Route>
-                <Route path="*">
-                    <NotFound/>
-                </Route>
+                <Route exact path={"/"} component={GroupList}/>
+                <Route path={"/user"} component={UserProfile} />
+                <Route path={"/login"} component={Login} />
+                <Route path={"/group/:uuid"} component={GroupDetails}/>
+                <Route path={"*"} component={NotFound}/>
             </Switch>
         </Router>
     </AuthProvider>

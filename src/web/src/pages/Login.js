@@ -7,6 +7,7 @@ import './Login.scss';
 import {AuthContext} from "../utilities/AuthProvider";
 import {Redirect} from "react-router-dom";
 import {Helmet} from "react-helmet";
+import {boundMethod} from "autobind-decorator";
 
 const ERROR = {
     WRONG_PASSWORD: 0,
@@ -19,14 +20,13 @@ export default class Login extends React.PureComponent {
 
     constructor(props) {
         super(props);
-        this.onFinish = this.onFinish.bind(this);
-        this.onInputChange = this.onInputChange.bind(this);
         this.state = {
             "login": false,
             "error": null
         }
     }
 
+    @boundMethod
     async onFinish(values) {
         this.setState({
             "login": true,
@@ -55,6 +55,7 @@ export default class Login extends React.PureComponent {
         }
     };
 
+    @boundMethod
     onInputChange() {
         this.setState({
             "error": null

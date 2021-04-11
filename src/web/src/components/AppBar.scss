@@ -1,0 +1,9 @@
+.AppBar {
+  position: -webkit-sticky!important; /* Safari */
+  position: sticky!important;
+  top: 0!important;
+  z-index: 999;
+
+  // temp
+  background-color: yellowgreen!important;
+}

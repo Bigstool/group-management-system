@@ -1,23 +1,36 @@
 import React from "react";
 import {PageHeader} from "antd";
+import PropTypes from "prop-types";
+import "./AppBar.scss";
 
 export default class AppBar extends React.PureComponent {
+    static propTypes = {
+        "showBack": PropTypes.bool,
+        "title": PropTypes.string
+    }
+
+    static defaultProps = {
+        "showBack": true,
+        "title": "GMS"
+    }
+
     constructor(props) {
         super(props);
-        this.onBackClicked = this.onBackClicked.bind(this);
     }
 
     onBackClicked = () => {
-        // TODO
+        window.history.back();
     }
 
     render() {
         return (
-            <PageHeader
-                className="site-page-header"
-                onBack={this.onBackClicked}
-                title={"GMS"}
-            />
+            <>
+                <PageHeader
+                    className={"AppBar"}
+                    onBack={this.props["showBack"] ? this.onBackClicked : null}
+                    title={this.props["title"]}
+                />
+            </>
         )
     }
 }

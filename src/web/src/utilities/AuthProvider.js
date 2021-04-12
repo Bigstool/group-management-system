@@ -1,10 +1,11 @@
 import React from "react";
 import Storage from "./Storage";
 import querystring from "querystring";
-import sha1 from "crypto-js/sha1";
+import SHA1 from "crypto-js/sha1";
 import axios from "axios";
+import {boundMethod} from "autobind-decorator";
 
-const API_URL = "//gms.bigstool.com/api";
+const API_URL = "https://gms.bigstool.com/api";
 const TOKEN_EXPIRE_MARGIN = 60; // seconds
 const TOKEN_CHECK_INTERVAL = 10;    // seconds
 
@@ -18,12 +19,6 @@ export class AuthProvider extends React.Component {
         this.state = {
             user: JSON.parse(Storage.getItem("user"))
         };
-        this.saveUser = this.saveUser.bind(this);
-        this.checkUserToken = this.checkUserToken.bind(this);
-        this.getUser = this.getUser.bind(this);
-        this.login = this.login.bind(this);
-        this.logout = this.logout.bind(this);
-        this.request = this.request.bind(this);
         // schedule task
         this.checkUserToken()
     }
@@ -41,6 +36,7 @@ export class AuthProvider extends React.Component {
      *
      * @returns {User|null} if user logged in, return user object, else return null
      */
+    @boundMethod
     getUser() {
         return this.state.user;
     }
@@ -49,6 +45,7 @@ export class AuthProvider extends React.Component {
      * Check token expiration and refresh if needed
      * Scheduled loop function
      */
+    @boundMethod
     checkUserToken() {
         let dispatched = false; // avoid set duplicate timeout
         const user = this.state.user;
@@ -85,6 +82,7 @@ export class AuthProvider extends React.Component {
      * @param res Axios response object
      * @param remember {boolean} remember user across session
      */
+    @boundMethod
     saveUser(res, remember) {
         // extract token
         const accessToken = res.data["data"]["access_token"];
@@ -120,6 +118,7 @@ export class AuthProvider extends React.Component {
      * @param options {Object}
      * @returns {AxiosPromise<any>}
      */
+    @boundMethod
     async request(options) {
         // prepend url
         options.url = API_URL + options.path;
@@ -141,18 +140,18 @@ export class AuthProvider extends React.Component {
      * @param remember {boolean} remember login across sessions
      * @returns {boolean} true if login successful, false if failed
      */
+    @boundMethod
     async login(username, password, remember) {
         // call login api
-        let passwordHash = sha1(password);
+        let passwordHash = SHA1(password).toString();
         let res;
         try {
             res = await axios({
                 url: API_URL + "/oauth2/token",
-                methods: "post",
+                method: "post",
                 data: querystring.stringify({
-                    grant_type: password,
+                    grant_type: "password",
                     password: passwordHash,
-                    scope: "USER",
                     username: username
                 })
             })
@@ -168,6 +167,7 @@ export class AuthProvider extends React.Component {
      * User logout
      * @returns {boolean} true if successful
      */
+    @boundMethod
     logout() {
         // remove login info from storage
         Storage.removeItem("user")

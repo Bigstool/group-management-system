@@ -1,0 +1,21 @@
+.TabNav {
+  position: fixed;
+  width: 100%;
+  bottom: 0;
+  padding: 1rem;
+  // temp
+  background-color: azure;
+
+  .Button {
+    color: grey;
+    font-size: 2.5rem;
+  }
+
+  .ButtonCol {
+    text-align: center;
+  }
+
+  .Button.Active {
+    color: yellowgreen;
+  }
+}

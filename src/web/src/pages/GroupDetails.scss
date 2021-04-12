@@ -1,16 +1,15 @@
 .head-margin{
-  margin: 0;
-  margin-top: 73.8px;
+  margin: 73.8px 0 0;
 }
 
-body .site-page-header {
-  border: 1px solid rgb(235, 237, 240);
-  position: fixed;
-  left: 0;
-  top: 0;
-  width: 100%;
-  z-index: 1;
-}
+//body .site-page-header {
+//  border: 1px solid rgb(235, 237, 240);
+//  position: fixed;
+//  left: 0;
+//  top: 0;
+//  width: 100%;
+//  z-index: 1;
+//}
 
 .group-bar, .group-title, .group-short-description,
 .group-proposal, .group-comment-section, .group-members {
@@ -57,6 +56,5 @@ body .site-page-header {
 }
 
 .bottom-margin {
-  margin: 0;
-  margin-top: 32px;
+  margin: 32px 0 0;
 }

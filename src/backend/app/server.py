@@ -17,6 +17,8 @@ from blueprint.notification_api import notification_api
 from blueprint.system_api import system_api
 from blueprint.user_api import user_api
 from model.User import User
+from model.Group import Group
+from model.GroupComment import GroupComment
 from shared import config, get_logger, db
 from utility.ApiException import ApiException
 from utility.MyResponse import MyResponse
@@ -82,6 +84,7 @@ db.init_app(app)
 
 # init database
 with app.app_context():
+    db.drop_all()
     db.create_all()  # create if table not exists
     # if user table empty
     if not User.query.first():
@@ -98,8 +101,93 @@ with app.app_context():
                           creation_time=int(time.time()),
                           role="ADMIN")
         db.session.add(admin_user)
-        db.session.commit()
+        # db.session.commit()
         # TODO insert dummy data
+        groupA_uuid=uuid.uuid4().bytes
+        groupB_uuid=uuid.uuid4().bytes
+        user1_uuid=uuid.uuid4().bytes
+        user2_uuid=uuid.uuid4().bytes
+        user3_uuid=uuid.uuid4().bytes
+        user4_uuid=uuid.uuid4().bytes
+        password_salt = b'-\x93\x85\xcd\xd1\xd3?\xe5\x12U\x0e\x7f\x10u\xd8\xb2'
+        password = '5baa61e4c9b93f3f0682250b6cf8331b7ee68fd8'
+        password_hash = hmac.new(password_salt, bytes.fromhex(password), "sha1").digest()
+        group_A=Group(uuid=groupA_uuid,
+                      creation_time=time.time(),
+                      name="GroupA",
+                      description="This is groupA. This is the first group for testing.",
+                      proposal="We want to build up a group management system which might be useful for our teacher.",
+                      proposal_state="PENDING",
+                      owner_uuid=user1_uuid
+                      )
+        db.session.add(group_A)
+        group_B = Group(uuid=groupB_uuid,
+                        creation_time=time.time(),
+                        name="GroupB",
+                        description="This is groupB. This is the second group for testing.",
+                        proposal="Our group would like to build a blog website",
+                        proposal_state="PENDING",
+                        owner_uuid=user3_uuid
+                        )
+        db.session.add(group_B)
+        user_1=User(uuid=user1_uuid,
+                    creation_time=time.time(),
+                    email="user1@test.com",
+                    alias='User1',
+                    password_salt=password_salt,
+                    password_hash=password_hash,
+                    role="USER",
+                    group_id=groupA_uuid
+                   )
+        db.session.add(user_1)
+        user_2 = User(uuid=user2_uuid,
+                      creation_time=time.time(),
+                      email="user2@test.com",
+                      alias='User2',
+                      password_salt=password_salt,
+                      password_hash=password_hash,
+                      role="USER",
+                      group_id=groupA_uuid
+                      )
+        db.session.add(user_2)
+        user_3 = User(uuid=user3_uuid,
+                      creation_time=time.time(),
+                      email="user3@test.com",
+                      alias='User3',
+                      password_salt=password_salt,
+                      password_hash=password_hash,
+                      role="USER",
+                      group_id=groupB_uuid
+                      )
+        db.session.add(user_3)
+        user_4 = User(uuid=user4_uuid,
+                      creation_time=time.time(),
+                      email="user4@test.com",
+                      alias='User4',
+                      password_salt=password_salt,
+                      password_hash=password_hash,
+                      role="USER",
+                      group_id=groupB_uuid
+                      )
+        db.session.add(user_4)
+        user_5 = User(uuid=uuid.uuid4().bytes,
+                      creation_time=time.time(),
+                      email="user5@test.com",
+                      alias='User5',
+                      password_salt=password_salt,
+                      password_hash=password_hash,
+                      role="USER",
+                      )
+        db.session.add(user_5)
+        comment1=GroupComment(
+            uuid=uuid.uuid4().bytes,
+            creation_time=time.time(),
+            author_uuid=user1_uuid,
+            group_uuid=groupA_uuid,
+            content="This is very good proposal!"
+        )
+        db.session.add(comment1)
+        db.session.commit()
         # ----------------------
         # Groups
         # - Group A with name, title, description, proposal and some comments

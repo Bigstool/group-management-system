@@ -234,10 +234,6 @@ def get_group_info(group_uuid):
                   type: string
                   description: group description
                   example: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque a ultricies diam. Donec ultrices tortor non lobortis mattis. Mauris euismod tellus ipsum, et porta mi scelerisque ac.
-                proposal:
-                  type: string
-                  description: group proposal
-                  example: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque a ultricies diam. Donec ultrices tortor non lobortis mattis. Mauris euismod tellus ipsum, et porta mi scelerisque ac.
                 owner:
                   type: object
                   description: the user who created the group
@@ -252,6 +248,14 @@ def get_group_info(group_uuid):
                     email:
                       type: string
                       example: Ming.Li@example.com
+                proposal:
+                  type: string
+                  description: group proposal
+                  example: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque a ultricies diam. Donec ultrices tortor non lobortis mattis. Mauris euismod tellus ipsum, et porta mi scelerisque ac.
+                proposal_update_time:
+                  type: number
+                  example: 1617189103
+                  description: unix timestamp of last proposal update time
                 proposal_state:
                   type: string
                   description: state of group submission
@@ -293,6 +297,10 @@ def get_group_info(group_uuid):
                   items:
                     type: object
                     properties:
+                      creation_time:
+                        type: number
+                        description: unix timestamp of comment creation time
+                        example: 1618847321
                       content:
                         type: string
                         description: comment for the group proposal

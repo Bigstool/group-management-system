@@ -305,3 +305,35 @@ def reject_application():
               type: object
     """
     pass  # TODO
+
+
+@application_api.route("/application/<application_uuid>", methods=["DELETE"])
+def delete_application(application_uuid):
+    """Delete the application
+    ---
+    tags:
+      - application
+
+    description: |
+      ## Constrains
+      * operator must be the application creator
+      * application removed after the operation
+
+    parameters:
+      - name: application_uuid
+        in: path
+        required: true
+        description: application uuid
+        schema:
+          type: string
+          example: 16fc2db7-cac0-46c2-a0e3-2da6cec54abb
+
+    responses:
+      '200':
+        description: query success
+        content:
+          application/json:
+            schema:
+              type: object
+    """
+    pass  # TODO

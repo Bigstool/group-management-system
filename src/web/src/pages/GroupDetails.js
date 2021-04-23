@@ -51,7 +51,7 @@ export default class GroupDetails extends React.Component {
   async requestGroupInfo() {
     try {
       let res = await this.context.request({
-        url: `/group/${this.props.groupUuid}`,
+        url: `/group/${this.state.groupUuid}`,
         method: 'get'
       });
 
@@ -83,17 +83,20 @@ export default class GroupDetails extends React.Component {
   }
 
   render() {
-    // TODO: update props source, including methods
     return (
       <>
         <AppBar/>
-        <GroupBar groupInfo={this.state.groupInfo} groupUuid={this.props.groupUuid}
-                  userUuid={this.state.userUuid} userProfile={this.props.userProfile}
-                  userRole={this.state.userRole} sysConfig={this.props.sysConfig}/>
+        <GroupBar userUuid={this.state.userUuid} userProfile={this.state.userProfile}
+                  userRole={this.state.userRole} groupUuid={this.state.groupUuid}
+                  groupInfo={this.state.groupInfo} sysConfig={this.state.sysConfig}
+                  isOwner={this.isOwner} isMember={this.isMember}
+                  requestGroupInfo={this.requestGroupInfo} error={this.error}/>
         <Title groupInfo={this.state.groupInfo}/>
         <ShortDescription groupInfo={this.state.groupInfo}/>
-        <Proposal groupInfo={this.state.groupInfo} sysConfig={this.props.sysConfig}/>
-        <CommentSection groupInfo={this.state.groupInfo}/>
+        <Proposal groupInfo={this.state.groupInfo} sysConfig={this.state.sysConfig}/>
+        <CommentSection userRole={this.state.userRole} groupUuid={this.state.groupUuid}
+                        groupInfo={this.state.groupInfo} isOwner={this.isOwner}
+                        isMember={this.isMember} requestGroupInfo={this.requestGroupInfo}/>
         <Showcase/>
         <GroupMembers groupInfo={this.state.groupInfo}/>
         <div className={'bottom-margin'}/>
@@ -411,6 +414,7 @@ class CommentSection extends React.Component {
     'isMember': PropTypes.func.isRequired,
     'requestGroupInfo': PropTypes.func.isRequired,
   }
+  static contextType = AuthContext;
 
   constructor(props) {
     super(props);

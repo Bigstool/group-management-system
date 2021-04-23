@@ -1,6 +1,6 @@
 import React, {Fragment} from 'react';
 import './GroupDetails.scss';
-import {PageHeader, Button, Tag, Row, Col, Divider, Comment, Avatar, Form, Input, List} from 'antd';
+import {PageHeader, Button, Tag, Row, Col, Divider, Comment, Avatar, Form, Input, List, LoadingOutlined} from 'antd';
 import {StarOutlined, StarFilled} from '@ant-design/icons';
 import groupIcon from '../assets/group-icon.svg';
 import {AuthContext} from "../utilities/AuthProvider";
@@ -83,25 +83,33 @@ export default class GroupDetails extends React.Component {
   }
 
   render() {
-    return (
-      <>
-        <AppBar/>
-        <GroupBar userUuid={this.state.userUuid} userProfile={this.state.userProfile}
-                  userRole={this.state.userRole} groupUuid={this.state.groupUuid}
-                  groupInfo={this.state.groupInfo} sysConfig={this.state.sysConfig}
-                  isOwner={this.isOwner} isMember={this.isMember}
-                  requestGroupInfo={this.requestGroupInfo} error={this.error}/>
-        <Title groupInfo={this.state.groupInfo}/>
-        <ShortDescription groupInfo={this.state.groupInfo}/>
-        <Proposal groupInfo={this.state.groupInfo} sysConfig={this.state.sysConfig}/>
-        <CommentSection userRole={this.state.userRole} groupUuid={this.state.groupUuid}
-                        groupInfo={this.state.groupInfo} isOwner={this.isOwner}
-                        isMember={this.isMember} requestGroupInfo={this.requestGroupInfo}/>
-        <Showcase/>
-        <GroupMembers groupInfo={this.state.groupInfo}/>
-        <div className={'bottom-margin'}/>
-      </>
-    );
+    if (this.state.loading) {
+      return (
+        <React.Fragment>
+          <LoadingOutlined/>
+        </React.Fragment>
+      );
+    } else {
+      return (
+        <React.Fragment>
+          <AppBar/>
+          <GroupBar userUuid={this.state.userUuid} userProfile={this.state.userProfile}
+                    userRole={this.state.userRole} groupUuid={this.state.groupUuid}
+                    groupInfo={this.state.groupInfo} sysConfig={this.state.sysConfig}
+                    isOwner={this.isOwner} isMember={this.isMember}
+                    requestGroupInfo={this.requestGroupInfo} error={this.error}/>
+          <Title groupInfo={this.state.groupInfo}/>
+          <ShortDescription groupInfo={this.state.groupInfo}/>
+          <Proposal groupInfo={this.state.groupInfo} sysConfig={this.state.sysConfig}/>
+          <CommentSection userRole={this.state.userRole} groupUuid={this.state.groupUuid}
+                          groupInfo={this.state.groupInfo} isOwner={this.isOwner}
+                          isMember={this.isMember} requestGroupInfo={this.requestGroupInfo}/>
+          <Showcase/>
+          <GroupMembers groupInfo={this.state.groupInfo}/>
+          <div className={'bottom-margin'}/>
+        </React.Fragment>
+      )
+    }
   }
 }
 

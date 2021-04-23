@@ -17,29 +17,38 @@ import {boundMethod} from "autobind-decorator";
 
 // #T
 export default class GroupDetails extends React.Component {
-  static propType = {
-    "groupUuid": PropTypes.string.isRequired,
-    'userProfile': PropTypes.object.isRequired,
-    'userApplications': PropTypes.array.isRequired,
-    'sysConfig': PropTypes.object.isRequired
-  }
-
   static contextType = AuthContext;
 
   constructor(props) {
     super(props);
-  }
-
-  async componentDidMount() {
-    // get user uuid
     this.setState({
       'loading': true,
       'userUuid': this.context.getUser()["uuid"],
+      'userProfile': null,  // TODO: get from context
       'userRole': this.context.getUser()['role'],
-      'groupInfo': null,
-    });
+      'groupUuid': this.props.match.params["uuid"],
+      'groupInfo': null,  // obtained in componentDidMount
+      'sysConfig': null,  // TODO: get from context
+      'error': false
+    })
+  }
 
-    // get group details
+  // returns true if user is the owner of the group
+  @boundMethod
+  isOwner() {
+    return this.state.userProfile['created_group']['uuid'] === this.state.groupUuid;
+  }
+
+  // returns true if user is a member of the group
+  @boundMethod
+  isMember() {
+    return this.state.userProfile['created_group']['uuid'] === this.state.groupUuid;
+  }
+
+  // request group info
+  // NOTE: caller should be async and await as well
+  @boundMethod
+  async requestGroupInfo() {
     try {
       let res = await this.context.request({
         url: `/group/${this.props.groupUuid}`,
@@ -54,22 +63,19 @@ export default class GroupDetails extends React.Component {
         'error': true
       });
     }
+  }
 
-    // get semester info
-    // try {
-    //   let res = await this.context.request({
-    //     url: `/sysconfig`,
-    //     method: `get`
-    //   });
-    //
-    //   this.setState({
-    //     'sysConfig': res.data['data']
-    //   });
-    // } catch (error) {
-    //   this.setState({
-    //     'error': true
-    //   });
-    // }
+  // Indicates an error has occurred
+  @boundMethod
+  error() {
+    this.setState({
+      'error': true
+    });
+  }
+
+  async componentDidMount() {
+    // get group info
+    await this.requestGroupInfo();
 
     this.setState({
       'loading': false
@@ -77,11 +83,12 @@ export default class GroupDetails extends React.Component {
   }
 
   render() {
+    // TODO: update props source, including methods
     return (
       <>
         <AppBar/>
         <GroupBar groupInfo={this.state.groupInfo} groupUuid={this.props.groupUuid}
-                  userProfile={this.props.userProfile} userApplications={this.props.userApplications}
+                  userUuid={this.state.userUuid} userProfile={this.props.userProfile}
                   userRole={this.state.userRole} sysConfig={this.props.sysConfig}/>
         <Title groupInfo={this.state.groupInfo}/>
         <ShortDescription groupInfo={this.state.groupInfo}/>
@@ -98,34 +105,134 @@ export default class GroupDetails extends React.Component {
 // #C
 class GroupBar extends React.Component {
   static propType = {
-    "groupInfo": PropTypes.object.isRequired,
-    'groupUuid': PropTypes.string.isRequired,
+    // User related
+    'userUuid': PropTypes.string.isRequired,
     'userProfile': PropTypes.object.isRequired,
-    'userApplications': PropTypes.array.isRequired,
     'userRole': PropTypes.string.isRequired,
-    'sysConfig': PropTypes.object.isRequired
+    // Group related
+    'groupUuid': PropTypes.string.isRequired,
+    "groupInfo": PropTypes.object.isRequired,
+    // System related
+    'sysConfig': PropTypes.object.isRequired,
+    // Functions
+    'isOwner': PropTypes.func.isRequired,
+    'isMember': PropTypes.func.isRequired,
+    'requestGroupInfo': PropTypes.func.isRequired,
+    'error': PropTypes.func.isRequired
   }
+  static contextType = AuthContext;
 
   constructor(props) {
     super(props);
-  }
-
-// returns true if user is the owner of the group
-  isOwner(userProfile, groupUuid) {
-    return userProfile['created_group']['uuid'] === groupUuid;
-  }
-
-  // returns true if user is a member of the group
-  isMember(userProfile, groupUuid) {
-    return userProfile['joined_group']['uuid'] === groupUuid;
-  }
-
-  // returns true if the user is applied to the group
-  isApplied(userApplications, groupUuid) {
-    for (let i = 0; i < userApplications.length; i++) {
-      if (userApplications[i]['uuid'] === groupUuid) return true;
+    this.state = {
+      'isApplied': false,
+      'applicationUuid': null,
+      'applying': false,
+      'favoriting': false,
     }
-    return false;
+  }
+
+  async componentDidMount() {
+    // Check if user is applied to the group
+    await this.checkApplied();
+  }
+
+  // checks if user is applied to the group
+  // if yes, set state 'isApplied' to true, 'applicationUuid' to application uuid
+  // if no, set state 'isApplied' to false, 'applicationUuid' to null
+  @boundMethod
+  async checkApplied() {
+    try {
+      // request user applications
+      let res = await this.context.request({
+        url: `/user/${this.props.userUuid}/application`,
+        method: 'get'
+      });
+
+      // loop through user applications to see if applied to this group
+      let userApplications = res.data['data'];
+      let found = false;
+      for (let i = 0; i < userApplications.length; i++) {
+        if (userApplications[i]['group']['uuid'] === this.props.groupUuid) {
+          this.setState({
+            'isApplied': true,
+            'applicationUuid': userApplications[i]['uuid'],
+          });
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        this.setState({
+          'isApplied': false,
+          'applicationUuid': null,
+        });
+      }
+    } catch (error) {
+      this.props.error();
+    }
+  }
+
+  @boundMethod
+  async onApplyButtonClicked() {
+    this.setState({
+      "applying": true,
+    });
+
+    // if not applied, apply
+    if (this.state.isApplied === false) {
+      try {
+        await this.context.request({
+          url: `/group/${this.props.groupUuid}/application`,
+          method: "post",
+          data: {
+            comment: ""
+          }
+        });
+      } catch (error) {}
+    }
+    // if applied, remove application
+    else {
+      try {
+        await this.context.request({
+          url: `/application/${this.state.applicationUuid}`,
+          method: "delete",
+        });
+      } catch (error) {}
+    }
+
+    // finally, check if user is applied to the group again
+    await this.checkApplied();
+    this.setState({
+      'applying': false
+    });
+  }
+
+  @boundMethod
+  async onFavoriteButtonClicked() {
+    this.setState({'favoriting': true});
+
+    // if not favorite, favorite
+    if (!this.props.groupInfo['favorite']) {
+      try {
+        await this.context.request({
+          url: `/group/${this.props.groupUuid}/favorite`,
+          method: "post"
+        });
+      } catch (error) {}
+    }
+    // if favorite, remove favorite
+    else {
+      try {
+        await this.context.request({
+          url: `/group/${this.props.groupUuid}/favorite`,
+          method: "delete"
+        });
+      } catch (error) {}
+    }
+    // finally, update group info
+    await this.props.requestGroupInfo();
+    this.setState({'favoriting': false});
   }
 
   render() {
@@ -139,8 +246,7 @@ class GroupBar extends React.Component {
       full = <Tag className={'your-group'} color="grey">Full</Tag>;
     }
     // check if the group is your group
-    if (this.isOwner(this.props.userProfile, this.props.groupUuid) ||
-      this.isMember(this.props.userProfile, this.props.groupUuid)) {
+    if (this.props.isOwner() || this.props.isMember()) {
       yourGroup = <Tag className={'your-group'} color="blue">Your group</Tag>;
     }
     // check if the apply button is applicable: not in any group, before grouping ddl
@@ -148,35 +254,36 @@ class GroupBar extends React.Component {
       this.props.userProfile['created_group'] === null &&
       this.props.userProfile['joined_group'] === null &&
       this.props.userRole === 'USER') {
-      // TODO: apply & revoke
-      let isApplied = this.isApplied(this.props.userApplications, this.props.groupUuid);
-      apply = <Button className={'apply'} type={isApplied ? 'default' : 'primary'}
-                      shape={'round'} size={'small'} onClick={null}>
-        {isApplied ? 'Applied' : 'Apply'}
+      // Apply & revoke
+      apply = <Button className={'apply'} type={this.state.isApplied ? 'default' : 'primary'}
+                      shape={'round'} size={'small'} onClick={this.onApplyButtonClicked}
+                      loading={this.state.applying}>
+        {this.state.isApplied ? 'Applied' : 'Apply'}
       </Button>;
     }
 
-    // TODO: favorite/remove favorite
+    // Favorite/remove favorite
     let favorite =
       <Button className={'favorite'} shape="circle"
               icon={this.props.groupInfo['favorite'] ?
                 <StarFilled style={{color: 'orange'}}/> :
-                <StarOutlined style={{color: 'grey'}}/>
-              } onClick={null}
+                <StarOutlined style={{color: 'grey'}}/>}
+              loading={this.state.favoriting}
+              onClick={this.onFavoriteButtonClicked}
       />;
 
-    let groupBarExample = null;
-    if (false) {
-      groupBarExample = <PageHeader
-        title="Jaxzefalk"
-        className="group-bar"
-        tags={<Tag color="blue">Your group</Tag>}
-        extra={[
-          <Button key="1">Favorite</Button>,
-        ]}
-        avatar={{src: 'https://avatars1.githubusercontent.com/u/8186664?s=460&v=4'}}
-      />;
-    }
+    // let groupBarExample = null;
+    // if (false) {
+    //   groupBarExample = <PageHeader
+    //     title="Jaxzefalk"
+    //     className="group-bar"
+    //     tags={<Tag color="blue">Your group</Tag>}
+    //     extra={[
+    //       <Button key="1">Favorite</Button>,
+    //     ]}
+    //     avatar={{src: 'https://avatars1.githubusercontent.com/u/8186664?s=460&v=4'}}
+    //   />;
+    // }
 
     return (
       <>
@@ -192,7 +299,6 @@ class GroupBar extends React.Component {
             {favorite}
           </Col>
         </Row>
-        {groupBarExample}
       </>
     );
   }
@@ -263,7 +369,7 @@ class Proposal extends React.Component {
       this.props.groupInfo['proposal_state'] === 'PENDING') {
       let lateDays = Math.ceil((Date.now() - this.props.sysConfig["system_state"]["proposal_ddl"]) / 86400);
       late = <Tag className={'tag'} color='red'>
-        {`Late: ${lateDays}${lateDays > 1 ? 'Days' : 'Day'}`}
+        {`Late: ${lateDays} ${lateDays > 1 ? 'Days' : 'Day'}`}
       </Tag>;
     }
 
@@ -295,18 +401,27 @@ const {TextArea} = Input;
 // #C
 class CommentSection extends React.Component {
   static propType = {
-    "groupInfo": PropTypes.object.isRequired
+    // User related
+    'userRole': PropTypes.string.isRequired,
+    // Group related
+    'groupUuid': PropTypes.string.isRequired,
+    "groupInfo": PropTypes.object.isRequired,
+    // Functions
+    'isOwner': PropTypes.func.isRequired,
+    'isMember': PropTypes.func.isRequired,
+    'requestGroupInfo': PropTypes.func.isRequired,
   }
 
   constructor(props) {
     super(props);
     this.state = {
-      newComment: ''
+      newComment: '',
+      submitting: false,
     };
   }
 
   @boundMethod
-  onChange(event) {
+  onNewCommentChange(event) {
     this.setState({newComment: event.target.value});
   }
 
@@ -316,13 +431,37 @@ class CommentSection extends React.Component {
     this.setState({newComment: ''});
   }
 
+  @boundMethod
+  async onSubmitButtonClicked() {
+    this.setState({'submitting': true});
+
+    // send comment
+    try {
+      await this.context.request({
+        url: `/group/${this.props.groupUuid}/comment`,
+        method: "post",
+        data: {
+          content: this.state.newComment,
+        }
+      });
+    } catch (error) {}
+
+    // finally, update group info, clear new comment and set submitting to be false
+    await this.props.requestGroupInfo();
+    this.setState({
+      'newComment': '',
+      'submitting': false
+    });
+  }
+
   render() {
-    let comments_plain = this.props.groupInfo['comment']
+    // Comment list
+    let proposal_update_time = this.props.groupInfo['proposal_update_time'];
+    let comments_plain = this.props.groupInfo['comment'];
     let comments = [];
     let index = 0;
-    // TODO: last modified (waiting for API support)
-    // Do not show last modified if: a) no comment; b) approved
     while(index < comments_plain.length) {
+      // insert the next comment
       comments.push(
         <Comment
           className={'comment'}
@@ -336,36 +475,59 @@ class CommentSection extends React.Component {
           content={
             <p>{comments_plain[index]['content']}</p>
           }
+          key={comments_plain[index]['creation_time'].toString()}
         />
-      )
+      );
+
+      // check whether to insert last modified
+      // Only show last modified when: a) has comment; b) not approved; c) modified after the first comment.
+      // a) checked by while loop
+      if (this.props.groupInfo['proposal_state'] !== 'APPROVED' &&  // b)
+        ((index === comments_plain.length - 1 && comments_plain[index]['creation_time'] <= proposal_update_time) ||
+          (comments_plain[index]['creation_time'] <= proposal_update_time &&  // c)
+            comments_plain[index + 1]['creation_time'] > proposal_update_time))) {
+        comments.push(
+          <Divider className={'modified-since'} orientation="center" plain>
+            Modified Since
+          </Divider>
+        );
+      }
+
+      // increase index
       index++;
     }
 
-    // TODO: submit
-    let newComment = (
-      <React.Fragment>
-        <Comment
-          avatar={
-            <Avatar
-              src="https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png"
-              alt="Han Solo"
-            />
-          }
-          content={
-            <>
-              <Form.Item>
-                <TextArea rows={4} onChange={this.onChange} value={this.state.newComment}/>
-              </Form.Item>
-              <Form.Item>
-                <Button htmlType="submit" loading={false} onClick={this.onSubmit} type="primary">
-                  Add Comment
-                </Button>
-              </Form.Item>
-            </>
-          }
-        />
-      </React.Fragment>
-    )
+    // New comment
+    let newComment = null;
+    // allow comment only if user is the owner, a member, or a admin
+    if (this.props.role === 'ADMIN' || this.props.isOwner() || this.props.isMember) {
+      newComment = (
+        <React.Fragment>
+          <Comment
+            avatar={
+              <Avatar
+                src="https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png"
+                alt="Han Solo"
+              />
+            }
+            content={
+              <>
+                <Form.Item>
+                  <TextArea rows={4} onChange={this.onNewCommentChange} value={this.state.newComment}/>
+                </Form.Item>
+                <Form.Item>
+                  <Button htmlType="submit" loading={this.state.submitting}
+                          onClick={this.onSubmitButtonClicked} type="primary">
+                    Add Comment
+                  </Button>
+                </Form.Item>
+              </>
+            }
+          />
+        </React.Fragment>
+      )
+    }
+
 
     return (
       <div className={'group-comment-section'}>
@@ -378,7 +540,7 @@ class CommentSection extends React.Component {
 
 // #C
 class Showcase extends React.Component {
-  //TODO
+  // TODO: [DELAYED] Showcase
   render() {
     return null;
   }

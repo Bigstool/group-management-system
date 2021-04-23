@@ -414,7 +414,6 @@ class CommentSection extends React.Component {
     'isMember': PropTypes.func.isRequired,
     'requestGroupInfo': PropTypes.func.isRequired,
   }
-  static contextType = AuthContext;
 
   constructor(props) {
     super(props);
@@ -517,7 +516,7 @@ class CommentSection extends React.Component {
             content={
               <>
                 <Form.Item>
-                  <TextArea rows={4} onChange={this.onNewCommentChange} value={this.state.newComment}/>
+                  <Input.TextArea rows={4} onChange={this.onNewCommentChange} value={this.state.newComment}/>
                 </Form.Item>
                 <Form.Item>
                   <Button htmlType="submit" loading={this.state.submitting}

@@ -399,8 +399,6 @@ class Proposal extends React.Component {
   }
 }
 
-const {TextArea} = Input;
-
 // #C
 class CommentSection extends React.Component {
   static propType = {
@@ -517,7 +515,7 @@ class CommentSection extends React.Component {
             content={
               <>
                 <Form.Item>
-                  <TextArea rows={4} onChange={this.onNewCommentChange} value={this.state.newComment}/>
+                  <Input.TextArea rows={4} onChange={this.onNewCommentChange} value={this.state.newComment}/>
                 </Form.Item>
                 <Form.Item>
                   <Button htmlType="submit" loading={this.state.submitting}

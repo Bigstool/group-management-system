@@ -124,9 +124,9 @@ export class AuthProvider extends React.Component {
         options.url = API_URL + options.path;
         // append user token
         const user = this.getUser()
-        if (user) {
-            options.header = {
-                ...options.header,
+        if (user !== null) {
+            options.headers = {
+                ...options.headers,
                 Authorization: "Bearer " + user["accessToken"]
             }
         }

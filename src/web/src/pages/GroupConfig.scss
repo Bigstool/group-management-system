@@ -1,0 +1,15 @@
+// caution zone divider
+// TODO: color, margin
+
+// 1rem === 16px
+
+.group-config {
+  padding: 1.5rem 1.5rem;
+}
+
+.group-config .caution-zone.ant-divider {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: #ff4d4f;
+  border-top-color: rgba(255, 77, 79, .5);
+}

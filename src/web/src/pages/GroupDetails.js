@@ -1,6 +1,6 @@
-import React, {Fragment} from 'react';
+import React from 'react';
 import './GroupDetails.scss';
-import {PageHeader, Button, Tag, Row, Col, Divider, Comment, Avatar, Form, Input, List} from 'antd';
+import {PageHeader, Button, Tag, Row, Col, Divider, Comment, Avatar, Form, Input, List, LoadingOutlined} from 'antd';
 import {StarOutlined, StarFilled} from '@ant-design/icons';
 import groupIcon from '../assets/group-icon.svg';
 import {AuthContext} from "../utilities/AuthProvider";
@@ -19,9 +19,9 @@ import {boundMethod} from "autobind-decorator";
 export default class GroupDetails extends React.Component {
   static contextType = AuthContext;
 
-  constructor(props) {
-    super(props);
-    this.setState({
+  constructor(props, context) {
+    super(props, context);
+    this.state = {
       'loading': true,
       'userUuid': this.context.getUser()["uuid"],
       'userProfile': null,  // TODO: get from context
@@ -30,7 +30,7 @@ export default class GroupDetails extends React.Component {
       'groupInfo': null,  // obtained in componentDidMount
       'sysConfig': null,  // TODO: get from context
       'error': false
-    })
+    }
   }
 
   // returns true if user is the owner of the group
@@ -83,31 +83,39 @@ export default class GroupDetails extends React.Component {
   }
 
   render() {
-    return (
-      <>
-        <AppBar/>
-        <GroupBar userUuid={this.state.userUuid} userProfile={this.state.userProfile}
-                  userRole={this.state.userRole} groupUuid={this.state.groupUuid}
-                  groupInfo={this.state.groupInfo} sysConfig={this.state.sysConfig}
-                  isOwner={this.isOwner} isMember={this.isMember}
-                  requestGroupInfo={this.requestGroupInfo} error={this.error}/>
-        <Title groupInfo={this.state.groupInfo}/>
-        <ShortDescription groupInfo={this.state.groupInfo}/>
-        <Proposal groupInfo={this.state.groupInfo} sysConfig={this.state.sysConfig}/>
-        <CommentSection userRole={this.state.userRole} groupUuid={this.state.groupUuid}
-                        groupInfo={this.state.groupInfo} isOwner={this.isOwner}
-                        isMember={this.isMember} requestGroupInfo={this.requestGroupInfo}/>
-        <Showcase/>
-        <GroupMembers groupInfo={this.state.groupInfo}/>
-        <div className={'bottom-margin'}/>
-      </>
-    );
+    if (this.state.loading) {
+      return (
+        <React.Fragment>
+          <LoadingOutlined/>
+        </React.Fragment>
+      );
+    } else {
+      return (
+        <React.Fragment>
+          <AppBar/>
+          <GroupBar userUuid={this.state.userUuid} userProfile={this.state.userProfile}
+                    userRole={this.state.userRole} groupUuid={this.state.groupUuid}
+                    groupInfo={this.state.groupInfo} sysConfig={this.state.sysConfig}
+                    isOwner={this.isOwner} isMember={this.isMember}
+                    requestGroupInfo={this.requestGroupInfo} error={this.error}/>
+          <Title groupInfo={this.state.groupInfo}/>
+          <ShortDescription groupInfo={this.state.groupInfo}/>
+          <Proposal groupInfo={this.state.groupInfo} sysConfig={this.state.sysConfig}/>
+          <CommentSection userRole={this.state.userRole} groupUuid={this.state.groupUuid}
+                          groupInfo={this.state.groupInfo} isOwner={this.isOwner}
+                          isMember={this.isMember} requestGroupInfo={this.requestGroupInfo}/>
+          <Showcase/>
+          <GroupMembers groupInfo={this.state.groupInfo}/>
+          <div className={'bottom-margin'}/>
+        </React.Fragment>
+      )
+    }
   }
 }
 
 // #C
 class GroupBar extends React.Component {
-  static propType = {
+  static propTypes = {
     // User related
     'userUuid': PropTypes.string.isRequired,
     'userProfile': PropTypes.object.isRequired,
@@ -125,8 +133,8 @@ class GroupBar extends React.Component {
   }
   static contextType = AuthContext;
 
-  constructor(props) {
-    super(props);
+  constructor(props, context) {
+    super(props, context);
     this.state = {
       'isApplied': false,
       'applicationUuid': null,
@@ -252,7 +260,7 @@ class GroupBar extends React.Component {
     if (this.props.isOwner() || this.props.isMember()) {
       yourGroup = <Tag className={'your-group'} color="blue">Your group</Tag>;
     }
-    // check if the apply button is applicable: not in any group, before grouping ddl
+    // check if the apply button is applicable: not admin, not in any group, before grouping ddl
     else if (this.props.sysConfig["system_state"]["grouping_ddl"] > Date.now() &&
       this.props.userProfile['created_group'] === null &&
       this.props.userProfile['joined_group'] === null &&
@@ -309,7 +317,7 @@ class GroupBar extends React.Component {
 
 // #C
 class Title extends React.Component {
-  static propType = {
+  static propTypes = {
     "groupInfo": PropTypes.object.isRequired
   }
 
@@ -329,7 +337,7 @@ class Title extends React.Component {
 
 // #C
 class ShortDescription extends React.Component {
-  static propType = {
+  static propTypes = {
     "groupInfo": PropTypes.object.isRequired
   }
 
@@ -350,7 +358,7 @@ class ShortDescription extends React.Component {
 
 // #C
 class Proposal extends React.Component {
-  static propType = {
+  static propTypes = {
     "groupInfo": PropTypes.object.isRequired,
     'sysConfig': PropTypes.object.isRequired
   }
@@ -399,11 +407,9 @@ class Proposal extends React.Component {
   }
 }
 
-const {TextArea} = Input;
-
 // #C
 class CommentSection extends React.Component {
-  static propType = {
+  static propTypes = {
     // User related
     'userRole': PropTypes.string.isRequired,
     // Group related
@@ -416,8 +422,8 @@ class CommentSection extends React.Component {
   }
   static contextType = AuthContext;
 
-  constructor(props) {
-    super(props);
+  constructor(props, context) {
+    super(props, context);
     this.state = {
       newComment: '',
       submitting: false,
@@ -491,7 +497,7 @@ class CommentSection extends React.Component {
           (comments_plain[index]['creation_time'] <= proposal_update_time &&  // c)
             comments_plain[index + 1]['creation_time'] > proposal_update_time))) {
         comments.push(
-          <Divider className={'modified-since'} orientation="center" plain>
+          <Divider className={'modified-since'} orientation="center" plain key={'modified-since'}>
             Modified Since
           </Divider>
         );
@@ -517,7 +523,7 @@ class CommentSection extends React.Component {
             content={
               <>
                 <Form.Item>
-                  <TextArea rows={4} onChange={this.onNewCommentChange} value={this.state.newComment}/>
+                  <Input.TextArea rows={4} onChange={this.onNewCommentChange} value={this.state.newComment}/>
                 </Form.Item>
                 <Form.Item>
                   <Button htmlType="submit" loading={this.state.submitting}
@@ -552,7 +558,7 @@ class Showcase extends React.Component {
 
 // #C
 class GroupMembers extends React.Component {
-  static propType = {
+  static propTypes = {
     "groupInfo": PropTypes.object.isRequired
   }
 

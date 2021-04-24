@@ -1,5 +1,7 @@
+// 1rem === 16px
+
 .head-margin{
-  margin: 73.8px 0 0;
+  margin: 0 0 0;
 }
 
 //body .site-page-header {
@@ -13,7 +15,7 @@
 
 .group-bar, .group-title, .group-short-description,
 .group-proposal, .group-comment-section, .group-members {
-  padding: 0px 24px;
+  padding: 0 1.5rem;
 }
 
 .group-bar * {
@@ -22,15 +24,15 @@
 
 .group-bar .icon {
   display: inline-block;
-  width: 24px;
-  height: 24px;
+  width: 1.5rem;
+  height: 1.5rem;
 }
 
 .group-bar .name {
   display: inline-block;
-  font-size: 20px;
+  font-size: 1.25rem;
   text-overflow: ellipsis; // overflow: hidden
-  margin-top: 4px;
+  margin-top: 0.25rem;
 }
 
 .group-proposal .start-divider {
@@ -38,12 +40,12 @@
 }
 
 .group-proposal .end-divider {
-  margin-top: 16px;
-  margin-bottom: 4px;
+  margin-top: 1rem;
+  margin-bottom: 0.25rem;
 }
 
 .group-comment-section .comment .ant-comment-inner {
-  padding: 4px 0;
+  padding: 0.25rem 0;
 }
 
 .group-comment-section .ant-divider-with-text.modified-since {
@@ -52,9 +54,9 @@
 
 .group-comment-section .ant-divider-inner-text {
   color: rgba(0, 0, 0, 0.45);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 
 .bottom-margin {
-  margin: 32px 0 0;
+  margin: 2rem 0 0;
 }

@@ -6,7 +6,7 @@ class User(db.Model):
 
     uuid = db.Column("uuid", db.BINARY(16), primary_key=True)   # PK
     creation_time = db.Column("creation_time", db.Integer, nullable=False)
-    email = db.Column("email", db.String(256), unique=True)
+    email = db.Column("email", db.String(256))
     alias = db.Column("alias", db.String(256), nullable=True)
     bio = db.Column("bio", db.Text, nullable=True)
     password_salt = db.Column("password_salt", db.BINARY(16), nullable=False)

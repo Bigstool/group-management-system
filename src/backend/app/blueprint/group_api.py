@@ -8,7 +8,7 @@ from webargs import fields, validate
 from webargs.flaskparser import parser
 
 from model.Group import Group
-from model.SystemConfig import SystemConfig
+from model.Semester import Semester
 from model.User import User
 from model.GroupApplication import GroupApplication
 from model.GroupComment import GroupComment
@@ -463,7 +463,7 @@ def update_group_info(group_uuid):
     group = Group.query.filter_by(uuid=uuid.UUID(group_uuid).bytes).first()
     if group is None:
         raise ApiResourceNotFoundException("No such group!")
-    system_state = SystemConfig.query.first().conf['system_state']
+    system_state = Semester.query.first().conf['system_state']
     token_info = Auth.get_payload(request)
     uuid_in_token = token_info['uuid']
     if not (token_info["role"] == "ADMIN" or uuid_in_token == str(uuid.UUID(bytes=group.owner_uuid))):

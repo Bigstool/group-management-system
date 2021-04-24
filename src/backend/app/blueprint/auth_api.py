@@ -4,9 +4,11 @@ from datetime import datetime, timedelta
 
 from durations import Duration
 from flask import Blueprint, request
+from sqlalchemy import desc
 from webargs import fields, validate
 from webargs.flaskparser import parser
 
+from model.SystemConfig import SystemConfig
 from model.User import User
 from shared import get_logger, jwt_util, config
 from utility import MyValidator
@@ -96,13 +98,21 @@ def sign_in():
     username: str = args_form["username"]
     password: str = args_form["password"]
 
-    # check password
-    user = User.query.filter_by(email=username).first()
+    # always use the latest user for the same email across semester
+    user = User.query.filter_by(email=username).order_by(desc(User.creation_time)).first()
 
+    # check existence
     if user is None:
         logger.debug(f"Login fail: no such user")
         raise ApiPermissionException("Permission denied: invalid credential")
 
+    # check semester
+    sys_config = SystemConfig.query.filter_by(semester_id="CURRENT").first()
+    if user.creation_time < sys_config.semester_start_time:
+        logger.debug(f"Login fail: user not in current semester")
+        raise ApiPermissionException("Permission denied: invalid credential")
+
+    # check password
     password_hash = hmac.new(user.password_salt, bytes.fromhex(password), "sha1").digest()
     if password_hash != user.password_hash:
         logger.debug(f"Login fail: password mismatch")

@@ -120,6 +120,7 @@ export class AuthProvider extends React.Component {
      */
     @boundMethod
     async request(options) {
+        if (!options.path) throw "'path' is required in options";
         // prepend url
         options.url = API_URL + options.path;
         // append user token

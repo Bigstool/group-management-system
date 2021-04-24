@@ -58,12 +58,8 @@ def get_sys_config():
                   description: range of group member
                   example: [7, 9]
     """
-    record = SystemConfig.query.first().conf
-    return MyResponse(data={
-        "system_state": {'grouping_ddl': record["system_state"]["grouping_ddl"],
-                         'proposing_ddl': record["system_state"]["proposing_ddl"]},
-        "group_member_number": record["group_member_number"]
-    }).build()
+    record = SystemConfig.query.filter_by(semester_id="CURRENT").first()
+    return MyResponse(data=record.config).build()
 
 
 @system_api.route("/sysconfig", methods=["PATCH"])
@@ -113,23 +109,22 @@ def patch_sys_config():
         raise ApiPermissionException("Permission denied: you are not the administrator!")
 
     args_json = parser.parse({
-        "system_state": fields.Nested(
-            {"grouping_ddl": fields.Number(validate=validate.Regexp()),
-             "proposing_ddl": fields.Number(validate=validate.Regexp())}
-        ),
-        "group_member_number": fields.List(fields.Int())
+        "system_state": fields.Nested({
+            "grouping_ddl": fields.Number(missing=None),
+            "proposing_ddl": fields.Number(missing=None)}, missing=None),
+        "group_member_number": fields.List(fields.Int(), missing=None)
     }, request, location="json")
 
     new_system_state = args_json["system_state"]
     new_group_member_number = args_json["group_member_number"]
 
-    system_info = SystemConfig.query.first()
+    record = SystemConfig.query.filter_by(semester_id="CURRENT").first()
 
-    if new_system_state["grouping_ddl"] is not None:
-        system_info.conf['system_state']['grouping_ddl'] = new_system_state["grouping_ddl"]
-    if new_system_state["proposing_ddl"] is not None:
-        system_info.conf['system_state']['proposing_ddl'] = new_system_state["proposing_ddl"]
+    if new_system_state is not None and new_system_state["grouping_ddl"] is not None:
+        record.config['system_state']['grouping_ddl'] = new_system_state["grouping_ddl"]
+    if new_system_state is not None and new_system_state["proposing_ddl"] is not None:
+        record.config['system_state']['proposing_ddl'] = new_system_state["proposing_ddl"]
     if new_group_member_number is not None:
-        system_info.conf['group_member_number'] = new_group_member_number
+        record.config['group_member_number'] = new_group_member_number
 
     db.session.commit()

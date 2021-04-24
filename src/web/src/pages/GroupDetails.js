@@ -92,7 +92,7 @@ export default class GroupDetails extends React.Component {
     } else {
       return (
         <React.Fragment>
-          <AppBar/>
+          <AppBar dotMenuTarget={`/group/${this.state.groupUuid}/config`}/>
           <GroupBar userUuid={this.state.userUuid} userProfile={this.state.userProfile}
                     userRole={this.state.userRole} groupUuid={this.state.groupUuid}
                     groupInfo={this.state.groupInfo} sysConfig={this.state.sysConfig}

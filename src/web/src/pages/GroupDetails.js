@@ -21,7 +21,7 @@ export default class GroupDetails extends React.Component {
 
   constructor(props) {
     super(props);
-    this.setState({
+    this.state ={
       'loading': true,
       'userUuid': this.context.getUser()["uuid"],
       'userProfile': null,  // TODO: get from context
@@ -30,7 +30,7 @@ export default class GroupDetails extends React.Component {
       'groupInfo': null,  // obtained in componentDidMount
       'sysConfig': null,  // TODO: get from context
       'error': false
-    })
+    }
   }
 
   // returns true if user is the owner of the group

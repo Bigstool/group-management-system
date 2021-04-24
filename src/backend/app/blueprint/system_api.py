@@ -58,7 +58,12 @@ def get_sys_config():
                   description: range of group member
                   example: [7, 9]
     """
-    pass  # TODO
+    record = SystemConfig.query.first().conf
+    return MyResponse(data={
+        "system_state": {'grouping_ddl': record["system_state"]["grouping_ddl"],
+                         'proposing_ddl': record["system_state"]["proposing_ddl"]},
+        "group_member_number": record["group_member_number"]
+    }).build()
 
 
 @system_api.route("/sysconfig", methods=["PATCH"])
@@ -72,31 +77,59 @@ def patch_sys_config():
      ## Constrains
      * operator must be admin
 
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              system_state:
+                type: object
+                description: important time of current system
+                properties:
+                  grouping_ddl:
+                    type: number
+                    description: timestamp of grouping ddl
+                    example: 1618054160
+                  proposing_ddl:
+                    type: number
+                    description: timestamp of proposing ddl
+                    example: 1618054160
+              group_member_number:
+                type: array
+                description: range of group member
+                example: [7, 9]
     responses:
      200:
        description: query success
        content:
          application/json:
            schema:
-             type: array
-             items:
-               type: object
-               properties:
-                 system_state:
-                   type: object
-                   description: important time of current system
-                   properties:
-                     grouping_ddl:
-                       type: number
-                       description: timestamp of grouping
-                       example: 1618054160
-                     proposing_ddl:
-                       type: number
-                       description: timestamp of proposing
-                       example: 1618054160
-                 group_member_number:
-                   type: array
-                   description: range of group member
-                   example: [7, 9]
+             type: object
    """
-    pass  # TODO
+    token_info = Auth.get_payload(request)
+    if token_info["role"] != "ADMIN":
+        raise ApiPermissionException("Permission denied: you are not the administrator!")
+
+    args_json = parser.parse({
+        "system_state": fields.Nested(
+            {"grouping_ddl": fields.Number(validate=validate.Regexp()),
+             "proposing_ddl": fields.Number(validate=validate.Regexp())}
+        ),
+        "group_member_number": fields.List(fields.Int())
+    }, request, location="json")
+
+    new_system_state = args_json["system_state"]
+    new_group_member_number = args_json["group_member_number"]
+
+    system_info = SystemConfig.query.first()
+
+    if new_system_state["grouping_ddl"] is not None:
+        system_info.conf['system_state']['grouping_ddl'] = new_system_state["grouping_ddl"]
+    if new_system_state["proposing_ddl"] is not None:
+        system_info.conf['system_state']['proposing_ddl'] = new_system_state["proposing_ddl"]
+    if new_group_member_number is not None:
+        system_info.conf['group_member_number'] = new_group_member_number
+
+    db.session.commit()

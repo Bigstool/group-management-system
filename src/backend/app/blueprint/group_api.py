@@ -98,7 +98,6 @@ def create_group():
         )
 
     user = User.query.filter_by(uuid=uuid.UUID(uuid_in_token).bytes).first()
-    # user_group = user.group
     if user.group_id is not None:
         raise ApiPermissionException(
             f'Permission denied: you are in group {user.group_id}, you cannot create a new group!')
@@ -177,10 +176,13 @@ def get_group_list():
                     description: whether this group accept new application
                     example: true
     """
+    token_info = Auth.get_payload(request)
+    uuid_in_token = token_info['uuid']
+
     data = Group.query.all()
     data_list = []
     for group in data:
-        if GroupFavorite.query.filter_by(uuid=group.uuid):
+        if GroupFavorite.query.filter_by(uuid=group.uuid, user_uuid=uuid.UUID(uuid_in_token).bytes).first():
             favorite = True
         else:
             favorite = False
@@ -367,8 +369,9 @@ def get_group_info(group_uuid):
         "description": group.description,
         "proposal": group.proposal,
         "owner": {'uuid': str(uuid.UUID(bytes=group.owner_uuid)), 'alias': owner.alias, 'email': owner.email},
-        "proposal_submission:": group.proposal_state,
-        "member:": member_list,
+        "proposal_state": group.proposal_state,
+        "proposal_late": group.proposal_late,
+        "member": member_list,
         "application_enabled": group.application_enabled,
         "comment": comment_list,
         "creation_time": group.creation_time
@@ -467,7 +470,7 @@ def update_group_info(group_uuid):
         raise ApiPermissionException("You have no permission to update information of this group!")
     if uuid_in_token == str(uuid.UUID(bytes=group.owner_uuid)):
         #Constrains for the group owner
-        if (time.time()>system_state['proposing_ddl']):
+        if (time.time() > system_state['proposing_ddl']):
             raise ApiPermissionException(
                 "Grouping or proposing activity is finished, you cannot change your group information. ")
         if group.proposal_state == "Approved":

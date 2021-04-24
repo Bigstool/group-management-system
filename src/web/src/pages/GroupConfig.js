@@ -45,7 +45,7 @@ export default class GroupConfig extends React.Component {
     let profile = null;
     if (isOwner || isAdmin) {
       profile = <React.Fragment>
-        <Button type={'primary'} block size={'large'}>Edit Group Profile</Button>;
+        <Button type={'primary'} block size={'large'}>Edit Group Profile</Button>
         <br/>
         <br/>
       </React.Fragment>;

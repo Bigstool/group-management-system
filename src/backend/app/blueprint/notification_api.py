@@ -7,7 +7,7 @@ from flask import Blueprint, request
 from webargs import fields, validate
 from webargs.flaskparser import parser
 
-from model.SystemConfig import SystemConfig
+from model.Semester import Semester
 from shared import get_logger, db
 from utility import MyValidator
 from utility.ApiException import *

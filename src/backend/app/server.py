@@ -17,7 +17,7 @@ from blueprint.group_api import group_api
 from blueprint.notification_api import notification_api
 from blueprint.system_api import system_api
 from blueprint.user_api import user_api
-from model.SystemConfig import SystemConfig
+from model.Semester import Semester
 from model.User import User
 from model.Group import Group
 from model.GroupComment import GroupComment
@@ -202,15 +202,17 @@ with app.app_context():
         # - User 4: A member of group B
         # - User 5: A student that does not belong to any group
         # Insert system config info
-        system_conf_info = SystemConfig(
-            id=uuid.uuid4().bytes,
-            conf={
+        semester = Semester(
+            uuid=uuid.uuid4().bytes,
+            name="CURRENT",
+            start_time=int(time.time()),
+            config={
                 "system_state": {"grouping_ddl": datetime(2021, 4, 30, 17).timestamp(),
                                  "proposing_ddl": datetime(2021, 5, 5, 12).timestamp()},
                 "group_member_number": [7, 9]
             }
         )
-        db.session.add(system_conf_info)
+        db.session.add(semester)
         db.session.commit()
 
 # Swagger docs

@@ -1,7 +1,7 @@
 import React from 'react';
 import './GroupDetails.scss';
-import {PageHeader, Button, Tag, Row, Col, Divider, Comment, Avatar, Form, Input, List, LoadingOutlined} from 'antd';
-import {StarOutlined, StarFilled} from '@ant-design/icons';
+import {PageHeader, Button, Tag, Row, Col, Divider, Comment, Avatar, Form, Input, List} from 'antd';
+import {StarOutlined, StarFilled, LoadingOutlined} from '@ant-design/icons';
 import groupIcon from '../assets/group-icon.svg';
 import {AuthContext} from "../utilities/AuthProvider";
 import PropTypes from "prop-types";

@@ -7,7 +7,7 @@ from flask import Blueprint, request
 from webargs import fields, validate
 from webargs.flaskparser import parser
 
-from model.SystemConfig import SystemConfig
+from model.Semester import Semester
 from shared import get_logger, db
 from utility import MyValidator
 from utility.ApiException import *
@@ -26,7 +26,7 @@ def handle_error(error, req, schema, *, error_status_code, error_headers):
 
 @system_api.route("/sysconfig", methods=["GET"])
 def get_sys_config():
-    """Get global config of the system
+    """Get global config of the current semester
     ---
     tags:
       - system
@@ -58,13 +58,13 @@ def get_sys_config():
                   description: range of group member
                   example: [7, 9]
     """
-    record = SystemConfig.query.filter_by(semester_id="CURRENT").first()
+    record = Semester.query.filter_by(semester_id="CURRENT").first()
     return MyResponse(data=record.config).build()
 
 
 @system_api.route("/sysconfig", methods=["PATCH"])
 def patch_sys_config():
-    """Get list of group
+    """Modify the config of current semester
     ---
     tags:
      - system
@@ -118,7 +118,7 @@ def patch_sys_config():
     new_system_state = args_json["system_state"]
     new_group_member_number = args_json["group_member_number"]
 
-    record = SystemConfig.query.filter_by(semester_id="CURRENT").first()
+    record = Semester.query.filter_by(semester_id="CURRENT").first()
 
     if new_system_state is not None and new_system_state["grouping_ddl"] is not None:
         record.config['system_state']['grouping_ddl'] = new_system_state["grouping_ddl"]

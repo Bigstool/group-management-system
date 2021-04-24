@@ -22,11 +22,11 @@ ReactDOM.render((
         <HtmlHead/>
         <Router>
             <Switch>
-                <Route exact path={"/"} component={GroupList}/>
-                <Route path={"/user"} component={UserProfile} />
+                <PrivateRoute exact path={"/"} component={GroupList}/>
+                <PrivateRoute path={"/user"} component={UserProfile} />
                 <Route path={"/login"} component={Login} />
-                <Route path={"/group/:uuid/config"} component={GroupConfig}/>
-                <Route path={"/group/:uuid"} component={GroupDetails}/>
+                <PrivateRoute path={"/group/:uuid/config"} component={GroupConfig}/>
+                <PrivateRoute path={"/group/:uuid"} component={GroupDetails}/>
                 <Route path={"*"} component={NotFound}/>
             </Switch>
         </Router>

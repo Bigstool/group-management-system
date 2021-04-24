@@ -8,7 +8,7 @@ from sqlalchemy import desc
 from webargs import fields, validate
 from webargs.flaskparser import parser
 
-from model.SystemConfig import SystemConfig
+from model.Semester import Semester
 from model.User import User
 from shared import get_logger, jwt_util, config
 from utility import MyValidator
@@ -107,8 +107,8 @@ def sign_in():
         raise ApiPermissionException("Permission denied: invalid credential")
 
     # check semester
-    sys_config = SystemConfig.query.filter_by(semester_id="CURRENT").first()
-    if user.creation_time < sys_config.semester_start_time:
+    current_semester = Semester.query.filter_by(semester_id="CURRENT").first()
+    if user.creation_time < current_semester.start_time:
         logger.debug(f"Login fail: user not in current semester")
         raise ApiPermissionException("Permission denied: invalid credential")
 

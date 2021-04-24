@@ -107,7 +107,7 @@ def sign_in():
         raise ApiPermissionException("Permission denied: invalid credential")
 
     # check semester
-    current_semester = Semester.query.filter_by(semester_id="CURRENT").first()
+    current_semester = Semester.query.filter_by(name="CURRENT").first()
     if user.creation_time < current_semester.start_time:
         logger.debug(f"Login fail: user not in current semester")
         raise ApiPermissionException("Permission denied: invalid credential")

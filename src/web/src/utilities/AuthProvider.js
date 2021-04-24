@@ -17,10 +17,13 @@ export class AuthProvider extends React.Component {
         super(props);
         // get user from local storage
         this.state = {
-            user: JSON.parse(Storage.getItem("user"))
+            user: JSON.parse(Storage.getItem("user")),
+            userProfile: null,
+            systemConfig: null
         };
         // schedule task
         this.checkUserToken()
+        console.debug("AuthContext created")
     }
 
     /**
@@ -39,6 +42,56 @@ export class AuthProvider extends React.Component {
     @boundMethod
     getUser() {
         return this.state.user;
+    }
+
+    /**
+     * Get user profile
+     * @typedef UserProfile
+     * @type {object}
+     * @property {string} email
+     * @property {string} alias
+     * @property {string} bio
+     * @property {object|null} created_group
+     * @property {object|null} joined_group
+     *
+     * @param useCache {boolean} true: use previously fetched state; false: force fetch from backend(will renew state)
+     * @returns {Promise<null|UserProfile>}
+     */
+    @boundMethod
+    async getUserProfile(useCache = true) {
+        if (this.state.user === null) return null;
+        if (useCache && this.state.userProfile !== null) return this.state.userProfile;
+        const res = await this.request({
+            path: `/user/${this.state.user.uuid}`,
+            method: "get"
+        });
+        this.setState({
+            userProfile: res.data.data
+        });
+        return res.data.data;
+    }
+
+    /**
+     * Get system config
+     * @typedef SysConfig
+     * @type {object}
+     * @property {Array} group_member_number
+     * @property {object} system_state
+     *
+     * @param useCache true: use previously fetched state; false: force fetch from backend(will renew state)
+     * @returns {Promise<null|SysConfig>}
+     */
+    @boundMethod
+    async getSysConfig(useCache = true) {
+        if (useCache && this.state.systemConfig !== null) return this.state.systemConfig;
+        const res = await this.request({
+            path: '/sysconfig',
+            method: "get"
+        });
+        this.setState({
+            userProfile: res.data.data
+        });
+        return res.data.data;
     }
 
     /**
@@ -120,13 +173,14 @@ export class AuthProvider extends React.Component {
      */
     @boundMethod
     async request(options) {
+        if (!options.path) throw "'path' is required in options";
         // prepend url
         options.url = API_URL + options.path;
         // append user token
         const user = this.getUser()
-        if (user) {
-            options.header = {
-                ...options.header,
+        if (user !== null) {
+            options.headers = {
+                ...options.headers,
                 Authorization: "Bearer " + user["accessToken"]
             }
         }
@@ -181,6 +235,8 @@ export class AuthProvider extends React.Component {
         return (
             <AuthContext.Provider value={{
                 "getUser": this.getUser,
+                "getUserProfile": this.getUserProfile,
+                "getSysConfig": this.getSysConfig,
                 "login": this.login,
                 "logout": this.logout,
                 "request": this.request

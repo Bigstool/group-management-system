@@ -58,7 +58,7 @@ def get_sys_config():
                   description: range of group member
                   example: [7, 9]
     """
-    record = Semester.query.filter_by(semester_id="CURRENT").first()
+    record = Semester.query.filter_by(name="CURRENT").first()
     return MyResponse(data=record.config).build()
 
 
@@ -118,7 +118,7 @@ def patch_sys_config():
     new_system_state = args_json["system_state"]
     new_group_member_number = args_json["group_member_number"]
 
-    record = Semester.query.filter_by(semester_id="CURRENT").first()
+    record = Semester.query.filter_by(name="CURRENT").first()
 
     if new_system_state is not None and new_system_state["grouping_ddl"] is not None:
         record.config['system_state']['grouping_ddl'] = new_system_state["grouping_ddl"]

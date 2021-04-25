@@ -422,4 +422,15 @@ def delete_application(application_uuid):
             schema:
               type: object
     """
-    pass  # TODO
+    args_path = parser.parse({
+        "application_uuid": fields.Str(required=True, validate=MyValidator.Uuid())}, request, location="path")
+    application_uuid: str = args_path["application_uuid"]
+    application = GroupApplication.query.filter_by(uuid=uuid.UUID(application_uuid).bytes).first()
+    # Check Identity
+    token_info = Auth.get_payload(request)
+    uuid_in_token = token_info['uuid']
+    if (uuid_in_token != str(uuid.UUID(bytes=application.applicant_uuid))):
+        raise ApiPermissionException("Permission denied: You are not allowed to manipulate this application")
+    db.session.delete(application)
+    db.session.commit()
+    return MyResponse(data=None, msg='query success').build()

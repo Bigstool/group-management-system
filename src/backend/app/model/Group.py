@@ -8,6 +8,7 @@ class Group(db.Model):
     creation_time = db.Column("creation_time", db.Integer, nullable=False)
 
     name = db.Column("name", db.String(256), nullable=False)
+    project_title = db.Column("project_title", db.String(256))
     description = db.Column("description", db.String(4096), nullable=True)
     proposal = db.Column("proposal", db.String(4096), nullable=True)
     proposal_state = db.Column("proposal_state", db.String(256), nullable=False) # PENDING/SUBMITTED/APPROVE/REJECT

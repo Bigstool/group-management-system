@@ -24,11 +24,11 @@ export default class GroupDetails extends React.Component {
     this.state = {
       'loading': true,
       'userUuid': this.context.getUser()["uuid"],
-      'userProfile': null,  // TODO: get from context
+      'userProfile': null,  // obtained from context
       'userRole': this.context.getUser()['role'],
-      'groupUuid': this.props.match.params["uuid"],
+      'groupUuid': "aeaa35bf-ccb2-4e8c-abe5-5ba2e44384ae", // TODO: this.props.match.params["uuid"],
       'groupInfo': null,  // obtained in componentDidMount
-      'sysConfig': null,  // TODO: get from context
+      'sysConfig': null,  // obtained from context
       'error': false
     }
   }
@@ -36,13 +36,15 @@ export default class GroupDetails extends React.Component {
   // returns true if user is the owner of the group
   @boundMethod
   isOwner() {
+    if (!this.state.userProfile['created_group']) return false;
     return this.state.userProfile['created_group']['uuid'] === this.state.groupUuid;
   }
 
   // returns true if user is a member of the group
   @boundMethod
   isMember() {
-    return this.state.userProfile['created_group']['uuid'] === this.state.groupUuid;
+    if (!this.state.userProfile['joined_group']) return false;
+    return this.state.userProfile['joined_group']['uuid'] === this.state.groupUuid;
   }
 
   // request group info
@@ -51,7 +53,7 @@ export default class GroupDetails extends React.Component {
   async requestGroupInfo() {
     try {
       let res = await this.context.request({
-        url: `/group/${this.state.groupUuid}`,
+        path: `/group/${this.state.groupUuid}`,
         method: 'get'
       });
 
@@ -74,42 +76,70 @@ export default class GroupDetails extends React.Component {
   }
 
   async componentDidMount() {
+    // See if props contains URL TODO: fix and remove
+    console.debug('-------------------\nProps match:');
+    console.debug(this.props);
+
+    // get user profile
+    let userProfile = await this.context.getUserProfile();
+    let sysConfig = await this.context.getSysConfig();
+
     // get group info
     await this.requestGroupInfo();
 
     this.setState({
+      'userProfile': userProfile,
+      'sysConfig': sysConfig,
       'loading': false
     });
   }
 
   render() {
+    let appBar = <AppBar/>;
+
+    if (this.state.error) {
+      return (
+        <React.Fragment>
+          {appBar}
+          <h1>Oops, something went wrong</h1>
+          <h2>Perhaps reload?</h2>
+        </React.Fragment>
+      );
+    }
+
     if (this.state.loading) {
       return (
         <React.Fragment>
+          {appBar}
           <LoadingOutlined/>
         </React.Fragment>
       );
-    } else {
-      return (
-        <React.Fragment>
-          <AppBar dotMenuTarget={`/group/${this.state.groupUuid}/config`}/>
-          <GroupBar userUuid={this.state.userUuid} userProfile={this.state.userProfile}
-                    userRole={this.state.userRole} groupUuid={this.state.groupUuid}
-                    groupInfo={this.state.groupInfo} sysConfig={this.state.sysConfig}
-                    isOwner={this.isOwner} isMember={this.isMember}
-                    requestGroupInfo={this.requestGroupInfo} error={this.error}/>
-          <Title groupInfo={this.state.groupInfo}/>
-          <ShortDescription groupInfo={this.state.groupInfo}/>
-          <Proposal groupInfo={this.state.groupInfo} sysConfig={this.state.sysConfig}/>
-          <CommentSection userRole={this.state.userRole} groupUuid={this.state.groupUuid}
-                          groupInfo={this.state.groupInfo} isOwner={this.isOwner}
-                          isMember={this.isMember} requestGroupInfo={this.requestGroupInfo}/>
-          <Showcase/>
-          <GroupMembers groupInfo={this.state.groupInfo}/>
-          <div className={'bottom-margin'}/>
-        </React.Fragment>
-      )
     }
+
+    // If the user is a member of the group, show the three-dot menu
+    if (this.isOwner() || this.isMember() || this.userRole === 'ADMIN') {
+      appBar = <AppBar dotMenuTarget={`/group/${this.state.groupUuid}/config`}/>;
+    }
+
+    return (
+      <React.Fragment>
+        {appBar}
+        <GroupBar userUuid={this.state.userUuid} userProfile={this.state.userProfile}
+                  userRole={this.state.userRole} groupUuid={this.state.groupUuid}
+                  groupInfo={this.state.groupInfo} sysConfig={this.state.sysConfig}
+                  isOwner={this.isOwner} isMember={this.isMember}
+                  requestGroupInfo={this.requestGroupInfo} error={this.error}/>
+        <Title groupInfo={this.state.groupInfo}/>
+        <ShortDescription groupInfo={this.state.groupInfo}/>
+        <Proposal groupInfo={this.state.groupInfo} sysConfig={this.state.sysConfig}/>
+        <CommentSection userRole={this.state.userRole} groupUuid={this.state.groupUuid}
+                        groupInfo={this.state.groupInfo} isOwner={this.isOwner}
+                        isMember={this.isMember} requestGroupInfo={this.requestGroupInfo}/>
+        <Showcase/>
+        <GroupMembers groupInfo={this.state.groupInfo}/>
+        <div className={'bottom-margin'}/>
+      </React.Fragment>
+    );
   }
 }
 
@@ -156,7 +186,7 @@ class GroupBar extends React.Component {
     try {
       // request user applications
       let res = await this.context.request({
-        url: `/user/${this.props.userUuid}/application`,
+        path: `/user/${this.props.userUuid}/application`,
         method: 'get'
       });
 
@@ -194,7 +224,7 @@ class GroupBar extends React.Component {
     if (this.state.isApplied === false) {
       try {
         await this.context.request({
-          url: `/group/${this.props.groupUuid}/application`,
+          path: `/group/${this.props.groupUuid}/application`,
           method: "post",
           data: {
             comment: ""
@@ -206,7 +236,7 @@ class GroupBar extends React.Component {
     else {
       try {
         await this.context.request({
-          url: `/application/${this.state.applicationUuid}`,
+          path: `/application/${this.state.applicationUuid}`,
           method: "delete",
         });
       } catch (error) {}
@@ -227,7 +257,7 @@ class GroupBar extends React.Component {
     if (!this.props.groupInfo['favorite']) {
       try {
         await this.context.request({
-          url: `/group/${this.props.groupUuid}/favorite`,
+          path: `/group/${this.props.groupUuid}/favorite`,
           method: "post"
         });
       } catch (error) {}
@@ -236,7 +266,7 @@ class GroupBar extends React.Component {
     else {
       try {
         await this.context.request({
-          url: `/group/${this.props.groupUuid}/favorite`,
+          path: `/group/${this.props.groupUuid}/favorite`,
           method: "delete"
         });
       } catch (error) {}
@@ -248,7 +278,7 @@ class GroupBar extends React.Component {
 
   render() {
     const icon = <img className={'icon'} src={groupIcon} alt="group icon"/>;
-    const name = <p className={'name'} title={this.state.groupInfo['name']}>{this.state.groupInfo['name']}</p>;
+    const name = <p className={'name'} title={this.props.groupInfo['name']}>{this.props.groupInfo['name']}</p>;
 
     let apply = null, yourGroup = null, full = null;
     // check if the group is full, display if before grouping ddl
@@ -448,7 +478,7 @@ class CommentSection extends React.Component {
     // send comment
     try {
       await this.context.request({
-        url: `/group/${this.props.groupUuid}/comment`,
+        path: `/group/${this.props.groupUuid}/comment`,
         method: "post",
         data: {
           content: this.state.newComment,

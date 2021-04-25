@@ -46,8 +46,19 @@ export default class GroupConfig extends React.Component {
   }
 
   async componentDidMount() {
+    await this.checkSysConfig();
     await this.checkGroupInfo();
     this.setState({'loading': false});
+  }
+
+  // Retrieves system config and updates this.state
+  @boundMethod
+  async checkSysConfig() {
+    let sysConfig = await this.context.getSysConfig();
+    this.setState({
+      'groupingDDL': sysConfig["system_state"]["grouping_ddl"],
+      'proposalDDL': sysConfig["system_state"]["proposal_ddl"],
+    });
   }
 
   // Retrieves group info and updates this.state

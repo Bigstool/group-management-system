@@ -55,6 +55,11 @@ def create_group():
                 description: group name
                 example: Jaxzefalk
                 max: 256
+              project_title:
+                type: string
+                description: group project title
+                example: Group Management System
+                max: 256
               description:
                 type: string
                 max: 4096
@@ -84,10 +89,12 @@ def create_group():
 
     args_json = parser.parse({
         "name": fields.Str(required=True, validate=validate.Length(max=256)),
+        "project_title": fields.Str(missing=None, validate=validate.Length(max=256)),
         "description": fields.Str(required=True, validate=validate.Length(max=4096)),
         "proposal": fields.Str(missing=None, validate=validate.Length(max=4096))
     }, request, location="json")
-    name: str = args_json["name"].lower()
+    name: str = args_json["name"]
+    project_title: str = args_json["project_title"]
     description: str = args_json["description"]
     proposal: str = args_json["proposal"]
 
@@ -107,6 +114,7 @@ def create_group():
     # create a new group
     new_group = Group(uuid=uuid.uuid4().bytes,
                       name=name,
+                      project_title=project_title,
                       description=description,
                       proposal=proposal,
                       proposal_state='PENDING',
@@ -411,9 +419,13 @@ def update_group_info(group_uuid):
             type: object
             properties:
               name:
-                  type: string
-                  description: new group name
-                  example: Jaxzefalk
+                type: string
+                description: new group name
+                example: Jaxzefalk
+              project_title:
+                type: string
+                description: new group project title
+                example: Group Management System
               description:
                 type: string
                 description: new group description
@@ -446,16 +458,17 @@ def update_group_info(group_uuid):
         "group_uuid": fields.Str(required=True, validate=MyValidator.Uuid())}, request, location="path")
 
     args_json = parser.parse({
-        "name": fields.Str(missing=None, validate=validate.Length(max=30)),
-        "description": fields.Str(missing=None, validate=validate.Length(max=1000)),
-        "owner_uuid": fields.Str(missing=None, validate=validate.Length(max=50)),
-        "proposal": fields.Str(missing=None, validate=validate.Length(max=2000)),
+        "name": fields.Str(missing=None, validate=validate.Length(max=256)),
+        "description": fields.Str(missing=None, validate=validate.Length(max=4096)),
+        "owner_uuid": fields.Str(missing=None, validate=MyValidator.Uuid()),
+        "proposal": fields.Str(missing=None, validate=validate.Length(max=4096)),
         "proposal_state": fields.Str(missing=None, validate=validate.OneOf(
             ["PENDING", "SUBMITTED", "APPROVED", "REJECT"])),
         "application_enabled": fields.Boolean(missing=None)
     }, request, location="json")
     group_uuid: str = args_path["group_uuid"]
     new_name: str = args_json["name"]
+    new_project_title: str = args_json["project_title"]
     new_description: str = args_json["description"]
     new_owner_uuid: str = args_json["owner_uuid"]
     new_proposal: str = args_json["proposal"]
@@ -484,6 +497,8 @@ def update_group_info(group_uuid):
 
     if new_name is not None:
         group.name = new_name
+    if new_project_title is not None:
+        group.project_title = new_project_title
     if new_description is not None:
         group.description = new_description
     if new_owner_uuid is not None:

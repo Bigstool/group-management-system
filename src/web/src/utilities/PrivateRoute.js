@@ -6,7 +6,7 @@ export default class PrivateRoute extends React.PureComponent {
     static contextType = AuthContext;
 
     render() {
-        const {children, ...rest} = this.props;
+        const {component: Component, ...rest} = this.props;
         return (
             <Route
                 {...rest}
@@ -17,7 +17,7 @@ export default class PrivateRoute extends React.PureComponent {
                             state: {from: props.location}
                         }}/>
                         :
-                      (children)
+                        <Component {...props}/>
                 }}
             />
         );

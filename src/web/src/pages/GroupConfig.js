@@ -55,7 +55,7 @@ export default class GroupConfig extends React.Component {
   async checkGroupInfo() {
     try {
       let res = await this.context.request({
-        url: `/group/${this.props.match.params["uuid"]}`,
+        path: `/group/${this.props.match.params["uuid"]}`,
         method: 'get'
       });
       let groupInfo = res.data['data'];
@@ -116,7 +116,7 @@ export default class GroupConfig extends React.Component {
         <React.Fragment>
           {appBar}
           <h1>Oops, something went wrong</h1>
-          <h3>Please try reloading</h3>
+          <h3>Perhaps reload?</h3>
         </React.Fragment>
       );
     }

@@ -7,12 +7,13 @@ from flask import Blueprint, request
 from webargs import fields, validate
 from webargs.flaskparser import parser
 
-from model.SystemConfig import SystemConfig
+# from app.model.SystemConfig import SystemConfig
 from shared import get_logger, db
 from utility import MyValidator
 from utility.ApiException import *
 from utility.Auth import Auth
 from utility.MyResponse import MyResponse
+from model.Notification import Notification
 
 logger = get_logger(__name__)
 notification_api = Blueprint("notification_api", __name__)
@@ -30,11 +31,9 @@ def get_user_notification(user_uuid):
     ---
     tags:
       - notification
-
     description: |
       ## Constrains
       * operator must be the user
-
     parameters:
       - name: user_uuid
         in: path
@@ -43,7 +42,6 @@ def get_user_notification(user_uuid):
         schema:
           type: string
           example: 16fc2db7-cac0-46c2-a0e3-2da6cec54abb
-
     responses:
       '200':
         description: query success
@@ -71,4 +69,22 @@ def get_user_notification(user_uuid):
                     description: notification time
                     example: 1617189103
     """
-    pass # TODO
+    args_path = parser.parse({
+        "user_uuid": fields.Str(required=True, validate=MyValidator.Uuid())}, request, location="path")
+    user_uuid: str = args_path["user_uuid"]
+
+    token_info = Auth.get_payload(request)
+    uuid_in_token = token_info['uuid']
+    # Check identity
+    if (user_uuid != uuid_in_token):
+        raise ApiPermissionException('Permission denied: you cannot check other user\'s notification!')
+    # Search corresponding notifications and return
+    notifications = Notification.query.filter_by(user_uuid=uuid.UUID(user_uuid).bytes).all()
+    response_list = []
+    for notification in notifications:
+        response_list.append({"title" : notification.title,
+                              "content": notification.content, "creation_time": notification.creation_time,
+                              "uuid": str(uuid.UUID(bytes=notification.uuid))})
+    return MyResponse(data=response_list, msg='query success').build()
+
+

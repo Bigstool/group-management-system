@@ -542,7 +542,7 @@ def delete_group(group_uuid):
     group = Group.query.filter_by(uuid=uuid.UUID(group_uuid).bytes).first()
     if group is None:
         raise ApiResourceNotFoundException("No such group!")
-    system_state = SystemConfig.query.first().conf['system_state']
+    system_state = Semester.query.first().conf['system_state']
     token_info = Auth.get_payload(request)
     uuid_in_token = token_info['uuid']
     if not (token_info["role"] == "ADMIN" or uuid_in_token == str(uuid.UUID(bytes=group.owner_uuid))):

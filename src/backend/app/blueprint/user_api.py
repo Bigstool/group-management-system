@@ -269,7 +269,7 @@ def update_user_profile(user_uuid):
     args_json = parser.parse({
         # "email": fields.Str(missing=None, validate=validate.Email()),
         # "alias": fields.Str(missing=None, validate=validate.Length(min=4, max=32)),
-        "bio": fields.Str(missing=None, validate=validate.Length(max=1000))
+        "bio": fields.Str(missing=None)
     }, request, location="json")
 
     user_uuid: str = args_path["user_uuid"]

@@ -458,10 +458,10 @@ def update_group_info(group_uuid):
         "group_uuid": fields.Str(required=True, validate=MyValidator.Uuid())}, request, location="path")
 
     args_json = parser.parse({
-        "name": fields.Str(missing=None, validate=validate.Length(max=30)),
-        "description": fields.Str(missing=None, validate=validate.Length(max=1000)),
-        "owner_uuid": fields.Str(missing=None, validate=validate.Length(max=50)),
-        "proposal": fields.Str(missing=None, validate=validate.Length(max=2000)),
+        "name": fields.Str(missing=None, validate=validate.Length(max=256)),
+        "description": fields.Str(missing=None, validate=validate.Length(max=4096)),
+        "owner_uuid": fields.Str(missing=None, validate=MyValidator.Uuid()),
+        "proposal": fields.Str(missing=None, validate=validate.Length(max=4096)),
         "proposal_state": fields.Str(missing=None, validate=validate.OneOf(
             ["PENDING", "SUBMITTED", "APPROVED", "REJECT"])),
         "application_enabled": fields.Boolean(missing=None)

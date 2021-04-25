@@ -503,6 +503,7 @@ class CommentSection extends React.Component {
     let index = 0;
     while(index < comments_plain.length) {
       // insert the next comment
+      // TODO: link avatar and title to user profile
       comments.push(
         <Comment
           className={'comment'}
@@ -541,6 +542,7 @@ class CommentSection extends React.Component {
     // New comment
     let newComment = null;
     // allow comment only if user is the owner, a member, or a admin
+    // TODO: link avatar and title to user profile
     if (this.props.userRole === 'ADMIN' || this.props.isOwner() || this.props.isMember()) {
       newComment = (
         <React.Fragment>
@@ -596,31 +598,41 @@ class GroupMembers extends React.Component {
 
   constructor(props) {
     super(props);
-
-    this.ownerUuid = this.props.groupInfo['owner']['uuid']
-    this.members = this.props.groupInfo['member'];
   }
 
   render() {
+    let memberList = [];
+    memberList.push(
+      <List.Item>
+        <List.Item.Meta
+          // TODO: link avatar and title to user profile
+          avatar={<Avatar
+            src="https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png"/>}
+          title={<a href={'#'}>{this.props.groupInfo['owner']['alias']}</a>}
+          description={'Owner'}
+          key={this.props.groupInfo['owner']['uuid']}
+        />
+      </List.Item>
+    );
+    for (let i = 0; i < this.props.groupInfo['member'].length; i++) {
+      memberList.push(
+        <List.Item>
+          <List.Item.Meta
+            // TODO: link avatar and title to user profile
+            avatar={<Avatar
+              src="https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png"/>}
+            title={<a href={'#'}>{this.props.groupInfo['member'][i]['alias']}</a>}
+            description={'Member'}
+            key={this.props.groupInfo['member'][i]['uuid']}
+          />
+        </List.Item>
+      );
+    }
+
     return (
       <div className={'group-members'}>
         <h3>Group Members</h3>
-        <List
-          itemLayout="horizontal"
-          split={false}
-          dataSource={this.members}
-          renderItem={item => (
-            <List.Item>
-              <List.Item.Meta
-                // TODO: link avatar and title to user profile
-                avatar={<Avatar
-                  src="https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png"/>}
-                title={<a href={'#'}>{item.alias}</a>}
-                description={item.uuid === this.ownerUuid ? 'Owner' : 'Member'}
-              />
-            </List.Item>
-          )}
-        />
+        {memberList}
       </div>
     );
   }

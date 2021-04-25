@@ -4,6 +4,7 @@ import time
 import uuid
 
 from flask import Blueprint, request
+from sqlalchemy.orm.attributes import flag_modified
 from webargs import fields, validate
 from webargs.flaskparser import parser
 
@@ -127,4 +128,7 @@ def patch_sys_config():
     if new_group_member_number is not None:
         record.config['group_member_number'] = new_group_member_number
 
+    flag_modified(record, "config")
     db.session.commit()
+
+    return MyResponse(data=None, msg='query success').build()

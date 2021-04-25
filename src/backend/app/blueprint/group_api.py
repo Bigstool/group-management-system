@@ -7,6 +7,7 @@ from flask import Blueprint, request
 from webargs import fields, validate
 from webargs.flaskparser import parser
 
+from model.Notification import Notification
 from model.Group import Group
 from model.SystemConfig import SystemConfig
 from model.User import User
@@ -571,7 +572,40 @@ def remove_member(group_uuid, user_uuid):
             schema:
               type: object
     """
-    pass  # TODO
+    args_path = parser.parse({
+        "group_uuid": fields.Str(required=True, validate=MyValidator.Uuid()),
+        "user_uuid": fields.Str(required=True, validate=MyValidator.Uuid())}, request, location="path")
+    group_uuid: str = args_path["group_uuid"]
+    user_uuid: str = args_path["user_uuid"]
+    group = Group.query.filter_by(uuid=uuid.UUID(group_uuid).bytes).first()
+    user = User.query.filter_by(uuid=uuid.UUID(user_uuid).bytes).first()
+    # Check Identity
+    token_info = Auth.get_payload(request)
+    uuid_in_token = token_info['uuid']
+    if (uuid_in_token!=str(uuid.UUID(bytes=group.owner_uuid)) and uuid_in_token!=str(uuid.UUID(bytes=user.uuid))):
+        raise ApiPermissionException("Permission denied: You are not allowed to leave the group/kick the member")
+    user.group_id = None
+    group.member_num = group.member_num - 1
+    db.session.commit()
+    # Notification for group owner
+    if (uuid_in_token == str(uuid.UUID(bytes=user.uuid))):
+        new_notification = Notification(uuid=uuid.uuid4().bytes,
+                                        user_uuid=group.owner_uuid,
+                                        title="Member Removed",
+                                        content="Group member " + user.alias + " has left the group",
+                                        creation_time=int(time.time()))
+        db.session.add(new_notification)
+        db.session.commit()
+    # Notification for group member
+    if (uuid_in_token == str(uuid.UUID(bytes=group.owner_uuid))):
+        new_notification = Notification(uuid=uuid.uuid4().bytes,
+                                        user_uuid=user.uuid,
+                                        title="Member Removed",
+                                        content="You have been kicked from the group " + group.name,
+                                        creation_time=int(time.time()))
+        db.session.add(new_notification)
+        db.session.commit()
+    return MyResponse(data=None, msg='query success').build()
 
 
 @group_api.route("/group/merged", methods=["POST"])

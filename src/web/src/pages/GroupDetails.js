@@ -26,7 +26,7 @@ export default class GroupDetails extends React.Component {
       'userUuid': this.context.getUser()["uuid"],
       'userProfile': null,  // obtained from context
       'userRole': this.context.getUser()['role'],
-      'groupUuid': "aeaa35bf-ccb2-4e8c-abe5-5ba2e44384ae", // TODO: this.props.match.params["uuid"],
+      'groupUuid': this.props.match.params["uuid"],
       'groupInfo': null,  // obtained in componentDidMount
       'sysConfig': null,  // obtained from context
       'error': false
@@ -76,10 +76,6 @@ export default class GroupDetails extends React.Component {
   }
 
   async componentDidMount() {
-    // See if props contains URL TODO: fix and remove
-    console.debug('-------------------\nProps match:');
-    console.debug(this.props);
-
     // get user profile
     let userProfile = await this.context.getUserProfile();
     let sysConfig = await this.context.getSysConfig();

@@ -544,6 +544,7 @@ class CommentSection extends React.Component {
       newComment = (
         <React.Fragment>
           <Comment
+            className={'new-comment'}
             avatar={
               <Avatar
                 src="https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png"

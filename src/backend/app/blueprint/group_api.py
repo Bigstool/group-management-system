@@ -525,7 +525,37 @@ def delete_group(group_uuid):
             schema:
               type: object
     """
-    pass  # TODO
+    args_path = parser.parse({
+    "group_uuid": fields.Str(required=True, validate=MyValidator.Uuid())}, request, location="path")
+    group_uuid: str = args_path["group_uuid"]
+    group = Group.query.filter_by(uuid=uuid.UUID(group_uuid).bytes).first()
+    if group is None:
+        raise ApiResourceNotFoundException("No such group!")
+    system_state = SystemConfig.query.first().conf['system_state']
+    token_info = Auth.get_payload(request)
+    uuid_in_token = token_info['uuid']
+    if not (token_info["role"] == "ADMIN" or uuid_in_token == str(uuid.UUID(bytes=group.owner_uuid))):
+        raise ApiPermissionException("You have no permission to delete this group!")
+    if uuid_in_token == str(uuid.UUID(bytes=group.owner_uuid)):
+        # Constrains for the group owner
+        if (time.time() > system_state['grouping_ddl']):
+            raise ApiPermissionException(
+                "Grouping activity is finished, you cannot delete your group. ")
+    group_application=GroupApplication.query.filter_by(group_uuid=uuid.UUID(group_uuid).bytes).all()
+    for application in group_application:
+        db.session.delete(application)
+    group_comment = GroupComment.query.filter_by(group_uuid=uuid.UUID(group_uuid).bytes).all()
+    for comment in group_comment:
+        db.session.delete(comment)
+    group_Favorite = GroupFavorite.query.filter_by(group_uuid=uuid.UUID(group_uuid).bytes).all()
+    for favorite in group_Favorite:
+        db.session.delete(favorite)
+    db.session.delete(group)
+    db.session.commit()
+    return MyResponse(data=None).build()
+
+
+
 
 
 @group_api.route("/group/<group_uuid>/member/<user_uuid>", methods=["DELETE"])

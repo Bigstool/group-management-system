@@ -7,7 +7,7 @@ from flask import Blueprint, request
 from webargs import fields, validate
 from webargs.flaskparser import parser
 from model.Notification import Notification
-from model.SystemConfig import SystemConfig
+from model.Semester import Semester
 from model.Group import Group
 from model.User import User
 from model.GroupApplication import GroupApplication
@@ -90,7 +90,7 @@ def create_application(group_uuid):
     application = GroupApplication.query.filter_by(applicant_uuid=uuid.UUID(uuid_in_token).bytes,
                                              group_uuid=uuid.UUID(group_uuid).bytes).first()
     group = Group.query.filter_by(uuid=uuid.UUID(group_uuid).bytes).first()
-    system_config = SystemConfig.query.first().conf
+    system_config = Semester.query.filter_by(name="CURRENT").first().config
     if user.group_id:
         raise ApiPermissionException("Permission denied: You have already created/joined a group")
     if application:

@@ -41,6 +41,7 @@ def create_group():
       ## Constrains
       * operator must be user
       * operator must have no created group or joined group
+      * must before grouping ddl
 
     requestBody:
       required: true
@@ -77,9 +78,9 @@ def create_group():
               type: object
     """
     # check constrains
-    # system_state = SystemConfig.query.first().conf
-    # if system_state['system_state'] != "GROUPING":
-    #     raise ApiPermissionException("Permission denied: Grouping is finished, you cannot create a new group!")
+    system_config = Semester.query.filter_by(name="CURRENT").first().config
+    if system_config["system_state"]["grouping_ddl"] < time.time():
+        raise ApiPermissionException("Permission denied: Grouping is finished, you cannot create a new group!")
 
     args_json = parser.parse({
         "name": fields.Str(required=True, validate=validate.Length(max=256)),
@@ -464,20 +465,20 @@ def update_group_info(group_uuid):
     group = Group.query.filter_by(uuid=uuid.UUID(group_uuid).bytes).first()
     if group is None:
         raise ApiResourceNotFoundException("No such group!")
-    system_state = Semester.query.first().conf['system_state']
+    system_state = Semester.query.filter_by(name="CURRENT").first().config['system_state']
     token_info = Auth.get_payload(request)
     uuid_in_token = token_info['uuid']
     if not (token_info["role"] == "ADMIN" or uuid_in_token == str(uuid.UUID(bytes=group.owner_uuid))):
         raise ApiPermissionException("You have no permission to update information of this group!")
     if uuid_in_token == str(uuid.UUID(bytes=group.owner_uuid)):
-        #Constrains for the group owner
+        # Constrains for the group owner
         if (time.time() > system_state['proposing_ddl']):
             raise ApiPermissionException(
                 "Grouping or proposing activity is finished, you cannot change your group information. ")
         if group.proposal_state == "Approved":
             raise ApiPermissionException(
                 "Your proposal has been approved. You cannot change group information anymore.")
-        if new_proposal_state=='Approved':
+        if new_proposal_state == 'Approved':
             raise ApiPermissionException(
                 "You are not admin and you cannot approve the proposal! ")
 
@@ -496,11 +497,11 @@ def update_group_info(group_uuid):
         group.proposal = new_proposal
     if new_proposal_state is not None:
         if group.proposal == None:
-            #This ensures that the proposal state can be changed only if the proposal is not none
+            # This ensures that the proposal state can be changed only if the proposal is not none
             raise ApiInvalidInputException("You cannot change the proposal state since there isn't any proposal yet.")
-        if group.proposal_state=="PENDING" and new_proposal_state=="SUBMITTED":
-            if time.time()>system_state['proposing_ddl']:
-                group.proposal_late=time.time()-system_state['proposing_ddl']
+        if group.proposal_state == "PENDING" and new_proposal_state == "SUBMITTED":
+            if time.time() > system_state['proposing_ddl']:
+                group.proposal_late = time.time() - system_state['proposing_ddl']
         group.proposal_state = new_proposal_state
     if new_application_enabled is not None:
         group.application_enabled = new_application_enabled
@@ -538,12 +539,12 @@ def delete_group(group_uuid):
               type: object
     """
     args_path = parser.parse({
-    "group_uuid": fields.Str(required=True, validate=MyValidator.Uuid())}, request, location="path")
+        "group_uuid": fields.Str(required=True, validate=MyValidator.Uuid())}, request, location="path")
     group_uuid: str = args_path["group_uuid"]
     group = Group.query.filter_by(uuid=uuid.UUID(group_uuid).bytes).first()
     if group is None:
         raise ApiResourceNotFoundException("No such group!")
-    system_state = SystemConfig.query.first().conf['system_state']
+    system_state = Semester.query.filter_by(name="CURRENT").first().config['system_state']
     token_info = Auth.get_payload(request)
     uuid_in_token = token_info['uuid']
     if not (token_info["role"] == "ADMIN" or uuid_in_token == str(uuid.UUID(bytes=group.owner_uuid))):
@@ -553,7 +554,7 @@ def delete_group(group_uuid):
         if (time.time() > system_state['grouping_ddl']):
             raise ApiPermissionException(
                 "Grouping activity is finished, you cannot delete your group. ")
-    group_application=GroupApplication.query.filter_by(group_uuid=uuid.UUID(group_uuid).bytes).all()
+    group_application = GroupApplication.query.filter_by(group_uuid=uuid.UUID(group_uuid).bytes).all()
     for application in group_application:
         db.session.delete(application)
     group_comment = GroupComment.query.filter_by(group_uuid=uuid.UUID(group_uuid).bytes).all()
@@ -565,9 +566,6 @@ def delete_group(group_uuid):
     db.session.delete(group)
     db.session.commit()
     return MyResponse(data=None).build()
-
-
-
 
 
 @group_api.route("/group/<group_uuid>/member/<user_uuid>", methods=["DELETE"])
@@ -615,7 +613,7 @@ def remove_member(group_uuid, user_uuid):
     # Check Identity
     token_info = Auth.get_payload(request)
     uuid_in_token = token_info['uuid']
-    if (uuid_in_token!=str(uuid.UUID(bytes=group.owner_uuid)) and uuid_in_token!=str(uuid.UUID(bytes=user.uuid))):
+    if (uuid_in_token != str(uuid.UUID(bytes=group.owner_uuid)) and uuid_in_token != str(uuid.UUID(bytes=user.uuid))):
         raise ApiPermissionException("Permission denied: You are not allowed to leave the group/kick the member")
     user.group_id = None
     group.member_num = group.member_num - 1

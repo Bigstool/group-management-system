@@ -304,7 +304,36 @@ def accept_application():
             schema:
               type: object
     """
-    pass  # TODO
+    # Check identity
+    args_json = parser.parse({
+        "application_uuid": fields.Str(required=True, validate=MyValidator.Uuid())}, request, location="json")
+    application_uuid: str = args_json["application_uuid"]
+    application = GroupApplication.query.filter_by(uuid=uuid.UUID(application_uuid).bytes).first()
+    applicant = User.query.filter_by(uuid=application.applicant_uuid).first()
+    group = Group.query.filter_by(uuid=application.group_uuid).first()
+    token_info = Auth.get_payload(request)
+    uuid_in_token = token_info['uuid']
+
+    if (uuid_in_token != str(uuid.UUID(bytes=group.owner_uuid))):
+        raise ApiPermissionException("Permission denied: You are not allowed to manipulate this application")
+    # Add applicant to group
+    applicant.group_id = group.uuid
+    db.session.commit()
+    # increment the group number
+    group.member_num = group.member_num+1
+    db.session.commit()
+    # Remove application
+    db.session.delete(application)
+    db.session.commit()
+    # Create Notification
+    new_notification = Notification(uuid=uuid.uuid4().bytes,
+                                    user_uuid=applicant.uuid,
+                                    title="Application",
+                                    content="Your application of group " + group.name + " has been approved",
+                                    creation_time=int(time.time()))
+    db.session.add(new_notification)
+    db.session.commit()
+    return MyResponse(data=None, msg='query success').build()
 
 
 @application_api.route("/application/rejected", methods=["POST"])

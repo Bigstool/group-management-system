@@ -121,7 +121,6 @@ export default class GroupConfig extends React.Component {
     // App Bar
     let appBar = <AppBar/>;
 
-    // TODO: loading and error handling
     if (this.state.error) {
       return (
         <React.Fragment>
@@ -142,7 +141,8 @@ export default class GroupConfig extends React.Component {
     }
 
     // All Set (Member) (After Grouping DDL)
-    if (this.state.isMember && this.state.afterGroupingDDL) return (
+    // TODO: remove !this.state.isOwner (Wait for Issue #55 to be fixed)
+    if (!this.state.isOwner && this.state.isMember && this.state.afterGroupingDDL) return (
       <React.Fragment>
         {appBar}
         <h1>You're all set!</h1>

@@ -6,7 +6,8 @@ import uuid
 from flask import Blueprint, request
 from webargs import fields, validate
 from webargs.flaskparser import parser
-
+from model.Notification import Notification
+from model.SystemConfig import SystemConfig
 from model.Group import Group
 from model.User import User
 from model.GroupApplication import GroupApplication
@@ -72,7 +73,41 @@ def create_application(group_uuid):
             schema:
               type: object
     """
-    pass  # TODO
+    args_path = parser.parse({
+        "group_uuid": fields.Str(required=True, validate=MyValidator.Uuid())}, request, location="path")
+    args_json = parser.parse({
+        "comment": fields.Str(missing=None, validate=validate.Length(max=4096))
+    }, request, location="json")
+
+    group_uuid: str = args_path["group_uuid"]
+    comment: str = args_json["comment"]
+
+    token_info = Auth.get_payload(request)
+    uuid_in_token = token_info['uuid']
+
+    user = User.query.filter_by(uuid=uuid.UUID(uuid_in_token).bytes).first()
+    # print(user)
+    application = GroupApplication.query.filter_by(applicant_uuid=uuid.UUID(uuid_in_token).bytes,
+                                             group_uuid=uuid.UUID(group_uuid).bytes).first()
+    group = Group.query.filter_by(uuid=uuid.UUID(group_uuid).bytes).first()
+    system_config = SystemConfig.query.first().conf
+    if user.group_id:
+        raise ApiPermissionException("Permission denied: You have already created/joined a group")
+    if application:
+        raise ApiPermissionException("Permission denied: You have already sent application for this group")
+    if (system_config["system_state"] != "GROUPING" or (not group.application_enabled)):
+        raise ApiPermissionException("Permission denied: This group cannot be applied")
+    if group.member_num >= system_config["group_member_number"]:
+        raise ApiPermissionException("Permission denied: This group is full")
+    new_application = GroupApplication(uuid=uuid.uuid4().bytes,
+                                       comment=comment,
+                                       applicant_uuid=uuid.UUID(uuid_in_token).bytes,
+                                       group_uuid=uuid.UUID(group_uuid).bytes,
+                                       creation_time=int(time.time()))
+    db.session.add(new_application)
+    db.session.commit()
+    print(str(uuid.UUID(bytes=new_application.uuid)))
+    return MyResponse(data=None, msg="query success").build()
 
 
 @application_api.route("/group/<group_uuid>/application", methods=["GET"])

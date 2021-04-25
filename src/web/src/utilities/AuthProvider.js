@@ -149,7 +149,7 @@ export class AuthProvider extends React.Component {
         // construct user for context
         const user = {
             "uuid": accessTokenPayload["uuid"],
-            "role": accessTokenPayload["operator_type"],
+            "role": accessTokenPayload["role"],
             "accessToken": accessToken,
             "refreshToken": refreshToken,
             "accessTokenExp": accessTokenExp,

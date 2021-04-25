@@ -4,15 +4,6 @@
   margin: 0 0 0;
 }
 
-//body .site-page-header {
-//  border: 1px solid rgb(235, 237, 240);
-//  position: fixed;
-//  left: 0;
-//  top: 0;
-//  width: 100%;
-//  z-index: 1;
-//}
-
 .group-bar, .group-title, .group-short-description,
 .group-proposal, .group-comment-section, .group-members {
   padding: 0 1.5rem;
@@ -44,6 +35,10 @@
   margin-bottom: 0.25rem;
 }
 
+.group-comment-section .new-comment {
+  margin-bottom: -2rem;
+}
+
 .group-comment-section .comment .ant-comment-inner {
   padding: 0.25rem 0;
 }
@@ -55,6 +50,10 @@
 .group-comment-section .ant-divider-inner-text {
   color: rgba(0, 0, 0, 0.45);
   font-size: 0.75rem;
+}
+
+.group-members {
+  margin-top: 1rem;
 }
 
 .bottom-margin {

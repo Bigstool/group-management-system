@@ -23,16 +23,16 @@ export default class GroupConfig extends React.Component {
 
   constructor(props, context) {
     super(props, context);
-    this.userUuid = this.context.getUser()['uuid'];
-    this.userRole = this.context.getUser()['role'];
-    this.groupingDDL = 1618054160  // TODO: get from context (wait for implementation)
-    this.proposalDDL = 1618054160  // TODO: get from context (wait for implementation)
     this.state = {
       // User related
+      'userUuid': this.context.getUser()['uuid'],
+      'userRole': this.context.getUser()['role'],
       'isMember': false,
       'isOwner': false,
       'isAdmin': false,
       // System related
+      'groupingDDL': 0,  // TODO: get from context (wait for implementation)
+      'proposalDDL': 0,  // TODO: get from context (wait for implementation)
       'afterGroupingDDL': false,
       'afterProposalDDL': false,
       // Group related
@@ -63,7 +63,7 @@ export default class GroupConfig extends React.Component {
       // update isMember
       let found = false;
       for (let i = 0; i < groupInfo['member'].length; i++) {
-        if (groupInfo['member'][i]['uuid'] === this.userUuid) {
+        if (groupInfo['member'][i]['uuid'] === this.state.userUuid) {
           found = true;
           break;
         }
@@ -72,19 +72,19 @@ export default class GroupConfig extends React.Component {
       else this.setState({'isMember': false});
 
       // update isOwner
-      if (groupInfo['owner']['uuid'] === this.userUuid) this.setState({'isOwner': true});
+      if (groupInfo['owner']['uuid'] === this.state.userUuid) this.setState({'isOwner': true});
       else this.setState({'isOwner': false});
 
       // update isAdmin
-      if (this.userRole === 'ADMIN') this.setState({'isAdmin': true});
+      if (this.state.userRole === 'ADMIN') this.setState({'isAdmin': true});
       else this.setState({'isAdmin': false});
 
       // update afterGroupingDDL
-      if (Date.now() > this.groupingDDL) this.setState({'afterGroupingDDL': true});
+      if (Date.now() > this.state.groupingDDL) this.setState({'afterGroupingDDL': true});
       else this.setState({'afterGroupingDDL': false});
 
       // update afterProposalDDL
-      if (Date.now() > this.proposalDDL) this.setState({'afterProposalDDL': true});
+      if (Date.now() > this.state.proposalDDL) this.setState({'afterProposalDDL': true});
       else this.setState({'afterProposalDDL': false});
 
       // update isApproved

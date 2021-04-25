@@ -22,12 +22,24 @@ ReactDOM.render((
         <HtmlHead/>
         <Router>
             <Switch>
-                <PrivateRoute exact path={"/"} component={GroupList}/>
-                <PrivateRoute path={"/user"} component={UserProfile} />
-                <Route path={"/login"} component={Login} />
-                <PrivateRoute path={"/group/:uuid/config"} component={GroupConfig}/>
-                <PrivateRoute path={"/group/:uuid"} component={GroupDetails}/>
-                <Route path={"*"} component={NotFound}/>
+                <PrivateRoute exact path={"/"}>
+                  <GroupList/>
+                  </PrivateRoute>
+                  <PrivateRoute path={"/user"}>
+                    <UserProfile/>
+                  </PrivateRoute>
+                  <Route path={"/login"} >
+                    <Login/>
+                  </Route>
+                  <PrivateRoute path={"/group/:uuid/config"}>
+                    <GroupConfig/>
+                  </PrivateRoute>
+              <PrivateRoute path={"/group/:uuid"}>
+                <GroupDetails/>
+              </PrivateRoute>
+              <Route path={"*"}>
+                <NotFound/>
+              </Route>
             </Switch>
         </Router>
     </AuthProvider>

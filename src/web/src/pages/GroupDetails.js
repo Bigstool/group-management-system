@@ -540,7 +540,7 @@ class CommentSection extends React.Component {
     // New comment
     let newComment = null;
     // allow comment only if user is the owner, a member, or a admin
-    if (this.props.role === 'ADMIN' || this.props.isOwner() || this.props.isMember) {
+    if (this.props.userRole === 'ADMIN' || this.props.isOwner() || this.props.isMember()) {
       newComment = (
         <React.Fragment>
           <Comment

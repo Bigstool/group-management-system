@@ -89,7 +89,7 @@ export class AuthProvider extends React.Component {
             method: "get"
         });
         this.setState({
-            userProfile: res.data.data
+            systemConfig: res.data.data
         });
         return res.data.data;
     }

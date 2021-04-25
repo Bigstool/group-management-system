@@ -48,7 +48,6 @@ export default class Login extends React.PureComponent {
                     "error": ERROR.NETWORK_ISSUE
                 });
             }
-        } finally {
             this.setState({
                 "login": false
             })

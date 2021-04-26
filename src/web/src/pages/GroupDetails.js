@@ -281,7 +281,7 @@ class GroupBar extends React.Component {
     // check if the group is full, display if before grouping ddl
     if (this.props.sysConfig["system_state"]["grouping_ddl"] > Date.now() &&
       this.props.groupInfo['application_enabled'] === false) {
-      full = <Tag className={'your-group'} color="grey">Full</Tag>;
+      full = <Tag className={'your-group'} color="grey">Application Disabled</Tag>;
     }
     // check if the group is your group
     if (this.props.isOwner() || this.props.isMember()) {

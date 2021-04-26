@@ -120,6 +120,7 @@ export default class GroupDetails extends React.Component {
     return (
       <React.Fragment>
         {appBar}
+        <div className={'top-margin'}/>
         <GroupBar userUuid={this.state.userUuid} userProfile={this.state.userProfile}
                   userRole={this.state.userRole} groupUuid={this.state.groupUuid}
                   groupInfo={this.state.groupInfo} sysConfig={this.state.sysConfig}

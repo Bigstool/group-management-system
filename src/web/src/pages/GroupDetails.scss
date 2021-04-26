@@ -39,6 +39,10 @@
   margin-bottom: -2rem;
 }
 
+.group-comment-section .new-comment textarea {
+  resize: none;
+}
+
 .group-comment-section .comment .ant-comment-inner {
   padding: 0.25rem 0;
 }

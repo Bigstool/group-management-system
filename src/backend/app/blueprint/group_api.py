@@ -460,6 +460,7 @@ def update_group_info(group_uuid):
 
     args_json = parser.parse({
         "name": fields.Str(missing=None, validate=validate.Length(max=256)),
+        "project_title":fields.Str(missing=None, validate=validate.Length(max=256)),
         "description": fields.Str(missing=None, validate=validate.Length(max=4096)),
         "owner_uuid": fields.Str(missing=None, validate=MyValidator.Uuid()),
         "proposal": fields.Str(missing=None, validate=validate.Length(max=4096)),

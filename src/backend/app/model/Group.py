@@ -4,18 +4,19 @@ from shared import db
 class Group(db.Model):
     __tablename__ = "group"
 
-    uuid = db.Column("uuid", db.BINARY(16), primary_key=True)   # PK
+    uuid = db.Column("uuid", db.BINARY(16), primary_key=True)  # PK
     creation_time = db.Column("creation_time", db.Integer, nullable=False)
 
     name = db.Column("name", db.String(256), nullable=False)
     project_title = db.Column("project_title", db.String(256))
     description = db.Column("description", db.String(4096), nullable=True)
     proposal = db.Column("proposal", db.String(4096), nullable=True)
-    proposal_state = db.Column("proposal_state", db.String(256), nullable=False) # PENDING/SUBMITTED/APPROVE/REJECT
-    proposal_late = db.Column("proposal_late", db.Integer(), nullable=True)
+    proposal_update_time = db.Column('proposal_update_time', db.Integer)
+    proposal_state = db.Column("proposal_state", db.String(256), nullable=False)  # PENDING/SUBMITTED/APPROVE/REJECT
+    proposal_late = db.Column("proposal_late", db.Integer, nullable=True)
     application_enabled = db.Column("application_enabled", db.Boolean(), default=True)
 
-    #change
+    # change
     owner_uuid = db.Column("owner_uuid", db.BINARY(16), nullable=False)  # FK
     member_num = db.Column('member_num', db.Integer, nullable=False, default=1)
 

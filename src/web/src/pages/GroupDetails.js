@@ -563,11 +563,13 @@ class CommentSection extends React.Component {
             content={
               <>
                 <Form.Item>
-                  <Input.TextArea rows={4} onChange={this.onNewCommentChange} value={this.state.newComment}/>
+                  <Input.TextArea rows={4} onChange={this.onNewCommentChange}
+                                  placeholder={'Leave a comment'} value={this.state.newComment}/>
                 </Form.Item>
                 <Form.Item>
                   <Button htmlType="submit" loading={this.state.submitting}
-                          onClick={this.onSubmitButtonClicked} type="primary">
+                          onClick={this.onSubmitButtonClicked} type="primary"
+                          disabled={this.state.newComment === ''}>
                     Add Comment
                   </Button>
                 </Form.Item>

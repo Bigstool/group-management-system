@@ -353,7 +353,7 @@ class Title extends React.Component {
 
   render() {
     // TODO: get the title of the group (wait for backend implementation)
-    const title = <h1>{this.props.groupInfo['name']}</h1>
+    const title = <h1>{this.props.groupInfo['title']}</h1>
     return (
       <div className={'group-title'}>
         {title}

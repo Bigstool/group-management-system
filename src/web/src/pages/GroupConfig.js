@@ -154,7 +154,10 @@ export default class GroupConfig extends React.Component {
     let profile = null;
     if (this.state.isOwner || this.state.isAdmin) {
       profile = <React.Fragment>
-        <Button type={'primary'} block size={'large'}>Edit Group Profile</Button>
+        <Button type={'primary'} block size={'large'}
+                disabled={this.state.isAdmin ? false : (this.state.isSubmitted || this.state.isApproved)}>
+          Edit Group Profile
+        </Button>
         <br/>
         <br/>
       </React.Fragment>;

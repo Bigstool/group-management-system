@@ -364,7 +364,7 @@ export default class GroupConfig extends React.Component {
       cautionZone.push(
         <Button danger block size={'large'} key={'full'}
                 onClick={this.onFull} loading={this.state.fulling}>
-          {this.isFull ? `Enable Join Application` : `Disable Join Application`}
+          {this.state.isFull ? `Enable Join Application` : `Disable Join Application`}
         </Button>
       );
     }
@@ -373,7 +373,7 @@ export default class GroupConfig extends React.Component {
       cautionZone.push(
         <Button danger block size={'large'} key={'submit'}
                 onClick={this.onSubmit} loading={this.state.submitting}>
-          {this.isSubmitted ? 'Revert Submission' : 'Submit Project for Approval'}
+          {this.state.isSubmitted ? 'Revert Submission' : 'Submit Project for Approval'}
         </Button>
       );
     }

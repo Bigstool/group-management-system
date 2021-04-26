@@ -298,6 +298,11 @@ export default class GroupConfig extends React.Component {
       );
     }
 
+    // If not the owner, a member, nor an admin, redirect to GroupList
+    if (!this.state.isOwner && !this.state.isMember && !this.state.isAdmin) {
+      window.location.replace('/');
+    }
+
     // All Set (Member) (After Grouping DDL)
     // TODO: remove !this.state.isOwner (Wait for Issue #55 to be fixed)
     if (!this.state.isOwner && this.state.isMember && this.state.afterGroupingDDL) return (

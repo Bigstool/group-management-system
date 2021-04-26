@@ -117,6 +117,7 @@ def create_group():
                       project_title=project_title,
                       description=description,
                       proposal=proposal,
+                      proposal_update_time=int(time.time()) if proposal is not None else None,
                       proposal_state='PENDING',
                       creation_time=int(time.time()),
                       owner_uuid=uuid.UUID(uuid_in_token).bytes)
@@ -510,6 +511,7 @@ def update_group_info(group_uuid):
         group.owner_uuid = uuid.UUID(new_owner_uuid).bytes
     if new_proposal is not None:
         group.proposal = new_proposal
+        group.proposal_update_time = int(time.time())
     if new_proposal_state is not None:
         if group.proposal == None:
             # This ensures that the proposal state can be changed only if the proposal is not none

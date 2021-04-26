@@ -31,17 +31,26 @@ export default class GroupConfig extends React.Component {
       'isOwner': false,
       'isAdmin': false,
       // System related
-      'groupingDDL': 0,  // TODO: get from context (wait for implementation)
-      'proposalDDL': 0,  // TODO: get from context (wait for implementation)
+      'groupingDDL': 0,  // get from context
+      'proposalDDL': 0,  // get from context
       'afterGroupingDDL': false,
       'afterProposalDDL': false,
       // Group related
+      'groupUuid': this.props.match.params["uuid"],
       'isApproved': false,
+      'isRejected': false,
       'isSubmitted': false,
       'isFull': false,
       // Component related
       'loading': true,
-      'error': false
+      'error': false,
+      // Event related
+      'leaving': false,
+      'fulling': false,
+      'submitting': false,
+      'approving': false,
+      'rejecting': false,
+      'dismissing': false,
     }
   }
 
@@ -59,6 +68,13 @@ export default class GroupConfig extends React.Component {
       'groupingDDL': sysConfig["system_state"]["grouping_ddl"],
       'proposalDDL': sysConfig["system_state"]["proposal_ddl"],
     });
+    // update afterGroupingDDL
+    if (Date.now() > this.state.groupingDDL) this.setState({'afterGroupingDDL': true});
+    else this.setState({'afterGroupingDDL': false});
+
+    // update afterProposalDDL
+    if (Date.now() > this.state.proposalDDL) this.setState({'afterProposalDDL': true});
+    else this.setState({'afterProposalDDL': false});
   }
 
   // Retrieves group info and updates this.state
@@ -66,7 +82,7 @@ export default class GroupConfig extends React.Component {
   async checkGroupInfo() {
     try {
       let res = await this.context.request({
-        path: `/group/${this.props.match.params["uuid"]}`,
+        path: `/group/${this.state.groupUuid}`,
         method: 'get'
       });
       let groupInfo = res.data['data'];
@@ -90,17 +106,13 @@ export default class GroupConfig extends React.Component {
       if (this.state.userRole === 'ADMIN') this.setState({'isAdmin': true});
       else this.setState({'isAdmin': false});
 
-      // update afterGroupingDDL
-      if (Date.now() > this.state.groupingDDL) this.setState({'afterGroupingDDL': true});
-      else this.setState({'afterGroupingDDL': false});
-
-      // update afterProposalDDL
-      if (Date.now() > this.state.proposalDDL) this.setState({'afterProposalDDL': true});
-      else this.setState({'afterProposalDDL': false});
-
       // update isApproved
       if (groupInfo['proposal_state'] === 'APPROVED') this.setState({'isApproved': true});
       else this.setState({'isApproved': false});
+
+      // update isRejected
+      if (groupInfo['proposal_state'] === 'REJECT') this.setState({'isRejected': true});
+      else this.setState({'isRejected': false});
 
       // update isSubmitted
       if (groupInfo['proposal_state'] === 'SUBMITTED') this.setState({'isSubmitted': true});
@@ -115,6 +127,152 @@ export default class GroupConfig extends React.Component {
         'error': true
       });
     }
+  }
+
+  // On Leave Group button clicked
+  @boundMethod
+  async onLeave() {
+    this.setState({'leaving': true});
+
+    try {
+      await this.context.request({
+        path: `/group/${this.state.groupUuid}/member/${this.state.userUuid}`,
+        method: "delete",
+      });
+    } catch (error) {}
+
+    // Route to GroupList
+    window.location.replace('/');
+  }
+
+  // On Full button clicked
+  @boundMethod
+  async onFull() {
+    this.setState({'fulling': true});
+
+    // if not full, mark as full
+    if (!this.state.isFull) {
+      try {
+        await this.context.request({
+          path: `/group/${this.state.groupUuid}`,
+          method: "patch",
+          data: {
+            application_enabled: false,
+          }
+        });
+      } catch (error) {}
+    }
+    // if full, mark as not full
+    else {
+      try {
+        await this.context.request({
+          path: `/group/${this.state.groupUuid}`,
+          method: "patch",
+          data: {
+            application_enabled: true,
+          }
+        });
+      } catch (error) {}
+    }
+    // finally, update groupInfo and set fulling to false
+    await this.checkGroupInfo();
+    this.setState({'fulling': false});
+  }
+
+  // On Submit button clicked
+  @boundMethod
+  async onSubmit() {
+    this.setState({'submitting': true});
+
+    // if not submitted, submit
+    if (!this.state.isSubmitted) {
+      try {
+        await this.context.request({
+          path: `/group/${this.state.groupUuid}`,
+          method: "patch",
+          data: {
+            proposal_state: 'SUBMITTED',
+          }
+        });
+      } catch (error) {}
+    }
+    // if submitted, revert submission
+    else {
+      try {
+        await this.context.request({
+          path: `/group/${this.state.groupUuid}`,
+          method: "patch",
+          data: {
+            proposal_state: 'PENDING',
+          }
+        });
+      } catch (error) {}
+    }
+    // finally, update groupInfo and set submitting to false
+    await this.checkGroupInfo();
+    this.setState({'submitting': false});
+  }
+
+  // On Approve button clicked
+  @boundMethod
+  async onApprove() {
+    this.setState({'approving': true});
+    // Send approve request
+    try {
+      await this.context.request({
+        path: `/group/${this.state.groupUuid}`,
+        method: "patch",
+        data: {
+          proposal_state: 'APPROVED',
+        }
+      });
+    } catch (error) {}
+    // Update groupInfo
+    await this.checkGroupInfo();
+    this.setState({'approving': false});
+    // If approved, return to Group Details
+    if (this.state.isApproved === true) {
+      window.location.assign(`/group/${this.state.groupUuid}`);
+    }
+  }
+
+  // On Reject button clicked
+  @boundMethod
+  async onReject() {
+    this.setState({'rejecting': true});
+    // Send reject request
+    try {
+      await this.context.request({
+        path: `/group/${this.state.groupUuid}`,
+        method: "patch",
+        data: {
+          proposal_state: 'REJECT',
+        }
+      });
+    } catch (error) {}
+    // Update groupInfo
+    await this.checkGroupInfo();
+    this.setState({'rejecting': false});
+    // If rejected, return to Group Details
+    if (this.state.isRejected === true) {
+      window.location.assign(`/group/${this.state.groupUuid}`);
+    }
+  }
+
+  // On Dismiss button clicked
+  @boundMethod
+  async onDismiss() {
+    this.setState({'dismissing': true});
+
+    try {
+      await this.context.request({
+        path: `/group/${this.state.groupUuid}`,
+        method: "delete",
+      });
+    } catch (error) {}
+
+    // Route to GroupList
+    window.location.replace('/');
   }
 
   render() {
@@ -195,24 +353,26 @@ export default class GroupConfig extends React.Component {
     // Leave Group (Member) (Before Grouping DDL)
     if (this.state.isMember && !this.state.afterGroupingDDL) {
       cautionZone.push(
-        <Button danger block size={'large'} key={'leave-group'}>
+        <Button danger block size={'large'} key={'leave-group'}
+                onClick={this.onLeave} loading={this.state.leaving}>
           Leave Group
         </Button>
       );
     }
-    // Full (Group Owner) (Before Grouping DDL) (Available when Member Limits Reached)
-    // TODO: disable the button when not enough group members
+    // Full (Group Owner) (Before Grouping DDL)
     if (this.state.isOwner && !this.state.afterGroupingDDL) {
       cautionZone.push(
-        <Button danger block size={'large'} key={'full'}>
-          {this.isFull ? `Unmark Group as Full` : `Mark Group as Full`}
+        <Button danger block size={'large'} key={'full'}
+                onClick={this.onFull} loading={this.state.fulling}>
+          {this.isFull ? `Enable Join Application` : `Disable Join Application`}
         </Button>
       );
     }
     // Submit (Group Owner) (After Grouping DDL) (Before Approve)
     if (this.state.isOwner && this.state.afterGroupingDDL && !this.state.isApproved) {
       cautionZone.push(
-        <Button danger block size={'large'} key={'submit'}>
+        <Button danger block size={'large'} key={'submit'}
+                onClick={this.onSubmit} loading={this.state.submitting}>
           {this.isSubmitted ? 'Revert Submission' : 'Submit Project for Approval'}
         </Button>
       );
@@ -220,8 +380,18 @@ export default class GroupConfig extends React.Component {
     // Approve (Admin) (After Proposal DDL) (Submitted)
     if (this.state.isAdmin && this.state.afterProposalDDL && this.state.isSubmitted) {
       cautionZone.push(
-        <Button danger block size={'large'} key={'approve'}>
+        <Button danger block size={'large'} key={'approve'}
+                onClick={this.onApprove} loading={this.state.approving}>
           Approve Proposal
+        </Button>
+      );
+    }
+    // Reject (Admin) (After Proposal DDL) (Submitted)
+    if (this.state.isAdmin && this.state.afterProposalDDL && this.state.isSubmitted) {
+      cautionZone.push(
+        <Button danger block size={'large'} key={'reject'}
+                onClick={this.onReject} loading={this.state.rejecting}>
+          Reject Proposal
         </Button>
       );
     }
@@ -234,7 +404,8 @@ export default class GroupConfig extends React.Component {
     // Dismiss Group (Group Owner) (Before Grouping DDL) or (Admin) (Before Proposal DDL)
     if ((this.state.isOwner && !this.state.afterGroupingDDL) || (this.state.isAdmin && !this.state.afterProposalDDL)) {
       cautionZone.push(
-        <Button danger block size={'large'} key={'dismiss-group'}>
+        <Button danger block size={'large'} key={'dismiss-group'}
+                onClick={this.onDismiss} loading={this.state.dismissing}>
           Dismiss Group
         </Button>
       );

@@ -281,7 +281,7 @@ class GroupBar extends React.Component {
     // check if the group is full, display if before grouping ddl
     if (this.props.sysConfig["system_state"]["grouping_ddl"] > Date.now() &&
       this.props.groupInfo['application_enabled'] === false) {
-      full = <Tag className={'your-group'} color="grey">Full</Tag>;
+      full = <Tag className={'your-group'} color="grey">Application Disabled</Tag>;
     }
     // check if the group is your group
     if (this.props.isOwner() || this.props.isMember()) {
@@ -417,6 +417,11 @@ class Proposal extends React.Component {
       approved = <Tag className={'tag'} color='green'>Approved</Tag>;
     }
 
+    let rejected = null;
+    if (this.props.groupInfo['proposal_state'] === 'REJECT') {
+      rejected = <Tag className={'tag'} color='orange'>Rejected</Tag>;
+    }
+
     let proposal = (
       <p className={'content'}>{this.props.groupInfo['proposal']}</p>
     );
@@ -427,6 +432,7 @@ class Proposal extends React.Component {
           Proposal
           {late}
           {approved}
+          {rejected}
         </Divider>
         {proposal}
         <Divider className={'end-divider'}/>

@@ -113,13 +113,14 @@ export default class GroupDetails extends React.Component {
     }
 
     // If the user is a member of the group, show the three-dot menu
-    if (this.isOwner() || this.isMember() || this.userRole === 'ADMIN') {
+    if (this.isOwner() || this.isMember() || this.state.userRole === 'ADMIN') {
       appBar = <AppBar dotMenuTarget={`/group/${this.state.groupUuid}/config`}/>;
     }
 
     return (
       <React.Fragment>
         {appBar}
+        <div className={'top-margin'}/>
         <GroupBar userUuid={this.state.userUuid} userProfile={this.state.userProfile}
                   userRole={this.state.userRole} groupUuid={this.state.groupUuid}
                   groupInfo={this.state.groupInfo} sysConfig={this.state.sysConfig}
@@ -353,7 +354,7 @@ class Title extends React.Component {
 
   render() {
     // TODO: get the title of the group (wait for backend implementation)
-    const title = <h1>{this.props.groupInfo['name']}</h1>
+    const title = <h1>{this.props.groupInfo['title']}</h1>
     return (
       <div className={'group-title'}>
         {title}
@@ -495,6 +496,9 @@ class CommentSection extends React.Component {
     // Comment list
     let proposal_update_time = this.props.groupInfo['proposal_update_time'];
     let comments_plain = this.props.groupInfo['comment'];
+    comments_plain.sort((comment1, comment2) => {
+      return comment1['creation_time'] - comment2['creation_time'];
+    });
     let comments = [];
     let index = 0;
     while(index < comments_plain.length) {

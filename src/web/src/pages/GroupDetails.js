@@ -417,6 +417,11 @@ class Proposal extends React.Component {
       approved = <Tag className={'tag'} color='green'>Approved</Tag>;
     }
 
+    let rejected = null;
+    if (this.props.groupInfo['proposal_state'] === 'REJECT') {
+      rejected = <Tag className={'tag'} color='orange'>Rejected</Tag>;
+    }
+
     let proposal = (
       <p className={'content'}>{this.props.groupInfo['proposal']}</p>
     );
@@ -427,6 +432,7 @@ class Proposal extends React.Component {
           Proposal
           {late}
           {approved}
+          {rejected}
         </Divider>
         {proposal}
         <Divider className={'end-divider'}/>

@@ -9,7 +9,8 @@ module.exports = {
     },
     output: {
         clean: true,
-        filename: isDevelopment ? "[name].js" : "[name].[contenthash].js"
+        filename: isDevelopment ? "[name].js" : "[name].[contenthash].js",
+        publicPath: "/"
     },
     devServer: {
         // fix: https://stackoverflow.com/questions/43209666/react-router-v4-cannot-get-url

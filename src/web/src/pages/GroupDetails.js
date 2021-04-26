@@ -495,6 +495,9 @@ class CommentSection extends React.Component {
     // Comment list
     let proposal_update_time = this.props.groupInfo['proposal_update_time'];
     let comments_plain = this.props.groupInfo['comment'];
+    comments_plain.sort((comment1, comment2) => {
+      return comment1['creation_time'] - comment2['creation_time'];
+    });
     let comments = [];
     let index = 0;
     while(index < comments_plain.length) {

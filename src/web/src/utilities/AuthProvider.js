@@ -21,9 +21,14 @@ export class AuthProvider extends React.Component {
             userProfile: null,
             systemConfig: null
         };
+        if (this.state.user) {
+            console.debug(`Auto login as ${this.state.user.role}: ${this.state.user.uuid}\n` +
+                `accessTokenExp: ${new Date(this.state.user.accessTokenExp * 1000)}\n` +
+                `refreshTokenExp: ${new Date(this.state.user.refreshTokenExp * 1000)}`);
+        }
         // schedule task
-        this.checkUserToken()
-        console.debug("AuthContext created")
+        this.checkUserToken();
+        console.debug("AuthContext created");
     }
 
     /**
@@ -105,22 +110,26 @@ export class AuthProvider extends React.Component {
         if (user && user["accessTokenExp"] < Date.now() / 1000 - TOKEN_EXPIRE_MARGIN) {  // access token expired
             if (user["refreshTokenExp"] > Date.now() / 1000) {  // refresh token not expired
                 dispatched = true;
+                console.debug("Access token expired, refreshing");
                 axios({
                     url: API_URL + "/oauth2/refresh",
-                    methods: "post",
+                    method: "post",
                     data: querystring.stringify({
                         grant_type: "refresh",
-                        refresh_token: user["refreshToken"],
+                        refresh_token: user["refreshToken"]
                     })
                 }).then((res) => {
                     this.saveUser(res, user["rememberMe"]);
+                    console.debug("Token refreshed");
                 }).catch(e => {
                     console.error(e);
+                    console.debug("Failed refreshing token, logout");
                     this.logout();
                 }).finally(() => {
                     setTimeout(this.checkUserToken, TOKEN_CHECK_INTERVAL * 1000);
                 });
             } else {    // refresh token expired
+                console.debug("Refresh token expired, logout");
                 this.logout();
             }
         }
@@ -141,8 +150,8 @@ export class AuthProvider extends React.Component {
         const accessToken = res.data["data"]["access_token"];
         const refreshToken = res.data["data"]["refresh_token"];
         // get user uuid, role
-        const accessTokenPayload = JSON.parse(atob(accessToken.split(".")[1]))
-        const refreshTokenPayload = JSON.parse(atob(refreshToken.split(".")[1]))
+        const accessTokenPayload = JSON.parse(atob(accessToken.split(".")[1]));
+        const refreshTokenPayload = JSON.parse(atob(refreshToken.split(".")[1]));
         // get token expiration
         const accessTokenExp = accessTokenPayload["exp"];
         const refreshTokenExp = refreshTokenPayload["exp"];
@@ -155,7 +164,7 @@ export class AuthProvider extends React.Component {
             "accessTokenExp": accessTokenExp,
             "refreshTokenExp": refreshTokenExp,
             "rememberMe": remember
-        }
+        };
         // persist data
         remember === true ?
             Storage.setLocalItem("user", JSON.stringify(user)) :
@@ -163,7 +172,7 @@ export class AuthProvider extends React.Component {
         // update state
         this.setState({
             user: user
-        })
+        });
     }
 
     /**
@@ -177,12 +186,12 @@ export class AuthProvider extends React.Component {
         // prepend url
         options.url = API_URL + options.path;
         // append user token
-        const user = this.getUser()
+        const user = this.getUser();
         if (user !== null) {
             options.headers = {
                 ...options.headers,
                 Authorization: "Bearer " + user["accessToken"]
-            }
+            };
         }
         return axios(options);
     }
@@ -208,7 +217,7 @@ export class AuthProvider extends React.Component {
                     password: passwordHash,
                     username: username
                 })
-            })
+            });
         } catch (e) {
             console.error(e);
             throw e;
@@ -224,10 +233,10 @@ export class AuthProvider extends React.Component {
     @boundMethod
     logout() {
         // remove login info from storage
-        Storage.removeItem("user")
+        Storage.removeItem("user");
         this.setState({
             user: null
-        })
+        });
         return true;
     };
 
@@ -243,6 +252,6 @@ export class AuthProvider extends React.Component {
             }}>
                 {this.props.children}
             </AuthContext.Provider>
-        )
+        );
     }
 }

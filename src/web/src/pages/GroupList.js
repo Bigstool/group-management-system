@@ -31,15 +31,13 @@ export default class GroupList extends React.PureComponent {
                 method: "get"
             });
             this.setState({
-                groupList: res.data.data
+                groupList: res.data.data,
+                loading: false
             });
         } catch (e) {
             console.error(e);
             this.setState({
-                error: e.response && e.response.data || true
-            });
-        } finally {
-            this.setState({
+                error: e.response && e.response.data || true,
                 loading: false
             });
         }

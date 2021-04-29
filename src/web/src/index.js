@@ -14,7 +14,7 @@ import {AuthProvider} from "./utilities/AuthProvider";
 import PrivateRoute from "./utilities/PrivateRoute";
 import HtmlHead from "./components/HtmlHead";
 import GroupDetails from "./pages/GroupDetails";
-import UserProfile from "./pages/UserProfile";
+import AccountProfile from "./pages/AccountProfile";
 import GroupConfig from "./pages/GroupConfig";
 
 ReactDOM.render((
@@ -23,7 +23,7 @@ ReactDOM.render((
         <Router>
             <Switch>
                 <PrivateRoute exact path={"/"} component={GroupList}/>
-                <PrivateRoute path={"/user"} component={UserProfile}/>
+                <PrivateRoute path={"/user"} component={AccountProfile}/>
                 <Route path={"/login"} component={Login}/>
                 <PrivateRoute path={"/group/:uuid/config"} component={GroupConfig}/>
                 <PrivateRoute path={"/group/:uuid"} component={GroupDetails}/>

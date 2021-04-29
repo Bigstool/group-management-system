@@ -46,6 +46,7 @@ export default class GroupConfig extends React.Component {
       'loading': true,
       'error': false,
       'redirect': null,
+      'push': false,
       // Event related
       'leaving': false,
       'fulling': false,
@@ -60,7 +61,10 @@ export default class GroupConfig extends React.Component {
     await this.checkSysConfig();
     await this.checkGroupInfo();
     if (!this.state.isOwner && !this.state.isMember && !this.state.isAdmin) {
-      this.setState({'redirect': '/'});
+      this.setState({
+        'redirect': '/',
+        'push': false,
+      });
     }
     this.setState({'loading': false});
   }
@@ -134,6 +138,15 @@ export default class GroupConfig extends React.Component {
     }
   }
 
+  // On Group Profile button clicked
+  @boundMethod
+  onEdit() {
+    this.setState({
+      redirect: `/group/${this.state.groupUuid}/edit`,
+      push: true,
+    });
+  }
+
   // On Leave Group button clicked
   @boundMethod
   async onLeave() {
@@ -147,7 +160,10 @@ export default class GroupConfig extends React.Component {
     } catch (error) {}
 
     // Route to GroupList
-    this.setState({'redirect': '/'});
+    this.setState({
+      'redirect': '/',
+      'push': false,
+    });
   }
 
   // On Full button clicked
@@ -237,7 +253,10 @@ export default class GroupConfig extends React.Component {
     this.setState({'approving': false});
     // If approved, return to Group Details
     if (this.state.isApproved === true) {
-      this.setState({'redirect': `/group/${this.state.groupUuid}`});
+      this.setState({
+        'redirect': `/group/${this.state.groupUuid}`,
+        'push': false,
+      });
     }
   }
 
@@ -260,7 +279,10 @@ export default class GroupConfig extends React.Component {
     this.setState({'rejecting': false});
     // If rejected, return to Group Details
     if (this.state.isRejected === true) {
-      this.setState({'redirect': `/group/${this.state.groupUuid}`});
+      this.setState({
+        'redirect': `/group/${this.state.groupUuid}`,
+        'push': false,
+      });
     }
   }
 
@@ -277,15 +299,24 @@ export default class GroupConfig extends React.Component {
     } catch (error) {}
 
     // Route to GroupList
-    this.setState({'redirect': '/'});
+    this.setState({
+      'redirect': '/',
+      'push': false,
+    });
   }
 
   render() {
     // Check if redirect is needed
     if (this.state.redirect) {
-      return (
-        <Redirect to={this.state.redirect}/>
-      );
+      if (this.state.push) {
+        return (
+          <Redirect push to={this.state.redirect}/>
+        );
+      } else {
+        return (
+          <Redirect to={this.state.redirect}/>
+        );
+      }
     }
 
     // App Bar
@@ -324,7 +355,7 @@ export default class GroupConfig extends React.Component {
     let profile = null;
     if (this.state.isOwner || this.state.isAdmin) {
       profile = <React.Fragment>
-        <Button type={'primary'} block size={'large'}
+        <Button type={'primary'} block size={'large'} onClick={this.onEdit}
                 disabled={this.state.isAdmin ? false : (this.state.isSubmitted || this.state.isApproved)}>
           Edit Group Profile
         </Button>

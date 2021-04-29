@@ -28,11 +28,64 @@ export default class AccountProfile extends React.Component {
       // User related
       'userUuid': this.context.getUser()['uuid'],
       'userRole': this.context.getUser()['role'],
+      'name': '',
+      'email': '',
       'isJoined': false,
       'isAdmin': false,
       // System related
       'groupingDDL': 0,  // get from context
       'afterGroupingDDL': false,
+      // Component related
+      'loading': true,
+      'error': false,
+    }
+  }
+
+  async componentDidMount() {
+    await this.checkSysConfig();
+    await this.checkUserProfile();
+    this.setState({'loading': false});
+  }
+
+  // Retrieves system config and updates this.state
+  @boundMethod
+  async checkSysConfig() {
+    let sysConfig = await this.context.getSysConfig();
+    this.setState({
+      'groupingDDL': sysConfig["system_state"]["grouping_ddl"],
+    });
+    // update afterGroupingDDL
+    if (Date.now() > this.state.groupingDDL) this.setState({'afterGroupingDDL': true});
+    else this.setState({'afterGroupingDDL': false});
+  }
+
+  // Retrieves user profile and updates this.state
+  @boundMethod
+  async checkUserProfile() {
+    try {
+      let res = await this.context.request({
+        path: `/user/${this.state.userUuid}`,
+        method: 'get'
+      });
+      let userProfile = res.data['data'];
+
+      // update name and email
+      this.setState({
+        'name': userProfile['alias'],
+        'email': userProfile['email'],
+      })
+
+      // update isJoined
+      if (userProfile['created_group'] || userProfile['joined_group']) this.setState({'isJoined': true});
+      else this.setState({'isJoined': false});
+
+      // update isAdmin
+      if (this.state.userRole === 'ADMIN') this.setState({'isAdmin': true});
+      else this.setState({'isAdmin': false});
+    } catch (error) {
+      this.setState({
+        'error': true
+      });
     }
   }
 
@@ -42,11 +95,32 @@ export default class AccountProfile extends React.Component {
     // Tab Navigation
     let tabNav = <TabNav active={"USER_PROFILE"}/>
 
+    if (this.state.error) {
+      return (
+        <React.Fragment>
+          {appBar}
+          <h1>Oops, something went wrong</h1>
+          <h3>Perhaps reload?</h3>
+          {tabNav}
+        </React.Fragment>
+      );
+    }
+
+    if (this.state.loading) {
+      return (
+        <React.Fragment>
+          {appBar}
+          <LoadingOutlined/>
+          {tabNav}
+        </React.Fragment>
+      );
+    }
+
     // Title
     let title = <React.Fragment>
       <a href={'#'} className={'title'}>
         <Card.Meta avatar={<Avatar src="https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png" size={64}/>}
-                   title={'Obi Wan'} description={'o.wan@test.com'}
+                   title={this.state.name} description={this.state.email}
                    className={'card'}/>
       </a>
       <div className={'gap'} />

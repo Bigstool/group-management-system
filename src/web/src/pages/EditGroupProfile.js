@@ -218,7 +218,7 @@ export default class AccountProfile extends React.Component {
 
     // Description (Group Owner or Admin) (All Stages)
     let description = <div className={'edit-item'}>
-      <h1 className={'title'}>Short description</h1>
+      <h1 className={'title'}>Short description<span className={'required'}>*</span></h1>
       <p className={'description'}>
         Briefly describe your project in 1-2 sentences.
         This will be shown on the home page.
@@ -240,7 +240,7 @@ export default class AccountProfile extends React.Component {
       <div className={'gap'} />
       <div className={'gap'} />
       <Button type={'primary'} block size={'large'} onClick={this.onSave}
-              disabled={!this.state.name || !this.state.title}>
+              disabled={!this.state.name || !this.state.title || !this.state.description}>
         Save
       </Button>
     </React.Fragment>;

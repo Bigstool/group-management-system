@@ -146,9 +146,13 @@ export default class AccountProfile extends React.Component {
       </React.Fragment>
     }
 
-    // Semester Tools, Reports, Archives (Admin) (All Stages)
-    let semesterTools = null, reports = null, archives = null;
+    // Reset Password, Semester Tools, Reports, Archives (Admin) (All Stages)
+    let resetPassword = null, semesterTools = null, reports = null, archives = null;
     if (this.state.isAdmin) {
+      resetPassword = <React.Fragment>
+        <div className={'gap'} />
+        <Button block size={'large'}>Reset Password For A Student</Button>
+      </React.Fragment>;
       semesterTools = <React.Fragment>
         <div className={'gap'} />
         <Button block size={'large'}>Semester Tools</Button>
@@ -171,6 +175,7 @@ export default class AccountProfile extends React.Component {
           {editProfile}
           {changePassword}
           {createGroup}
+          {resetPassword}
           {semesterTools}
           {reports}
           {archives}

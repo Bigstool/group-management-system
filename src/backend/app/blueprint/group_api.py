@@ -511,7 +511,7 @@ def update_group_info(group_uuid):
     if new_name is not None:
         group.name = new_name
     if new_title is not None:
-        group.project_title = new_title
+        group.title = new_title
     if new_description is not None:
         group.description = new_description
     if new_owner_uuid is not None:

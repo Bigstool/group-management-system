@@ -181,11 +181,9 @@ def get_user_profile(user_uuid):
 
     user = User.query.filter_by(uuid=uuid.UUID(user_uuid).bytes).first()
 
-    # TODO complete Leo
     if user is None:
         raise ApiResourceNotFoundException("Not found: invalid user uuid")
 
-    # TODO complete Leo
     group = user.group
 
     if group is None:
@@ -211,7 +209,7 @@ def get_user_profile(user_uuid):
             "email": user.email,
             "bio": user.bio,
             "created_group": None,
-            "joined_group:": {"uuid": group.uuid, "name": group.name, "description": group.description}
+            "joined_group:": {"uuid": str(uuid.UUID(bytes=group.uuid)), "name": group.name, "description": group.description}
         }).build()
 
 
@@ -267,14 +265,14 @@ def update_user_profile(user_uuid):
         "user_uuid": fields.Str(required=True, validate=MyValidator.Uuid())}, request, location="path")
 
     args_json = parser.parse({
-        # "email": fields.Str(missing=None, validate=validate.Email()),
-        # "alias": fields.Str(missing=None, validate=validate.Length(min=4, max=32)),
+        "email": fields.Str(missing=None, validate=validate.Email()),
+        "alias": fields.Str(missing=None, validate=validate.Length(min=4, max=32)),
         "bio": fields.Str(missing=None)
     }, request, location="json")
 
     user_uuid: str = args_path["user_uuid"]
-    # new_email: str = args_json["email"]
-    # new_alias: str = args_json["alias"]
+    new_email: str = args_json["email"]
+    new_alias: str = args_json["alias"]
     new_bio: str = args_json["bio"]
 
     token_info = Auth.get_payload(request)
@@ -288,12 +286,16 @@ def update_user_profile(user_uuid):
     if user is None:
         logger.debug(f"Update fail: no such user")
         raise ApiPermissionException("Permission denied: invalid credential")
-    # if new_email is not None:
-    #     user.email = new_email
-    # if new_alias is not None:
-    #     user.alias = new_alias
+
     if new_bio is not None:
         user.bio = new_bio
+
+    if user.role=="ADMIN":
+        if new_email is not None:
+            user.email = new_email
+        if new_alias is not None:
+            user.alias = new_alias
+
     db.session.commit()
 
     return MyResponse(data=None, msg='query success').build()

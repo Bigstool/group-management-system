@@ -7,6 +7,7 @@ import AppBar from "../components/AppBar";
 import TabNav from "../components/TabNav";
 import './AccountProfile.scss';
 import {AuthContext} from "../utilities/AuthProvider";
+import {Redirect} from "react-router-dom";
 
 /* Bigstool's class notations
 *  #T: Top-level component
@@ -38,6 +39,8 @@ export default class AccountProfile extends React.Component {
       // Component related
       'loading': true,
       'error': false,
+      'redirect': false,
+      'push': false,
     }
   }
 
@@ -89,7 +92,28 @@ export default class AccountProfile extends React.Component {
     }
   }
 
+  @boundMethod
+  onEditProfile() {
+    this.setState({
+      'redirect': `/user/edit`,
+      'push': true,
+    });
+  }
+
   render() {
+    // Check if redirect is needed
+    if (this.state.redirect) {
+      if (this.state.push) {
+        return (
+          <Redirect push to={this.state.redirect}/>
+        );
+      } else {
+        return (
+          <Redirect to={this.state.redirect}/>
+        );
+      }
+    }
+
     // App Bar
     let appBar = <AppBar showBack={false}/>;
     // Tab Navigation
@@ -130,7 +154,10 @@ export default class AccountProfile extends React.Component {
     // Edit Profile, Change Password (All Users) (All Stages)
     let editProfile = <React.Fragment>
       <div className={'gap'} />
-      <Button type={'primary'} block size={'large'}>Edit Profile</Button>
+      <Button type={'primary'} block size={'large'}
+              onClick={this.onEditProfile}>
+        Edit Profile
+      </Button>
     </React.Fragment>;
     let changePassword = <React.Fragment>
       <div className={'gap'} />

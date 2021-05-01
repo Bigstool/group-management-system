@@ -212,20 +212,20 @@ def refresh_token():
     except Exception as e:
         raise ApiPermissionException(str(e))
 
-    uuid: str = decoded.get("uuid")
-    scope: str = decoded.get("operator_type")
+    user_uuid: str = decoded.get("uuid")
+    user_role: str = decoded.get("role")
 
     new_access_token: str = jwt_util.encode_token({
-        "uuid": uuid,
-        "operator_type": scope,
+        "uuid": user_uuid,
+        "role": user_role,
         "nbf": datetime.utcnow(),
         "exp": datetime.utcnow() + timedelta(seconds=access_token_exp),
         "iat": datetime.utcnow(),
         "aud": "access"
     })
     new_refresh_token: str = jwt_util.encode_token({
-        "uuid": uuid,
-        "operator_type": scope,
+        "uuid": user_uuid,
+        "operator_type": user_role,
         "nbf": datetime.utcnow(),
         "exp": datetime.utcnow() + timedelta(seconds=refresh_token_exp),
         "iat": datetime.utcnow(),
@@ -236,6 +236,6 @@ def refresh_token():
         "access_token": new_access_token,
         "refresh_token": new_refresh_token,
         "expires_in": int(access_token_exp),
-        "scope": scope,
+        "scope": user_role,
         "token_type": "bearer"
     }).build()

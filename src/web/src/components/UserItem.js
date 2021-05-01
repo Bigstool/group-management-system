@@ -1,6 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
-import {List, Avatar, Checkbox} from 'antd';
+import {List, Checkbox} from 'antd';
+import Avatar from 'react-avatar';
 import {boundMethod} from "autobind-decorator";
 import {CloseOutlined} from "@ant-design/icons";
 
@@ -51,7 +52,7 @@ export default class UserItem extends React.Component {
           this.props.onDeleteClicked && <CloseOutlined onClick={this.onDeleteClicked}/>
         ]}>
         <List.Item.Meta
-          avatar={<Avatar src="https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png"/>}
+          avatar={<Avatar size={32} round={true} name={this.props.userObject.alias}/>}
           title={this.props.userObject.alias}
           description={this.props.description}
         />

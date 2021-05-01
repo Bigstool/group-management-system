@@ -7,6 +7,7 @@ import * as PropTypes from "prop-types";
 import {LoadingOutlined} from "@ant-design/icons";
 import GroupCard from "../components/GroupCard";
 import {AuthContext} from "../utilities/AuthProvider";
+import PageContainer from "../components/PageContainer";
 
 export default class GroupList extends React.PureComponent {
     static contextType = AuthContext;
@@ -51,31 +52,33 @@ export default class GroupList extends React.PureComponent {
                                  }/>;
         return (
             <>
-                <AppBar backTo={false}/>
-                <Tabs defaultActiveKey="1"
-                      centered={true}>
-                    <Tabs.TabPane tab="Groups" key="1">
-                        {this.state.loading ?
-                            <LoadingOutlined/> :
-                            this.state.groupList && this.state.groupList.map((groupItem) => (
-                                <GroupCard key={groupItem.uuid} groupItem={groupItem}/>
-                            ))
-                        }
-                        {this.state.error !== null && errorMsg}
-                    </Tabs.TabPane>
-                    <Tabs.TabPane tab="Favorites" key="2">
-                        {this.state.loading ?
-                            <LoadingOutlined/> :
-                            this.state.groupList && this.state.groupList
-                                .filter(groupItem => groupItem["favorite"])
-                                .map((groupItem) => (
+                <PageContainer
+                    header={<AppBar backTo={false}/>}
+                    footer={<TabNav active={"GROUP_LIST"}/>}>
+                    <Tabs defaultActiveKey="1"
+                          centered={true}>
+                        <Tabs.TabPane tab="Groups" key="1">
+                            {this.state.loading ?
+                                <LoadingOutlined/> :
+                                this.state.groupList && this.state.groupList.map((groupItem) => (
                                     <GroupCard key={groupItem.uuid} groupItem={groupItem}/>
                                 ))
-                        }
-                        {this.state.error !== null && errorMsg}
-                    </Tabs.TabPane>
-                </Tabs>
-                <TabNav active={"GROUP_LIST"}/>
+                            }
+                            {this.state.error !== null && errorMsg}
+                        </Tabs.TabPane>
+                        <Tabs.TabPane tab="Favorites" key="2">
+                            {this.state.loading ?
+                                <LoadingOutlined/> :
+                                this.state.groupList && this.state.groupList
+                                    .filter(groupItem => groupItem["favorite"])
+                                    .map((groupItem) => (
+                                        <GroupCard key={groupItem.uuid} groupItem={groupItem}/>
+                                    ))
+                            }
+                            {this.state.error !== null && errorMsg}
+                        </Tabs.TabPane>
+                    </Tabs>
+                </PageContainer>
             </>
         )
     }

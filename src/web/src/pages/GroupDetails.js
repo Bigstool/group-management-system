@@ -7,6 +7,8 @@ import {AuthContext} from "../utilities/AuthProvider";
 import PropTypes from "prop-types";
 import AppBar from "../components/AppBar";
 import {boundMethod} from "autobind-decorator";
+import UserItem from "../components/UserItem";
+import {Link} from "react-router-dom";
 
 /* Bigstool's class notations
 *  #T: Top-level component
@@ -30,7 +32,7 @@ export default class GroupDetails extends React.Component {
       'groupInfo': null,  // obtained in componentDidMount
       'sysConfig': null,  // obtained from context
       'error': false
-    }
+    };
   }
 
   // returns true if user is the owner of the group
@@ -157,7 +159,7 @@ class GroupBar extends React.Component {
     'isMember': PropTypes.func.isRequired,
     'requestGroupInfo': PropTypes.func.isRequired,
     'error': PropTypes.func.isRequired
-  }
+  };
   static contextType = AuthContext;
 
   constructor(props, context) {
@@ -166,8 +168,8 @@ class GroupBar extends React.Component {
       'isApplied': false,
       'applicationUuid': null,
       'applying': false,
-      'favoriting': false,
-    }
+      'favoriting': false
+    };
   }
 
   async componentDidMount() {
@@ -194,7 +196,7 @@ class GroupBar extends React.Component {
         if (userApplications[i]['group']['uuid'] === this.props.groupUuid) {
           this.setState({
             'isApplied': true,
-            'applicationUuid': userApplications[i]['uuid'],
+            'applicationUuid': userApplications[i]['uuid']
           });
           found = true;
           break;
@@ -203,7 +205,7 @@ class GroupBar extends React.Component {
       if (!found) {
         this.setState({
           'isApplied': false,
-          'applicationUuid': null,
+          'applicationUuid': null
         });
       }
     } catch (error) {
@@ -214,7 +216,7 @@ class GroupBar extends React.Component {
   @boundMethod
   async onApplyButtonClicked() {
     this.setState({
-      "applying": true,
+      "applying": true
     });
 
     // if not applied, apply
@@ -227,16 +229,18 @@ class GroupBar extends React.Component {
             comment: ""
           }
         });
-      } catch (error) {}
+      } catch (error) {
+      }
     }
     // if applied, remove application
     else {
       try {
         await this.context.request({
           path: `/application/${this.state.applicationUuid}`,
-          method: "delete",
+          method: "delete"
         });
-      } catch (error) {}
+      } catch (error) {
+      }
     }
 
     // finally, check if user is applied to the group again
@@ -257,7 +261,8 @@ class GroupBar extends React.Component {
           path: `/group/${this.props.groupUuid}/favorite`,
           method: "post"
         });
-      } catch (error) {}
+      } catch (error) {
+      }
     }
     // if favorite, remove favorite
     else {
@@ -266,7 +271,8 @@ class GroupBar extends React.Component {
           path: `/group/${this.props.groupUuid}/favorite`,
           method: "delete"
         });
-      } catch (error) {}
+      } catch (error) {
+      }
     }
     // finally, update group info
     await this.props.requestGroupInfo();
@@ -346,7 +352,7 @@ class GroupBar extends React.Component {
 class Title extends React.Component {
   static propTypes = {
     "groupInfo": PropTypes.object.isRequired
-  }
+  };
 
   constructor(props) {
     super(props);
@@ -354,7 +360,7 @@ class Title extends React.Component {
 
   render() {
     // TODO: get the title of the group (wait for backend implementation)
-    const title = <h1>{this.props.groupInfo['title']}</h1>
+    const title = <h1>{this.props.groupInfo['title']}</h1>;
     return (
       <div className={'group-title'}>
         {title}
@@ -367,14 +373,14 @@ class Title extends React.Component {
 class ShortDescription extends React.Component {
   static propTypes = {
     "groupInfo": PropTypes.object.isRequired
-  }
+  };
 
   constructor(props) {
     super(props);
   }
 
   render() {
-    const description = <p>{this.props.groupInfo['description']}</p>
+    const description = <p>{this.props.groupInfo['description']}</p>;
 
     return (
       <div className={'group-short-description'}>
@@ -389,7 +395,7 @@ class Proposal extends React.Component {
   static propTypes = {
     "groupInfo": PropTypes.object.isRequired,
     'sysConfig': PropTypes.object.isRequired
-  }
+  };
 
   constructor(props) {
     super(props);
@@ -400,26 +406,25 @@ class Proposal extends React.Component {
     // late if b) late submission; a) not submitted after grouping ddl
     if (this.props.groupInfo['proposal_late'] > 0) {  // case a)
       let lateDays = Math.ceil(this.props.groupInfo['proposal_late'] / 86400);
-      late = <Tag className={'tag'} color='red'>
+      late = <Tag className={'tag'} color="red">
         {`Late: ${lateDays}${lateDays > 1 ? 'Days' : 'Day'}`}
       </Tag>;
-    }
-    else if (this.props.sysConfig["system_state"]["proposal_ddl"] < Date.now() &&  // case b)
+    } else if (this.props.sysConfig["system_state"]["proposal_ddl"] < Date.now() &&  // case b)
       this.props.groupInfo['proposal_state'] === 'PENDING') {
       let lateDays = Math.ceil((Date.now() - this.props.sysConfig["system_state"]["proposal_ddl"]) / 86400);
-      late = <Tag className={'tag'} color='red'>
+      late = <Tag className={'tag'} color="red">
         {`Late: ${lateDays} ${lateDays > 1 ? 'Days' : 'Day'}`}
       </Tag>;
     }
 
     let approved = null;
     if (this.props.groupInfo['proposal_state'] === 'APPROVED') {
-      approved = <Tag className={'tag'} color='green'>Approved</Tag>;
+      approved = <Tag className={'tag'} color="green">Approved</Tag>;
     }
 
     let rejected = null;
     if (this.props.groupInfo['proposal_state'] === 'REJECT') {
-      rejected = <Tag className={'tag'} color='orange'>Rejected</Tag>;
+      rejected = <Tag className={'tag'} color="orange">Rejected</Tag>;
     }
 
     let proposal = (
@@ -452,15 +457,15 @@ class CommentSection extends React.Component {
     // Functions
     'isOwner': PropTypes.func.isRequired,
     'isMember': PropTypes.func.isRequired,
-    'requestGroupInfo': PropTypes.func.isRequired,
-  }
+    'requestGroupInfo': PropTypes.func.isRequired
+  };
   static contextType = AuthContext;
 
   constructor(props, context) {
     super(props, context);
     this.state = {
       newComment: '',
-      submitting: false,
+      submitting: false
     };
   }
 
@@ -485,10 +490,11 @@ class CommentSection extends React.Component {
         path: `/group/${this.props.groupUuid}/comment`,
         method: "post",
         data: {
-          content: this.state.newComment,
+          content: this.state.newComment
         }
       });
-    } catch (error) {}
+    } catch (error) {
+    }
 
     // finally, update group info, clear new comment and set submitting to be false
     await this.props.requestGroupInfo();
@@ -507,7 +513,7 @@ class CommentSection extends React.Component {
     });
     let comments = [];
     let index = 0;
-    while(index < comments_plain.length) {
+    while (index < comments_plain.length) {
       // insert the next comment
       // TODO: link avatar and title to user profile
       comments.push(
@@ -577,7 +583,7 @@ class CommentSection extends React.Component {
             }
           />
         </React.Fragment>
-      )
+      );
     }
 
 
@@ -602,46 +608,30 @@ class Showcase extends React.Component {
 class GroupMembers extends React.Component {
   static propTypes = {
     "groupInfo": PropTypes.object.isRequired
-  }
+  };
 
   constructor(props) {
     super(props);
   }
 
   render() {
-    let memberList = [];
-    memberList.push(
-      <List.Item>
-        <List.Item.Meta
-          // TODO: link avatar and title to user profile
-          avatar={<Avatar
-            src="https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png"/>}
-          title={<a href={'#'}>{this.props.groupInfo['owner']['alias']}</a>}
-          description={'Owner'}
-          key={this.props.groupInfo['owner']['uuid']}
-        />
-      </List.Item>
-    );
-    for (let i = 0; i < this.props.groupInfo['member'].length; i++) {
-      memberList.push(
-        <List.Item>
-          <List.Item.Meta
-            // TODO: link avatar and title to user profile
-            avatar={<Avatar
-              src="https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png"/>}
-            title={<a href={'#'}>{this.props.groupInfo['member'][i]['alias']}</a>}
-            description={'Member'}
-            key={this.props.groupInfo['member'][i]['uuid']}
-          />
-        </List.Item>
-      );
-    }
-
     return (
-      <div className={'group-members'}>
-        <h3>Group Members</h3>
-        {memberList}
-      </div>
+      <List header={<h3>Group Members</h3>}>
+        <Link to={`/user/${this.props.groupInfo.owner.uuid}`}>
+          <UserItem
+            userObject={this.props.groupInfo.owner}
+            description={"Owner"}/>
+        </Link>
+        {this.props.groupInfo.member.map(item => (
+          <Link to={`/user/${item.uuid}`}>
+            <UserItem
+              key={item.uuid}
+              userObject={item}
+              description={"Member"}
+            />
+          </Link>
+        ))}
+      </List>
     );
   }
 }

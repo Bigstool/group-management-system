@@ -16,7 +16,7 @@ import {Redirect} from "react-router-dom";
 */
 
 // #T
-export default class AccountProfile extends React.Component {
+export default class EditGroupProfile extends React.Component {
   static propTypes = {
     // null
   }

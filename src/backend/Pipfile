@@ -13,7 +13,6 @@ flask = "*"
 flasgger = "*"
 flask-cors = "*"
 Flask-SQLAlchemy = "*"
-mysql-connector-python = "*"
 webargs = "*"
 pycryptodome = "*"
 

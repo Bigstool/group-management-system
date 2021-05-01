@@ -1,11 +1,12 @@
 import React from "react";
 import PropTypes from "prop-types";
-import {Avatar, Card, Divider} from 'antd';
+import {Card, Divider} from 'antd';
 import {LoadingOutlined} from '@ant-design/icons';
 import {boundMethod} from "autobind-decorator";
 import AppBar from "../components/AppBar";
 import './UserProfile.scss';
 import {AuthContext} from "../utilities/AuthProvider";
+import Avatar from "react-avatar";
 
 /* Bigstool's class notations
 *  #T: Top-level component
@@ -88,7 +89,7 @@ export default class UserProfile extends React.Component {
 
     // Title
     let title = <div className={'title'}>
-      <Card.Meta avatar={<Avatar src="https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png" size={64}/>}
+      <Card.Meta avatar={<Avatar size={64} round={true} name={this.state.name}/>}
                  title={this.state.name} description={this.state.email}
                  className={'card'}/>
     </div>;

@@ -115,7 +115,7 @@ export default class AccountPanel extends React.Component {
     }
 
     // App Bar
-    let appBar = <AppBar showBack={false}/>;
+    let appBar = <AppBar backTo={false}/>;
     // Tab Navigation
     let tabNav = <TabNav active={"USER_PROFILE"}/>
 

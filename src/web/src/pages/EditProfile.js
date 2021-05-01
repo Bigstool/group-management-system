@@ -108,7 +108,7 @@ export default class EditProfile extends React.Component {
     }
     try {
       await this.context.request({
-        path: `/group/${this.state.groupUuid}`,
+        path: `/user/${this.state.userUuid}`,
         method: "patch",
         data: data,
       });

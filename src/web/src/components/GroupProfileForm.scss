@@ -1,0 +1,30 @@
+// 1rem === 16px
+
+.group-profile-form {
+  padding: 0.5rem 1.5rem;
+}
+
+.group-profile-form .edit-item {
+  margin-bottom: 0.7rem;
+}
+
+.group-profile-form .edit-item .title {
+  margin-bottom: 0;
+  font-size: 1.3rem;
+}
+
+.group-profile-form .edit-item .title .required {
+  color: red;
+}
+
+.group-profile-form .edit-item .description {
+  margin-bottom: 0.2rem;
+}
+
+.group-profile-form .edit-item .content textarea {
+  resize: none;
+}
+
+.gap {
+  padding-top: 1rem;
+}

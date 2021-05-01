@@ -1,6 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
-import {Avatar, Button, Card} from 'antd';
+import {Button, Card} from 'antd';
 import {LoadingOutlined} from '@ant-design/icons';
 import {boundMethod} from "autobind-decorator";
 import AppBar from "../components/AppBar";
@@ -9,6 +9,7 @@ import './AccountPanel.scss';
 import {AuthContext} from "../utilities/AuthProvider";
 import PageContainer from "../components/PageContainer";
 import {Redirect, Link} from "react-router-dom";
+import Avatar from "react-avatar";
 
 /* Bigstool's class notations
 *  #T: Top-level component
@@ -144,7 +145,7 @@ export default class AccountPanel extends React.Component {
     // Title
     let title = <React.Fragment>
       <Link to={`/user/${this.state.userUuid}`} className={'title'}>
-        <Card.Meta avatar={<Avatar src="https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png" size={64}/>}
+        <Card.Meta avatar={<Avatar size={64} round={true} name={this.state.name}/>}
                    title={this.state.name} description={this.state.email}
                    className={'card'}/>
       </Link>

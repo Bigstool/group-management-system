@@ -1,11 +1,12 @@
 import React from "react";
 import PropTypes from "prop-types";
-import {Button, Card, Avatar, Input} from 'antd';
+import {Button, Card, Input} from 'antd';
 import {LoadingOutlined} from '@ant-design/icons';
 import {boundMethod} from "autobind-decorator";
 import AppBar from "../components/AppBar";
 import './EditProfile.scss';
 import {AuthContext} from "../utilities/AuthProvider";
+import Avatar from "react-avatar";
 
 /* Bigstool's class notations
 *  #T: Top-level component
@@ -148,7 +149,7 @@ export default class EditProfile extends React.Component {
 
     // Photo
     let photo = <div className={'photo'}>
-      <Card.Meta avatar={<Avatar src="https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png" size={64}/>}
+      <Card.Meta avatar={<Avatar size={64} round={true} name={this.state.name}/>}
                  className={'card'}/>
       <div className={'gap'}/>
     </div>;

@@ -145,13 +145,11 @@ export default class EditGroupProfile extends React.Component {
           proposal: this.state.proposal,
         }
       });
-      // TODO: If success, redirect to Group Details (Wait for app bar support)
-      // this.setState({
-      //   redirect: `/group/${this.state.groupUuid}`,
-      //   push: false,
-      // });
-      // TODO: Remove. (Currently redirecting to Group Config)
-      window.history.back();
+      // If success, redirect to Group Details (Wait for app bar support)
+      this.setState({
+        redirect: `/group/${this.state.groupUuid}`,
+        push: false,
+      });
     } catch (error) {  // If failed, set saving to false
       this.setState({saving: false});
     }

@@ -1,6 +1,6 @@
 import React from 'react';
 import './GroupDetails.scss';
-import {PageHeader, Button, Tag, Row, Col, Divider, Comment, Avatar, Form, Input, List} from 'antd';
+import {PageHeader, Button, Tag, Row, Col, Divider, Comment, Form, Input, List} from 'antd';
 import {StarOutlined, StarFilled, LoadingOutlined} from '@ant-design/icons';
 import groupIcon from '../assets/group-icon.svg';
 import {AuthContext} from "../utilities/AuthProvider";
@@ -9,6 +9,7 @@ import AppBar from "../components/AppBar";
 import {boundMethod} from "autobind-decorator";
 import UserItem from "../components/UserItem";
 import {Link} from "react-router-dom";
+import Avatar from "react-avatar";
 
 /* Bigstool's class notations
 *  #T: Top-level component
@@ -522,8 +523,9 @@ class CommentSection extends React.Component {
           author={<a>{comments_plain[index]['author']['alias']}</a>}
           avatar={
             <Avatar
-              src="https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png"
-              alt="Han Solo"
+              size={32}
+              round={true}
+              name={comments_plain[index]['author']['alias']}
             />
           }
           content={
@@ -552,18 +554,19 @@ class CommentSection extends React.Component {
     }
 
     // New comment
-    let newComment = null;
+  let newComment = null;
     // allow comment only if user is the owner, a member, or a admin
     // TODO: link avatar and title to user profile
-    if (this.props.userRole === 'ADMIN' || this.props.isOwner() || this.props.isMember()) {
+  if (this.props.userRole === 'ADMIN' || this.props.isOwner() || this.props.isMember()) {
       newComment = (
         <React.Fragment>
           <Comment
             className={'new-comment'}
             avatar={
               <Avatar
-                src="https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png"
-                alt="Han Solo"
+                size={32}
+                round={true}
+                value="Me"
               />
             }
             content={
@@ -616,7 +619,7 @@ class GroupMembers extends React.Component {
 
   render() {
     return (
-      <List header={<h3>Group Members</h3>}>
+      <List className={"group-members"} header={<h3>Group Members</h3>}>
         <Link to={`/user/${this.props.groupInfo.owner.uuid}`}>
           <UserItem
             userObject={this.props.groupInfo.owner}

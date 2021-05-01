@@ -25,7 +25,7 @@ export default class UserProfile extends React.Component {
     super(props, context);
     this.state = {
       // User related
-      'userUuid': this.context.getUser()['uuid'],
+      'userUuid': this.props.match.params["uuid"],
       'name': 'Obi Wan',
       'email': 'obi.wan@student.xjtlu.edu.cn',
       'bio': 'It is inevitable. It is inevitable. It is inevitable. It is inevitable. It is inevitable. It is inevitable. It is inevitable. It is inevitable.',

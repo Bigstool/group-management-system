@@ -18,6 +18,7 @@ import EditGroupProfile from './pages/EditGroupProfile';
 import AccountPanel from "./pages/AccountPanel";
 import EditProfile from "./pages/EditProfile";
 import GroupConfig from "./pages/GroupConfig";
+import UserProfile from "./pages/UserProfile";
 
 ReactDOM.render((
     <AuthProvider>
@@ -25,6 +26,7 @@ ReactDOM.render((
         <Router>
             <Switch>
                 <PrivateRoute exact path={"/"} component={GroupList}/>
+                <PrivateRoute path={"/user/:uuid"} component={UserProfile}/>
                 <PrivateRoute path={"/user/edit"} component={EditProfile}/>
                 <PrivateRoute path={"/user"} component={AccountPanel}/>
                 <Route path={"/login"} component={Login}/>

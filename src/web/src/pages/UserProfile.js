@@ -26,18 +26,65 @@ export default class UserProfile extends React.Component {
     this.state = {
       // User related
       'userUuid': this.props.match.params["uuid"],
-      'name': 'Obi Wan',
-      'email': 'obi.wan@student.xjtlu.edu.cn',
-      'bio': 'It is inevitable. It is inevitable. It is inevitable. It is inevitable. It is inevitable. It is inevitable. It is inevitable. It is inevitable.',
+      'name': '',
+      'email': '',
+      'bio': '',
       // Component related
       'loading': true,
       'error': false,
     }
   }
 
+  async componentDidMount() {
+    await this.checkUserProfile();
+    this.setState({'loading': false});
+  }
+
+  // Retrieves user profile and updates this.state
+  @boundMethod
+  async checkUserProfile() {
+    try {
+      let res = await this.context.request({
+        path: `/user/${this.state.userUuid}`,
+        method: 'get'
+      });
+      let userProfile = res.data['data'];
+
+      // update name and email
+      this.setState({
+        'name': userProfile['alias'],
+        'email': userProfile['email'],
+        'bio': userProfile['bio'],
+      })
+    } catch (error) {
+      this.setState({
+        'error': true
+      });
+    }
+  }
+
   render() {
     // App Bar
     let appBar = <AppBar/>
+
+    if (this.state.error) {
+      return (
+        <React.Fragment>
+          {appBar}
+          <h1>Oops, something went wrong</h1>
+          <h3>Perhaps reload?</h3>
+        </React.Fragment>
+      );
+    }
+
+    if (this.state.loading) {
+      return (
+        <React.Fragment>
+          {appBar}
+          <LoadingOutlined/>
+        </React.Fragment>
+      );
+    }
 
     // Title
     let title = <div className={'title'}>

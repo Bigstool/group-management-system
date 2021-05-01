@@ -7,6 +7,7 @@ import AppBar from "../components/AppBar";
 import TabNav from "../components/TabNav";
 import './AccountPanel.scss';
 import {AuthContext} from "../utilities/AuthProvider";
+import PageContainer from "../components/PageContainer";
 import {Redirect, Link} from "react-router-dom";
 
 /* Bigstool's class notations
@@ -196,18 +197,18 @@ export default class AccountPanel extends React.Component {
 
     return (
       <React.Fragment>
-        {appBar}
-        <div className={'account-profile'}>
-          {title}
-          {editProfile}
-          {changePassword}
-          {createGroup}
-          {resetPassword}
-          {semesterTools}
-          {reports}
-          {archives}
-        </div>
-        {tabNav}
+        <PageContainer header={appBar} footer={tabNav}>
+          <div className={'account-profile'}>
+            {title}
+            {editProfile}
+            {changePassword}
+            {createGroup}
+            {resetPassword}
+            {semesterTools}
+            {reports}
+            {archives}
+          </div>
+        </PageContainer>
       </React.Fragment>
     );
   }

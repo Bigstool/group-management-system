@@ -26,10 +26,10 @@ ReactDOM.render((
         <Router>
             <Switch>
                 <PrivateRoute exact path={"/"} component={GroupList}/>
+                <PrivateRoute exact path={"/user/edit"} component={EditProfile}/>
                 <PrivateRoute path={"/user/:uuid"} component={UserProfile}/>
-                <PrivateRoute path={"/user/edit"} component={EditProfile}/>
-                <PrivateRoute path={"/user"} component={AccountPanel}/>
-                <Route path={"/login"} component={Login}/>
+                <PrivateRoute exact path={"/user"} component={AccountPanel}/>
+                <Route exact path={"/login"} component={Login}/>
                 <PrivateRoute path={"/group/:uuid/config"} component={GroupConfig}/>
                 <PrivateRoute path={'/group/:uuid/edit'} component={EditGroupProfile}/>
                 <PrivateRoute path={"/group/:uuid"} component={GroupDetails}/>

@@ -19,6 +19,7 @@ import AccountPanel from "./pages/AccountPanel";
 import EditProfile from "./pages/EditProfile";
 import GroupConfig from "./pages/GroupConfig";
 import UserProfile from "./pages/UserProfile";
+import CreateGroup from "./pages/CreateGroup";
 
 ReactDOM.render((
     <AuthProvider>
@@ -33,6 +34,7 @@ ReactDOM.render((
                 <PrivateRoute path={"/group/:uuid/config"} component={GroupConfig}/>
                 <PrivateRoute path={'/group/:uuid/edit'} component={EditGroupProfile}/>
                 <PrivateRoute path={"/group/:uuid"} component={GroupDetails}/>
+                <PrivateRoute exact path={"/create/group"} component={CreateGroup}/>
                 <Route path={"*"} component={NotFound}/>
             </Switch>
         </Router>

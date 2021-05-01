@@ -1,6 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
-import {Button, Tag, Row, Col, Divider, Comment, Avatar, Form, Input, List} from 'antd';
+import {Button, Input} from 'antd';
 import {LoadingOutlined} from '@ant-design/icons';
 import {boundMethod} from "autobind-decorator";
 import AppBar from "../components/AppBar";
@@ -198,23 +198,19 @@ export default class EditGroupProfile extends React.Component {
     }
 
     // Name (Group Owner) (Before Grouping DDL) or (Admin) (All Stages)
-    let name = <React.Fragment>
-      <div className={'edit-item'}>
-        <h1 className={'title'}>Group Name<span className={'required'}>*</span></h1>
-        <Input className={'content'} onChange={this.onNameChange}
-               value={this.state.name} maxLength={this.state.nameLimit}
-               disabled={this.state.isOwner && this.state.afterGroupingDDL}/>
-      </div>
-    </React.Fragment>
+    let name = <div className={'edit-item'}>
+      <h1 className={'title'}>Group Name<span className={'required'}>*</span></h1>
+      <Input className={'content'} onChange={this.onNameChange}
+             value={this.state.name} maxLength={this.state.nameLimit}
+             disabled={this.state.isOwner && this.state.afterGroupingDDL}/>
+    </div>;
 
     // Title (Group Owner or Admin) (All Stages)
-    let title = <React.Fragment>
-      <div className={'edit-item'}>
-        <h1 className={'title'}>Title<span className={'required'}>*</span></h1>
-        <Input className={'content'} onChange={this.onTitleChange}
-               value={this.state.title} maxLength={this.state.titleLimit}/>
-      </div>
-    </React.Fragment>
+    let title = <div className={'edit-item'}>
+      <h1 className={'title'}>Title<span className={'required'}>*</span></h1>
+      <Input className={'content'} onChange={this.onTitleChange}
+             value={this.state.title} maxLength={this.state.titleLimit}/>
+    </div>;
 
     // Description (Group Owner or Admin) (All Stages)
     let description = <div className={'edit-item'}>
@@ -226,7 +222,7 @@ export default class EditGroupProfile extends React.Component {
       <Input.TextArea showCount className={'content'} rows={2} onChange={this.onDescriptionChange}
                       value={this.state.description} maxLength={this.state.descriptionLimit}/>
       <div className={'gap'} />
-    </div>
+    </div>;
 
     // Proposal (Group Owner or Admin) (All Stages)
     let proposal = <div className={'edit-item'}>
@@ -234,7 +230,7 @@ export default class EditGroupProfile extends React.Component {
       <Input.TextArea showCount className={'content'} rows={5} onChange={this.onProposalChange}
                       value={this.state.proposal} maxLength={this.state.proposalLimit}/>
       <div className={'gap'} />
-    </div>
+    </div>;
 
     let Save = <React.Fragment>
       <div className={'gap'} />

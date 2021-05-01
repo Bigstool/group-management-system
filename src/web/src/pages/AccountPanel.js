@@ -5,7 +5,7 @@ import {LoadingOutlined} from '@ant-design/icons';
 import {boundMethod} from "autobind-decorator";
 import AppBar from "../components/AppBar";
 import TabNav from "../components/TabNav";
-import './AccountProfile.scss';
+import './AccountPanel.scss';
 import {AuthContext} from "../utilities/AuthProvider";
 import {Redirect} from "react-router-dom";
 
@@ -17,7 +17,7 @@ import {Redirect} from "react-router-dom";
 */
 
 // #T
-export default class AccountProfile extends React.Component {
+export default class AccountPanel extends React.Component {
   static propTypes = {
     // null
   }

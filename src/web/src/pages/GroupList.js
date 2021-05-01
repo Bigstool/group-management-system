@@ -51,7 +51,7 @@ export default class GroupList extends React.PureComponent {
                                  }/>;
         return (
             <>
-                <AppBar showBack={false}/>
+                <AppBar backTo={false}/>
                 <Tabs defaultActiveKey="1"
                       centered={true}>
                     <Tabs.TabPane tab="Groups" key="1">

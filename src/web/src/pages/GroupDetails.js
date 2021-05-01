@@ -91,7 +91,7 @@ export default class GroupDetails extends React.Component {
   }
 
   render() {
-    let appBar = <AppBar/>;
+    let appBar = <AppBar backTo={'/'}/>;
 
     if (this.state.error) {
       return (
@@ -114,7 +114,7 @@ export default class GroupDetails extends React.Component {
 
     // If the user is a member of the group, show the three-dot menu
     if (this.isOwner() || this.isMember() || this.state.userRole === 'ADMIN') {
-      appBar = <AppBar dotMenuTarget={`/group/${this.state.groupUuid}/config`}/>;
+      appBar = <AppBar dotMenuTarget={`/group/${this.state.groupUuid}/config`} backTo={'/'}/>;
     }
 
     return (

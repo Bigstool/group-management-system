@@ -1,20 +1,22 @@
 // 1rem === 16px
 
-.user-profile {
+.UserProfile {
   padding: 1.5rem 1.5rem;
-}
 
-.user-profile .title {
-  margin-bottom: 3rem;
-}
+  .Title {
+    margin-bottom: 3rem;
 
-.user-profile .title .card {
-  display: flex;
-  align-items: center;
-}
+    .Card {
+      display: flex;
+      align-items: center;
+    }
+  }
 
-.user-profile .bio .content {
-  font-size: 1rem;
-  padding: 0 1rem;
-  margin-bottom: 0;
+  .Bio {
+    .Content {
+      font-size: 1rem;
+      padding: 0 1rem;
+      margin-bottom: 0;
+    }
+  }
 }

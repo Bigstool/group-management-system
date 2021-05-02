@@ -3,7 +3,7 @@ import {Row, Col, Alert} from 'antd';
 import {Form, Input, Button, Checkbox} from 'antd';
 import {LockOutlined, MailOutlined} from '@ant-design/icons';
 import {Card} from 'antd';
-import './Login.scss';
+import styles from './Login.scss';
 import {AuthContext} from "../utilities/AuthProvider";
 import {Redirect} from "react-router-dom";
 import {Helmet} from "react-helmet";
@@ -74,7 +74,7 @@ export default class Login extends React.PureComponent {
                 <Helmet>
                     <title>GMS - Login</title>
                 </Helmet>
-                <Row className={"LoginForm"}
+                <Row className={styles.LoginForm}
                      align="middle"
                      justify="center">
                     <Col>

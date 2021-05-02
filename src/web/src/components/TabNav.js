@@ -1,5 +1,5 @@
 import React from 'react';
-import "./TabNav.scss";
+import styles from "./TabNav.scss";
 import {UnorderedListOutlined, UserOutlined} from "@ant-design/icons";
 import PropTypes from "prop-types";
 import {boundMethod} from "autobind-decorator";
@@ -40,18 +40,18 @@ export default class TabNav extends React.Component {
 
         return (
             <>
-                <div className={"TabNav"}>
+                <div className={styles.TabNav}>
                     <Row>
                         <Col span={12}
-                             className={"ButtonCol"}
+                             className={styles.ButtonCol}
                              onClick={this.props.active !== "GROUP_LIST" ? this.onGroupListClicked : null}>
                             <UnorderedListOutlined
-                                className={`Button ${this.props.active === "GROUP_LIST" && 'Active'}`}/>
+                                className={`${styles.Button} ${this.props.active === "GROUP_LIST" && styles.Active}`}/>
                         </Col>
                         <Col span={12}
-                             className={"ButtonCol"}
+                             className={styles.ButtonCol}
                              onClick={this.props.active !== "USER_PROFILE" ? this.onUserProfileClicked : null}>
-                            <UserOutlined className={`Button ${this.props.active === "USER_PROFILE" && 'Active'}`}/>
+                            <UserOutlined className={`${styles.Button} ${this.props.active === "USER_PROFILE" && styles.Active}`}/>
                         </Col>
                     </Row>
                 </div>

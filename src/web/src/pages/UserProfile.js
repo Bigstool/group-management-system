@@ -4,7 +4,7 @@ import {Card, Divider} from 'antd';
 import {LoadingOutlined} from '@ant-design/icons';
 import {boundMethod} from "autobind-decorator";
 import AppBar from "../components/AppBar";
-import './UserProfile.scss';
+import styles from './UserProfile.scss';
 import {AuthContext} from "../utilities/AuthProvider";
 import Avatar from "react-avatar";
 
@@ -88,22 +88,22 @@ export default class UserProfile extends React.Component {
     }
 
     // Title
-    let title = <div className={'title'}>
+    let title = <div className={styles.Title}>
       <Card.Meta avatar={<Avatar size={64} round={true} name={this.state.name}/>}
                  title={this.state.name} description={this.state.email}
-                 className={'card'}/>
+                 className={styles.Card}/>
     </div>;
 
     // Bio
-    let bio = <div className={'bio'}>
-      <Divider className={'divider'} orientation="left">Bio</Divider>
-      <p className={'content'}>{this.state.bio}</p>
+    let bio = <div className={styles.Bio}>
+      <Divider orientation="left">Bio</Divider>
+      <p className={styles.Content}>{this.state.bio}</p>
     </div>;
 
     return (
       <React.Fragment>
         {appBar}
-        <div className={'user-profile'}>
+        <div className={styles.UserProfile}>
           {title}
           {bio}
         </div>

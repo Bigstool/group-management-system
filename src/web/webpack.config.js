@@ -52,33 +52,13 @@ module.exports = {
                 ]
             },
             {
-                test: /\.module\.s[ac]ss$/,
+                test: /\.s[ac]ss$/,
                 use: [
                     isDevelopment ? 'style-loader' : MiniCssExtractPlugin.loader,
                     {
                         loader: 'css-loader',
                         options: {
                             modules: true,
-                            sourceMap: isDevelopment
-                        }
-                    },
-                    {
-                        loader: 'sass-loader',
-                        options: {
-                            sourceMap: isDevelopment
-                        }
-                    }
-                ]
-            },
-            {
-                test: /\.s[ac]ss$/,
-                exclude: /\.module.s([ac]ss)$/,
-                use: [
-                    isDevelopment ? 'style-loader' : MiniCssExtractPlugin.loader,
-                    {
-                        loader: 'css-loader',
-                        options: {
-                            modules: false,
                             sourceMap: isDevelopment
                         }
                     },

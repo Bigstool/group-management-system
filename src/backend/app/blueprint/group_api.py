@@ -42,6 +42,7 @@ def create_group():
       * operator must be user
       * operator must have no created group or joined group
       * must before grouping ddl
+      * application made by user is deleted after group creation
 
     requestBody:
       required: true
@@ -126,7 +127,10 @@ def create_group():
     user.group_id = new_group.uuid
 
     db.session.add(new_group)
+    # delete applications https://stackoverflow.com/questions/48839482/deleting-list-of-items-in-sqlalchemy-flask
+    db.session.delete(GroupApplication.query.filter_by(applicant_uuid=user.uuid))
     db.session.commit()
+
     return MyResponse(data=None).build()
 
 

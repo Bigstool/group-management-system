@@ -28,7 +28,7 @@ export default class ApplyGroup extends React.Component {
       comment: '',
       commentLimit: 300,
       // Group related
-      groupUuid: '',  // TODO: this.props.match.params["uuid"],
+      groupUuid: this.props.match.params["uuid"],
       groupName: '',
       // Component related
       loading: true,
@@ -42,6 +42,17 @@ export default class ApplyGroup extends React.Component {
 
   @boundMethod
   async componentDidMount() {
+    // Check whether user has permission to access this page
+    let isPermitted = await this.isPermitted();
+    if (!isPermitted) {
+      this.setState({
+        'redirect': '/',
+        'push': false,
+      });
+    }
+
+    // Get the name of the group
+    await this.getGroupName();
 
     this.setState({loading: false});
   }
@@ -146,7 +157,7 @@ export default class ApplyGroup extends React.Component {
     }
 
     // App Bar
-    let appBar = <AppBar/>;
+    let appBar = <AppBar backTo={`/group/${this.state.groupUuid}`}/>;
 
     if (this.state.error) {
       return (

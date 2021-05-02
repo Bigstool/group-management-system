@@ -60,7 +60,7 @@ export default class AccountPanel extends React.Component {
       'groupingDDL': sysConfig["system_state"]["grouping_ddl"],
     });
     // update afterGroupingDDL
-    if (Date.now() > this.state.groupingDDL) this.setState({'afterGroupingDDL': true});
+    if ((Date.now() / 1000) > this.state.groupingDDL) this.setState({'afterGroupingDDL': true});
     else this.setState({'afterGroupingDDL': false});
   }
 
@@ -98,6 +98,14 @@ export default class AccountPanel extends React.Component {
   onEditProfile() {
     this.setState({
       'redirect': `/user/edit`,
+      'push': true,
+    });
+  }
+
+  @boundMethod
+  onCreateGroup() {
+    this.setState({
+      'redirect': `/create/group`,
       'push': true,
     });
   }
@@ -171,7 +179,10 @@ export default class AccountPanel extends React.Component {
     if (!this.state.isJoined && !this.state.isAdmin && !this.state.afterGroupingDDL) {
       createGroup = <React.Fragment>
         <div className={styles.Gap} />
-        <Button block size={'large'}>Create Group</Button>
+        <Button block size={'large'}
+                onClick={this.onCreateGroup}>
+          Create Group
+        </Button>
       </React.Fragment>
     }
 

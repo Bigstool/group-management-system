@@ -19,7 +19,7 @@ import Avatar from "react-avatar";
 export default class EditProfile extends React.Component {
   static propTypes = {
     // null
-  }
+  };
   static contextType = AuthContext;
 
   constructor(props, context) {
@@ -39,8 +39,8 @@ export default class EditProfile extends React.Component {
       loading: true,
       error: false,
       // Event related
-      saving: false,
-    }
+      saving: false
+    };
   }
 
   async componentDidMount() {
@@ -61,9 +61,10 @@ export default class EditProfile extends React.Component {
       // update name, title, description, proposal
       this.setState({
         name: userProfile['alias'],
+        avatarName: userProfile['alias'],
         email: userProfile['email'],
-        bio: userProfile['bio'],
-      })
+        bio: userProfile['bio']
+      });
 
       // update isAdmin
       if (this.state.userRole === 'ADMIN') this.setState({isAdmin: true});
@@ -77,8 +78,13 @@ export default class EditProfile extends React.Component {
   }
 
   @boundMethod
-  onNameChange(event) {
+  onNameInput(event) {
     this.setState({name: event.target.value});
+  }
+
+  @boundMethod
+  onNameChange() {
+    this.setState({avatarName: this.state.name});
   }
 
   @boundMethod
@@ -99,18 +105,18 @@ export default class EditProfile extends React.Component {
       data = {
         alias: this.state.name,
         email: this.state.email,
-        bio: this.state.bio,
+        bio: this.state.bio
       };
     } else {
       data = {
-        bio: this.state.bio,
+        bio: this.state.bio
       };
     }
     try {
       await this.context.request({
         path: `/user/${this.state.userUuid}`,
         method: "patch",
-        data: data,
+        data: data
       });
 
       window.history.back();
@@ -148,14 +154,15 @@ export default class EditProfile extends React.Component {
 
     // Photo
     let photo = <div>
-      <Card.Meta avatar={<Avatar size={64} round={true} name={this.state.name}/>}/>
+      <Card.Meta avatar={<Avatar size={64} round={true} name={this.state.avatarName}/>}/>
       <div className={styles.Gap}/>
     </div>;
 
     // Name
     let name = <div className={styles.EditItem}>
       <h1 className={styles.Title}>Name</h1>
-      <Input className={styles.Content} onChange={this.onNameChange}
+      <Input className={styles.Content} onInput={this.onNameInput}
+             onBlur={this.onNameChange}
              value={this.state.name} maxLength={this.state.nameLimit}
              disabled={!this.state.isAdmin}/>
     </div>;
@@ -166,20 +173,20 @@ export default class EditProfile extends React.Component {
       <Input className={styles.Content} onChange={this.onEmailChange}
              value={this.state.email} maxLength={this.state.emailLimit}
              disabled={!this.state.isAdmin}/>
-    </div>
+    </div>;
 
     // Bio
     let bio = <div className={styles.EditItem}>
       <h1 className={styles.Title}>Bio</h1>
       <Input.TextArea showCount className={styles.Content} rows={5} onChange={this.onBioChange}
                       value={this.state.bio} maxLength={this.state.bioLimit}/>
-      <div className={styles.Gap} />
+      <div className={styles.Gap}/>
     </div>;
 
     // Save
     let save = <React.Fragment>
-      <div className={styles.Gap} />
-      <div className={styles.Gap} />
+      <div className={styles.Gap}/>
+      <div className={styles.Gap}/>
       <Button type={'primary'} block size={'large'} onClick={this.onSave} loading={this.state.saving}>
         Save
       </Button>
@@ -187,7 +194,7 @@ export default class EditProfile extends React.Component {
 
     // Cancel
     let cancel = <React.Fragment>
-      <div className={styles.Gap} />
+      <div className={styles.Gap}/>
       <Button block size={'large'} onClick={this.onCancel}>Cancel</Button>
     </React.Fragment>;
 

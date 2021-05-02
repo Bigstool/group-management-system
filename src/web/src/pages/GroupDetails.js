@@ -39,15 +39,16 @@ export default class GroupDetails extends React.Component {
   // returns true if user is the owner of the group
   @boundMethod
   isOwner() {
-    if (!this.state.userProfile['created_group']) return false;
-    return this.state.userProfile['created_group']['uuid'] === this.state.groupUuid;
+    return (this.state.userUuid === this.state.groupInfo['owner']['uuid']);
   }
 
   // returns true if user is a member of the group
   @boundMethod
   isMember() {
-    if (!this.state.userProfile['joined_group']) return false;
-    return this.state.userProfile['joined_group']['uuid'] === this.state.groupUuid;
+    for (let i = 0; i < this.state.groupInfo['member'].length; i++) {
+      if (this.state.userUuid === this.state.groupInfo['member'][i]['uuid']) return true;
+    }
+    return false;
   }
 
   // request group info

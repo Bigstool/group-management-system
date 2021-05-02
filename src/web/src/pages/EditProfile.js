@@ -181,7 +181,7 @@ export default class EditProfile extends React.Component {
     let save = <React.Fragment>
       <div className={'gap'} />
       <div className={'gap'} />
-      <Button type={'primary'} block size={'large'} onClick={this.onSave}>
+      <Button type={'primary'} block size={'large'} onClick={this.onSave} loading={this.state.saving}>
         Save
       </Button>
     </React.Fragment>;

@@ -80,29 +80,34 @@ def create_application(group_uuid):
     }, request, location="json")
 
     group_uuid: str = args_path["group_uuid"]
+    group_uuid_bytes: bytes = uuid.UUID(group_uuid).bytes
     comment: str = args_json["comment"]
 
     token_info = Auth.get_payload(request)
     uuid_in_token = token_info['uuid']
 
+    group = Group.query.filter_by(uuid=group_uuid_bytes).first()
+    if group is None:
+        raise ApiResourceNotFoundException("Not found: invalid group")
+
     user = User.query.filter_by(uuid=uuid.UUID(uuid_in_token).bytes).first()
-    # print(user)
-    application = GroupApplication.query.filter_by(applicant_uuid=uuid.UUID(uuid_in_token).bytes,
-                                             group_uuid=uuid.UUID(group_uuid).bytes).first()
-    group = Group.query.filter_by(uuid=uuid.UUID(group_uuid).bytes).first()
-    system_config = Semester.query.filter_by(name="CURRENT").first().config
     if user.group_id:
         raise ApiPermissionException("Permission denied: You have already created/joined a group")
+    application = GroupApplication.query.filter_by(applicant_uuid=user.uuid,
+                                                   group_uuid=group_uuid_bytes).first()
     if application:
         raise ApiPermissionException("Permission denied: You have already sent application for this group")
+
+    system_config = Semester.query.filter_by(name="CURRENT").first().config
     if (system_config["system_state"]["grouping_ddl"] < time.time() or (not group.application_enabled)):
         raise ApiPermissionException("Permission denied: This group cannot be applied")
-    if group.member_num >= system_config["group_member_number"]:
+    if group.member_num >= system_config["group_member_number"][1]:
         raise ApiPermissionException("Permission denied: This group is full")
+
     new_application = GroupApplication(uuid=uuid.uuid4().bytes,
                                        comment=comment,
-                                       applicant_uuid=uuid.UUID(uuid_in_token).bytes,
-                                       group_uuid=uuid.UUID(group_uuid).bytes,
+                                       applicant_uuid=user.uuid,
+                                       group_uuid=group.uuid,
                                        creation_time=int(time.time()))
     db.session.add(new_application)
     db.session.commit()
@@ -172,24 +177,22 @@ def get_group_application_list(group_uuid):
         "group_uuid": fields.Str(required=True, validate=MyValidator.Uuid())
     }, request, location="path")
     group_uuid: str = args_query["group_uuid"]
-    group=Group.query.filter_by(uuid=uuid.UUID(group_uuid).bytes).first()
+    group = Group.query.filter_by(uuid=uuid.UUID(group_uuid).bytes).first()
     if group is None:
         raise ApiResourceNotFoundException("No such group!")
     token_info = Auth.get_payload(request)
     uuid_in_token = token_info['uuid']
-    if uuid_in_token!=str(uuid.UUID(bytes=group.owner_uuid)):
+    if uuid_in_token != str(uuid.UUID(bytes=group.owner_uuid)):
         raise ApiPermissionException("You are not the owner of this group!")
-    application_list= GroupApplication.query.filter_by(group_uuid=uuid.UUID(group_uuid).bytes).all()
-    response_list=[]
+    application_list = GroupApplication.query.filter_by(group_uuid=uuid.UUID(group_uuid).bytes).all()
+    response_list = []
     for application in application_list:
         applicant = application.applicant
-        response_list.append({"applicant":{"alias":applicant.alias, "email":applicant.email, "uuid":str(uuid.UUID(bytes=applicant.uuid))},
-                              "comment":application.comment,"creation_time":application.creation_time,
-                              "uuid":str(uuid.UUID(bytes=application.uuid))})
+        response_list.append({"applicant": {"alias": applicant.alias, "email": applicant.email,
+                                            "uuid": str(uuid.UUID(bytes=applicant.uuid))},
+                              "comment": application.comment, "creation_time": application.creation_time,
+                              "uuid": str(uuid.UUID(bytes=application.uuid))})
     return MyResponse(data=response_list, msg='query success').build()
-
-
-
 
 
 @application_api.route("/user/<user_uuid>/application", methods=["GET"])
@@ -253,7 +256,7 @@ def get_user_application_list(user_uuid):
         "user_uuid": fields.Str(required=True, validate=MyValidator.Uuid())
     }, request, location="path")
     user_uuid: str = args_query["user_uuid"]
-    user=User.query.filter_by(uuid=uuid.UUID(user_uuid).bytes).first()
+    user = User.query.filter_by(uuid=uuid.UUID(user_uuid).bytes).first()
     if user is None:
         raise ApiResourceNotFoundException("No such user!")
     token_info = Auth.get_payload(request)
@@ -269,7 +272,6 @@ def get_user_application_list(user_uuid):
                               "comment": application.comment, "creation_time": application.creation_time,
                               "uuid": str(uuid.UUID(bytes=application.uuid))})
     return MyResponse(data=response_list, msg='query success').build()
-
 
 
 @application_api.route("/application/accepted", methods=["POST"])
@@ -320,7 +322,7 @@ def accept_application():
     applicant.group_id = group.uuid
     db.session.commit()
     # increment the group number
-    group.member_num = group.member_num+1
+    group.member_num = group.member_num + 1
     db.session.commit()
     # Remove application
     db.session.delete(application)

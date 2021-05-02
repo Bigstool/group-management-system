@@ -80,7 +80,7 @@ app.register_blueprint(notification_api)
 
 # SQLAlchemy
 app.config["SQLALCHEMY_DATABASE_URI"] = \
-    f"mysql+mysqlconnector://{config.get('mysql_user')}:{config.get('mysql_password')}@{config.get('mysql_host')}:{config.get('mysql_port')}/{config.get('mysql_database')}"
+    f"mysql+mysqlconnector://{config.get('mysql_user')}:{config.get('mysql_password')}@{config.get('mysql_host')}:{config.get('mysql_port')}/{config.get('mysql_database')}?charset={config.get('mysql_charset')}"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db.init_app(app)
 

@@ -196,23 +196,24 @@ def get_group_list():
     uuid_in_token = token_info['uuid']
 
     data = Group.query.all()
-    data_list = []
+    group_list = []
     for group in data:
-        if GroupFavorite.query.filter_by(uuid=group.uuid, user_uuid=uuid.UUID(uuid_in_token).bytes).first():
+        if GroupFavorite.query.filter_by(group_uuid=group.uuid, user_uuid=uuid.UUID(uuid_in_token).bytes).first():
             favorite = True
         else:
             favorite = False
         user = User.query.filter_by(uuid=group.owner_uuid).first()
-        data_list.append({"uuid": str(uuid.UUID(bytes=group.uuid)),
+        group_list.append({"uuid": str(uuid.UUID(bytes=group.uuid)),
                           "favorite": favorite,
                           "name": group.name,
                           "title": group.title,
                           "description": group.description,
                           "owner": {"alias": user.alias, "email": user.email},
-                          "creation_time": group.creation_time, "member_count": group.member_num,
+                          "creation_time": group.creation_time,
+                          "member_count": group.member_num,
                           "application_enabled": group.application_enabled})
 
-    return MyResponse(data=data_list).build()
+    return MyResponse(data=group_list).build()
 
 
 @group_api.route("/group/<group_uuid>", methods=["GET"])
@@ -734,17 +735,15 @@ def favorite_group(group_uuid):
             schema:
               type: object
     """
-    # add a error report?
     args_query = parser.parse({
         "group_uuid": fields.Str(required=True, validate=MyValidator.Uuid())}, request, location="path")
     group_uuid: str = args_query["group_uuid"]
 
     token_info = Auth.get_payload(request)
     uuid_in_token = token_info['uuid']
-    user = User.query.filter_by(uuid=uuid.UUID(uuid_in_token).bytes).first()
 
     new_favorite = GroupFavorite(uuid=uuid.uuid4().bytes,
-                                 user_uuid=user.uuid,
+                                 user_uuid=uuid.UUID(uuid_in_token).bytes,
                                  group_uuid=uuid.UUID(group_uuid).bytes)
 
     db.session.add(new_favorite)

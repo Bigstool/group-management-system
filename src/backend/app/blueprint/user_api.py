@@ -192,7 +192,7 @@ def get_user_profile(user_uuid):
             "email": user.email,
             "bio": user.bio,
             "created_group": None,
-            "joined_group:": None
+            "joined_group": None
         }).build()
     elif group.owner_uuid == uuid.UUID(user_uuid).bytes:
         return MyResponse(data={
@@ -201,7 +201,7 @@ def get_user_profile(user_uuid):
             "bio": user.bio,
             "created_group": {"uuid": str(uuid.UUID(bytes=group.uuid)), "name": group.name,
                               "description": group.description},
-            "joined_group:": None
+            "joined_group": None
         }).build()
     else:
         return MyResponse(data={
@@ -209,7 +209,7 @@ def get_user_profile(user_uuid):
             "email": user.email,
             "bio": user.bio,
             "created_group": None,
-            "joined_group:": {"uuid": str(uuid.UUID(bytes=group.uuid)), "name": group.name, "description": group.description}
+            "joined_group": {"uuid": str(uuid.UUID(bytes=group.uuid)), "name": group.name, "description": group.description}
         }).build()
 
 

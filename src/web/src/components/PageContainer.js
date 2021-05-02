@@ -1,5 +1,5 @@
 import React from "react";
-import "./PageContainer.scss";
+import styles from "./PageContainer.scss";
 import PropTypes from "prop-types";
 
 export default class PageContainer extends React.PureComponent {
@@ -17,8 +17,8 @@ export default class PageContainer extends React.PureComponent {
   render() {
     return (
       <>
-        <div className={"PageContainer"}>
-          <div className={"PageContent"}>
+        <div className={styles.PageContainer}>
+          <div className={styles.PageContent}>
             {this.props.header &&
             this.props.header}
             {this.props.children}

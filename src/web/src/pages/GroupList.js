@@ -1,5 +1,5 @@
 import React from 'react';
-import './GroupList.scss';
+import styles from './GroupList.scss';
 import AppBar from "../components/AppBar";
 import TabNav from "../components/TabNav";
 import {Button, Result, Tabs} from "antd";

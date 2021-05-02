@@ -1,18 +1,15 @@
 // 1rem === 16px
 
-.account-profile {
+.AccountProfile {
   padding: 1.5rem 1.5rem;
+
+  .Title {
+    .Card {
+      display: flex;
+      align-items: center;
+    }
+  }
 }
-
-.account-profile .title {
-
-}
-
-.account-profile .title .card {
-  display: flex;
-  align-items: center;
-}
-
-.gap {
+.Gap {
   padding-top: 1rem;
 }

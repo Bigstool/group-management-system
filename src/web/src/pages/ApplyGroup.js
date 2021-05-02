@@ -3,7 +3,7 @@ import {Button, Card, Input} from 'antd';
 import {LoadingOutlined} from '@ant-design/icons';
 import {boundMethod} from "autobind-decorator";
 import AppBar from "../components/AppBar";
-import './ApplyGroup.scss';
+import styles from './ApplyGroup.scss';
 import {AuthContext} from "../utilities/AuthProvider";
 import Avatar from "react-avatar";
 import {Redirect} from "react-router-dom";
@@ -179,18 +179,18 @@ export default class ApplyGroup extends React.Component {
     }
 
     // Comment
-    let comment = <div className={'edit-item'}>
-      <h1 className={'title'}>{`Applying to: ${this.state.groupName}`}</h1>
-      <Input.TextArea showCount className={'content'} rows={8} onChange={this.onCommentChange}
+    let comment = <div className={styles.EditItem}>
+      <h1 className={styles.Title}>{`Applying to: ${this.state.groupName}`}</h1>
+      <Input.TextArea showCount className={styles.Content} rows={8} onChange={this.onCommentChange}
                       value={this.state.comment} maxLength={this.state.commentLimit}
                       placeholder={`Application letter (optional)`}/>
-      <div className={'gap'} />
+      <div className={styles.Gap} />
     </div>;
 
     // Save
     let apply = <React.Fragment>
-      <div className={'gap'} />
-      <div className={'gap'} />
+      <div className={styles.Gap} />
+      <div className={styles.Gap} />
       <Button type={'primary'} block size={'large'}
               onClick={this.onApply} loading={this.state.saving}>
         Apply
@@ -199,14 +199,14 @@ export default class ApplyGroup extends React.Component {
 
     // Cancel
     let cancel = <React.Fragment>
-      <div className={'gap'} />
+      <div className={styles.Gap} />
       <Button block size={'large'} onClick={this.onCancel}>Cancel</Button>
     </React.Fragment>;
 
     return (
       <React.Fragment>
         {appBar}
-        <div className={'apply-group'}>
+        <div className={styles.ApplyGroup}>
           {comment}
           {apply}
           {cancel}

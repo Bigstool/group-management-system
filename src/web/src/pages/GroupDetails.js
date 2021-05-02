@@ -1,5 +1,5 @@
 import React from 'react';
-import './GroupDetails.scss';
+import styles from './GroupDetails.scss';
 import {PageHeader, Button, Tag, Row, Col, Divider, Comment, Form, Input, List} from 'antd';
 import {StarOutlined, StarFilled, LoadingOutlined} from '@ant-design/icons';
 import groupIcon from '../assets/group-icon.svg';
@@ -123,22 +123,24 @@ export default class GroupDetails extends React.Component {
     return (
       <React.Fragment>
         {appBar}
-        <div className={'top-margin'}/>
-        <GroupBar userUuid={this.state.userUuid} userProfile={this.state.userProfile}
-                  userRole={this.state.userRole} groupUuid={this.state.groupUuid}
-                  groupInfo={this.state.groupInfo} sysConfig={this.state.sysConfig}
-                  isOwner={this.isOwner} isMember={this.isMember}
-                  requestGroupInfo={this.requestGroupInfo} error={this.error}/>
-        <Title groupInfo={this.state.groupInfo}/>
-        <ShortDescription groupInfo={this.state.groupInfo}/>
-        <Proposal groupInfo={this.state.groupInfo} sysConfig={this.state.sysConfig}/>
-        <CommentSection userUuid={this.state.userUuid} userRole={this.state.userRole}
-                        userProfile={this.state.userProfile} groupUuid={this.state.groupUuid}
-                        groupInfo={this.state.groupInfo} isOwner={this.isOwner}
-                        isMember={this.isMember} requestGroupInfo={this.requestGroupInfo}/>
-        <Showcase/>
-        <GroupMembers groupInfo={this.state.groupInfo}/>
-        <div className={'bottom-margin'}/>
+        <div className={styles.GroupDetails}>
+          <div className={styles.TopMargin}/>
+          <GroupBar userUuid={this.state.userUuid} userProfile={this.state.userProfile}
+                    userRole={this.state.userRole} groupUuid={this.state.groupUuid}
+                    groupInfo={this.state.groupInfo} sysConfig={this.state.sysConfig}
+                    isOwner={this.isOwner} isMember={this.isMember}
+                    requestGroupInfo={this.requestGroupInfo} error={this.error}/>
+          <Title groupInfo={this.state.groupInfo}/>
+          <ShortDescription groupInfo={this.state.groupInfo}/>
+          <Proposal groupInfo={this.state.groupInfo} sysConfig={this.state.sysConfig}/>
+          <CommentSection userUuid={this.state.userUuid} userRole={this.state.userRole}
+                          userProfile={this.state.userProfile} groupUuid={this.state.groupUuid}
+                          groupInfo={this.state.groupInfo} isOwner={this.isOwner}
+                          isMember={this.isMember} requestGroupInfo={this.requestGroupInfo}/>
+          <Showcase/>
+          <GroupMembers groupInfo={this.state.groupInfo}/>
+          <div className={styles.BottomMargin}/>
+        </div>
       </React.Fragment>
     );
   }
@@ -172,7 +174,7 @@ class GroupBar extends React.Component {
       'applying': false,
       'favoriting': false,
       'redirect': '',
-      'push': false,
+      'push': false
     };
   }
 
@@ -227,7 +229,7 @@ class GroupBar extends React.Component {
     if (this.state.isApplied === false) {
       this.setState({
         redirect: `/group/${this.props.groupUuid}/apply`,
-        push: true,
+        push: true
       });
     }
     // if applied, remove application
@@ -291,8 +293,8 @@ class GroupBar extends React.Component {
       }
     }
 
-    const icon = <img className={'icon'} src={groupIcon} alt="group icon"/>;
-    const name = <p className={'name'} title={this.props.groupInfo['name']}>{this.props.groupInfo['name']}</p>;
+    const icon = <img className={styles.Icon} src={groupIcon} alt="group icon"/>;
+    const name = <p className={styles.Name} title={this.props.groupInfo['name']}>{this.props.groupInfo['name']}</p>;
 
     let apply = null, yourGroup = null, full = null;
     // check if the group is full, display if before grouping ddl
@@ -342,7 +344,7 @@ class GroupBar extends React.Component {
 
     return (
       <>
-        <Row className={'group-bar'}>
+        <Row className={styles.GroupBar}>
           <Col flex={"auto"}>
             {icon}
             {name}
@@ -442,15 +444,15 @@ class Proposal extends React.Component {
     );
 
     return (
-      <div className={'group-proposal'}>
-        <Divider className={'start-divider'} orientation="left">
+      <div className={styles.GroupProposal}>
+        <Divider orientation="left">
           Proposal
           {late}
           {approved}
           {rejected}
         </Divider>
         {proposal}
-        <Divider className={'end-divider'}/>
+        <Divider className={styles.EndDivider}/>
       </div>
     );
   }
@@ -529,7 +531,7 @@ class CommentSection extends React.Component {
       // insert the next comment
       comments.push(
         <Comment
-          className={'comment'}
+          className={styles.Comment}
           author={
             <Link to={`/user/${comments_plain[index]['author']['uuid']}`}>
               {comments_plain[index]['author']['alias']}
@@ -559,7 +561,7 @@ class CommentSection extends React.Component {
           (comments_plain[index]['creation_time'] <= proposal_update_time &&  // c)
             comments_plain[index + 1]['creation_time'] > proposal_update_time))) {
         comments.push(
-          <Divider className={'modified-since'} orientation="center" plain key={'modified-since'}>
+          <Divider className={styles.ModifiedSince} orientation="center" plain key={'modified-since'}>
             Modified Since
           </Divider>
         );
@@ -570,13 +572,13 @@ class CommentSection extends React.Component {
     }
 
     // New comment
-  let newComment = null;
+    let newComment = null;
     // allow comment only if user is the owner, a member, or a admin
-  if (this.props.userRole === 'ADMIN' || this.props.isOwner() || this.props.isMember()) {
+    if (this.props.userRole === 'ADMIN' || this.props.isOwner() || this.props.isMember()) {
       newComment = (
         <React.Fragment>
           <Comment
-            className={'new-comment'}
+            className={styles.NewComment}
             avatar={
               <Link to={`/user/${this.props.userUuid}`}>
                 <Avatar
@@ -608,7 +610,7 @@ class CommentSection extends React.Component {
 
 
     return (
-      <div className={'group-comment-section'}>
+      <div className={styles.GroupCommentSection}>
         {comments}
         {newComment}
       </div>
@@ -636,7 +638,7 @@ class GroupMembers extends React.Component {
 
   render() {
     return (
-      <List className={"group-members"} header={<h3>Group Members</h3>}>
+      <List className={styles.GroupMembers} header={<h3>Group Members</h3>}>
         <Link to={`/user/${this.props.groupInfo.owner.uuid}`}>
           <UserItem
             userObject={this.props.groupInfo.owner}

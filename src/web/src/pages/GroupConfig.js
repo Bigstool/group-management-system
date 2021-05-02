@@ -78,11 +78,11 @@ export default class GroupConfig extends React.Component {
       'proposalDDL': sysConfig["system_state"]["proposal_ddl"],
     });
     // update afterGroupingDDL
-    if (Date.now() > this.state.groupingDDL) this.setState({'afterGroupingDDL': true});
+    if ((Date.now() / 1000) > this.state.groupingDDL) this.setState({'afterGroupingDDL': true});
     else this.setState({'afterGroupingDDL': false});
 
     // update afterProposalDDL
-    if (Date.now() > this.state.proposalDDL) this.setState({'afterProposalDDL': true});
+    if ((Date.now() / 1000) > this.state.proposalDDL) this.setState({'afterProposalDDL': true});
     else this.setState({'afterProposalDDL': false});
   }
 

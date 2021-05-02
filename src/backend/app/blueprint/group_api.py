@@ -858,7 +858,7 @@ def add_comment(group_uuid):
     new_comment = GroupComment(uuid=uuid.uuid4().bytes,
                                creation_time=int(time.time()),
                                author_uuid=user.uuid,
-                               group_uuid=group_uuid,
+                               group_uuid=uuid.UUID(group_uuid).bytes,
                                content=content)
     db.session.add(new_comment)
     db.session.commit()

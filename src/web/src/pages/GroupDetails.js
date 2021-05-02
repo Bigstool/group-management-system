@@ -175,13 +175,16 @@ class GroupBar extends React.Component {
       'applying': false,
       'favoriting': false,
       'redirect': '',
-      'push': false
+      'push': false,
+      'loading': true,
     };
   }
 
   async componentDidMount() {
     // Check if user is applied to the group
     await this.checkApplied();
+
+    this.setState({'loading': false});
   }
 
   // checks if user is applied to the group
@@ -316,7 +319,7 @@ class GroupBar extends React.Component {
       // Apply & revoke
       apply = <Button className={'apply'} type={this.state.isApplied ? 'default' : 'primary'}
                       shape={'round'} size={'small'} onClick={this.onApplyButtonClicked}
-                      loading={this.state.applying}>
+                      loading={this.state.applying} disabled={this.state.loading}>
         {this.state.isApplied ? 'Applied' : 'Apply'}
       </Button>;
     }

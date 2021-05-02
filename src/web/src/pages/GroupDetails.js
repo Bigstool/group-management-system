@@ -132,7 +132,8 @@ export default class GroupDetails extends React.Component {
         <Title groupInfo={this.state.groupInfo}/>
         <ShortDescription groupInfo={this.state.groupInfo}/>
         <Proposal groupInfo={this.state.groupInfo} sysConfig={this.state.sysConfig}/>
-        <CommentSection userRole={this.state.userRole} groupUuid={this.state.groupUuid}
+        <CommentSection userUuid={this.state.userUuid} userRole={this.state.userRole}
+                        userProfile={this.state.userProfile} groupUuid={this.state.groupUuid}
                         groupInfo={this.state.groupInfo} isOwner={this.isOwner}
                         isMember={this.isMember} requestGroupInfo={this.requestGroupInfo}/>
         <Showcase/>
@@ -369,7 +370,6 @@ class Title extends React.Component {
   }
 
   render() {
-    // TODO: get the title of the group (wait for backend implementation)
     const title = <h1>{this.props.groupInfo['title']}</h1>;
     return (
       <div className={'group-title'}>
@@ -460,7 +460,9 @@ class Proposal extends React.Component {
 class CommentSection extends React.Component {
   static propTypes = {
     // User related
+    'userUuid': PropTypes.object.isRequired,
     'userRole': PropTypes.string.isRequired,
+    'userProfile': PropTypes.object.isRequired,
     // Group related
     'groupUuid': PropTypes.string.isRequired,
     "groupInfo": PropTypes.object.isRequired,
@@ -525,17 +527,22 @@ class CommentSection extends React.Component {
     let index = 0;
     while (index < comments_plain.length) {
       // insert the next comment
-      // TODO: link avatar and title to user profile
       comments.push(
         <Comment
           className={'comment'}
-          author={<a>{comments_plain[index]['author']['alias']}</a>}
+          author={
+            <Link to={`/user/${comments_plain[index]['author']['uuid']}`}>
+              {comments_plain[index]['author']['alias']}
+            </Link>
+          }
           avatar={
-            <Avatar
-              size={32}
-              round={true}
-              name={comments_plain[index]['author']['alias']}
-            />
+            <Link to={`/user/${comments_plain[index]['author']['uuid']}`}>
+              <Avatar
+                size={32}
+                round={true}
+                name={comments_plain[index]['author']['alias']}
+              />
+            </Link>
           }
           content={
             <p>{comments_plain[index]['content']}</p>
@@ -565,18 +572,19 @@ class CommentSection extends React.Component {
     // New comment
   let newComment = null;
     // allow comment only if user is the owner, a member, or a admin
-    // TODO: link avatar and title to user profile
   if (this.props.userRole === 'ADMIN' || this.props.isOwner() || this.props.isMember()) {
       newComment = (
         <React.Fragment>
           <Comment
             className={'new-comment'}
             avatar={
-              <Avatar
-                size={32}
-                round={true}
-                value="Me"
-              />
+              <Link to={`/user/${this.props.userUuid}`}>
+                <Avatar
+                  size={32}
+                  round={true}
+                  name={this.props.userProfile['alias']}
+                />
+              </Link>
             }
             content={
               <>

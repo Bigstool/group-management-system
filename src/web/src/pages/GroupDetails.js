@@ -8,7 +8,7 @@ import PropTypes from "prop-types";
 import AppBar from "../components/AppBar";
 import {boundMethod} from "autobind-decorator";
 import UserItem from "../components/UserItem";
-import {Link} from "react-router-dom";
+import {Redirect, Link} from "react-router-dom";
 import Avatar from "react-avatar";
 
 /* Bigstool's class notations
@@ -169,7 +169,9 @@ class GroupBar extends React.Component {
       'isApplied': false,
       'applicationUuid': null,
       'applying': false,
-      'favoriting': false
+      'favoriting': false,
+      'redirect': '',
+      'push': false,
     };
   }
 
@@ -222,16 +224,10 @@ class GroupBar extends React.Component {
 
     // if not applied, apply
     if (this.state.isApplied === false) {
-      try {
-        await this.context.request({
-          path: `/group/${this.props.groupUuid}/application`,
-          method: "post",
-          data: {
-            comment: ""
-          }
-        });
-      } catch (error) {
-      }
+      this.setState({
+        redirect: `/group/${this.props.groupUuid}/apply`,
+        push: true,
+      });
     }
     // if applied, remove application
     else {
@@ -281,6 +277,19 @@ class GroupBar extends React.Component {
   }
 
   render() {
+    // Check if redirect is needed
+    if (this.state.redirect) {
+      if (this.state.push) {
+        return (
+          <Redirect push to={this.state.redirect}/>
+        );
+      } else {
+        return (
+          <Redirect to={this.state.redirect}/>
+        );
+      }
+    }
+
     const icon = <img className={'icon'} src={groupIcon} alt="group icon"/>;
     const name = <p className={'name'} title={this.props.groupInfo['name']}>{this.props.groupInfo['name']}</p>;
 

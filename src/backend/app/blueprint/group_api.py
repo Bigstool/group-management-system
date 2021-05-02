@@ -500,9 +500,9 @@ def update_group_info(group_uuid):
         raise ApiPermissionException("You have no permission to update information of this group!")
     if uuid_in_token == str(uuid.UUID(bytes=group.owner_uuid)):
         # Constrains for the group owner
-        if (time.time() > system_state['proposing_ddl']):
+        if (time.time() > system_state['proposal_ddl']):
             raise ApiPermissionException(
-                "Grouping or proposing activity is finished, you cannot change your group information. ")
+                "Grouping or proposal activity is finished, you cannot change your group information. ")
         if group.proposal_state == "Approved":
             raise ApiPermissionException(
                 "Your proposal has been approved. You cannot change group information anymore.")
@@ -531,8 +531,8 @@ def update_group_info(group_uuid):
             # This ensures that the proposal state can be changed only if the proposal is not none
             raise ApiInvalidInputException("You cannot change the proposal state since there isn't any proposal yet.")
         if group.proposal_state == "PENDING" and new_proposal_state == "SUBMITTED":
-            if time.time() > system_state['proposing_ddl']:
-                group.proposal_late = time.time() - system_state['proposing_ddl']
+            if time.time() > system_state['proposal_ddl']:
+                group.proposal_late = time.time() - system_state['proposal_ddl']
         group.proposal_state = new_proposal_state
     if new_application_enabled is not None:
         group.application_enabled = new_application_enabled

@@ -463,7 +463,7 @@ class Proposal extends React.Component {
 class CommentSection extends React.Component {
   static propTypes = {
     // User related
-    'userUuid': PropTypes.object.isRequired,
+    'userUuid': PropTypes.string.isRequired,
     'userRole': PropTypes.string.isRequired,
     'userProfile': PropTypes.object.isRequired,
     // Group related

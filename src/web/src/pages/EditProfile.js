@@ -38,7 +38,6 @@ export default class EditProfile extends React.Component {
       // Component related
       loading: true,
       error: false,
-      push: false,
       // Event related
       saving: false,
     }

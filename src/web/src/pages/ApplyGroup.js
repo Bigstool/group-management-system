@@ -79,6 +79,23 @@ export default class ApplyGroup extends React.Component {
       });
     }
 
+    // Check user: whether is applied to this group
+    try {
+      let res = await this.context.request({
+        path: `/user/${this.state.userUuid}/application`,
+        method: 'get'
+      });
+      let userApplications = res.data['data'];
+
+      for (let i = 0; i < userApplications.length; i++) {
+        if (userApplications[i]['group']['uuid'] === this.state.groupUuid) return false;
+      }
+    } catch (error) {
+      this.setState({
+        'error': true
+      });
+    }
+
     // Check role: whether is an admin
     if (this.state.userRole === 'ADMIN') return false;
 

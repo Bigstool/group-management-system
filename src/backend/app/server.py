@@ -86,7 +86,7 @@ db.init_app(app)
 
 # init database
 with app.app_context():
-    db.drop_all()
+    db.drop_all() # TODO!!! remove line when in prod env
     db.create_all()  # create if table not exists
     # if user table empty
     if not User.query.first():

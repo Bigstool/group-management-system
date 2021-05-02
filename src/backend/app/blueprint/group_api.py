@@ -128,7 +128,7 @@ def create_group():
 
     db.session.add(new_group)
     # delete applications https://stackoverflow.com/questions/48839482/deleting-list-of-items-in-sqlalchemy-flask
-    db.session.delete(GroupApplication.query.filter_by(applicant_uuid=user.uuid))
+    db.session.delete(GroupApplication.query.filter_by(applicant_uuid=user.uuid).all())
     db.session.commit()
 
     return MyResponse(data=None).build()

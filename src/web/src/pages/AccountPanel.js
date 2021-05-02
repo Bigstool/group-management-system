@@ -102,6 +102,14 @@ export default class AccountPanel extends React.Component {
     });
   }
 
+  @boundMethod
+  onCreateGroup() {
+    this.setState({
+      'redirect': `/create/group`,
+      'push': true,
+    });
+  }
+
   render() {
     // Check if redirect is needed
     if (this.state.redirect) {
@@ -171,7 +179,10 @@ export default class AccountPanel extends React.Component {
     if (!this.state.isJoined && !this.state.isAdmin && !this.state.afterGroupingDDL) {
       createGroup = <React.Fragment>
         <div className={'gap'} />
-        <Button block size={'large'}>Create Group</Button>
+        <Button block size={'large'}
+                onClick={this.onCreateGroup}>
+          Create Group
+        </Button>
       </React.Fragment>
     }
 

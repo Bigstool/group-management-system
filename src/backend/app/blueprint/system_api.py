@@ -50,9 +50,9 @@ def get_sys_config():
                       type: number
                       description: timestamp of grouping
                       example: 1618054160
-                    proposing_ddl:
+                    proposal_ddl:
                       type: number
-                      description: timestamp of proposing
+                      description: timestamp of proposal
                       example: 1618054160
                 group_member_number:
                   type: array
@@ -89,9 +89,9 @@ def patch_sys_config():
                     type: number
                     description: timestamp of grouping ddl
                     example: 1618054160
-                  proposing_ddl:
+                  proposal_ddl:
                     type: number
-                    description: timestamp of proposing ddl
+                    description: timestamp of proposal ddl
                     example: 1618054160
               group_member_number:
                 type: array
@@ -112,7 +112,7 @@ def patch_sys_config():
     args_json = parser.parse({
         "system_state": fields.Nested({
             "grouping_ddl": fields.Number(missing=None),
-            "proposing_ddl": fields.Number(missing=None)}, missing=None),
+            "proposal_ddl": fields.Number(missing=None)}, missing=None),
         "group_member_number": fields.List(fields.Int(), missing=None)
     }, request, location="json")
 
@@ -123,8 +123,8 @@ def patch_sys_config():
 
     if new_system_state is not None and new_system_state["grouping_ddl"] is not None:
         record.config['system_state']['grouping_ddl'] = new_system_state["grouping_ddl"]
-    if new_system_state is not None and new_system_state["proposing_ddl"] is not None:
-        record.config['system_state']['proposing_ddl'] = new_system_state["proposing_ddl"]
+    if new_system_state is not None and new_system_state["proposal_ddl"] is not None:
+        record.config['system_state']['proposal_ddl'] = new_system_state["proposal_ddl"]
     if new_group_member_number is not None:
         record.config['group_member_number'] = new_group_member_number
 

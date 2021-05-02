@@ -18,5 +18,5 @@ mysql_port: 3306                    # MySQL port
 mysql_database: "gms"               # MySQL database name
 mysql_user: "gms"                   # MySQL username
 mysql_password: "123456"            # MySQL password
-mysql_charset: "utf8mb4"            # MySQL charset (not used currently)
+mysql_charset: "utf8mb4"            # MySQL charset
 mysql_pool_size: 32                 # MySQL connection pool size (not used currently)

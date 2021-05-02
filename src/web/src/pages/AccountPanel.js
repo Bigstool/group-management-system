@@ -60,7 +60,7 @@ export default class AccountPanel extends React.Component {
       'groupingDDL': sysConfig["system_state"]["grouping_ddl"],
     });
     // update afterGroupingDDL
-    if (Date.now() > this.state.groupingDDL) this.setState({'afterGroupingDDL': true});
+    if ((Date.now() / 1000) > this.state.groupingDDL) this.setState({'afterGroupingDDL': true});
     else this.setState({'afterGroupingDDL': false});
   }
 

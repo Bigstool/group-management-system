@@ -296,7 +296,7 @@ class GroupBar extends React.Component {
 
     let apply = null, yourGroup = null, full = null;
     // check if the group is full, display if before grouping ddl
-    if (this.props.sysConfig["system_state"]["grouping_ddl"] > Date.now() &&
+    if (this.props.sysConfig["system_state"]["grouping_ddl"] > (Date.now() / 1000) &&
       this.props.groupInfo['application_enabled'] === false) {
       full = <Tag className={'your-group'} color="grey">Application Disabled</Tag>;
     }
@@ -305,7 +305,7 @@ class GroupBar extends React.Component {
       yourGroup = <Tag className={'your-group'} color="blue">Your group</Tag>;
     }
     // check if the apply button is applicable: not admin, not in any group, before grouping ddl
-    else if (this.props.sysConfig["system_state"]["grouping_ddl"] > Date.now() &&
+    else if (this.props.sysConfig["system_state"]["grouping_ddl"] > (Date.now() / 1000) &&
       this.props.userProfile['created_group'] === null &&
       this.props.userProfile['joined_group'] === null &&
       this.props.userRole === 'USER') {
@@ -419,9 +419,9 @@ class Proposal extends React.Component {
       late = <Tag className={'tag'} color="red">
         {`Late: ${lateDays}${lateDays > 1 ? 'Days' : 'Day'}`}
       </Tag>;
-    } else if (this.props.sysConfig["system_state"]["proposal_ddl"] < Date.now() &&  // case b)
+    } else if (this.props.sysConfig["system_state"]["proposal_ddl"] < (Date.now() / 1000) &&  // case b)
       this.props.groupInfo['proposal_state'] === 'PENDING') {
-      let lateDays = Math.ceil((Date.now() - this.props.sysConfig["system_state"]["proposal_ddl"]) / 86400);
+      let lateDays = Math.ceil(((Date.now() / 1000) - this.props.sysConfig["system_state"]["proposal_ddl"]) / 86400);
       late = <Tag className={'tag'} color="red">
         {`Late: ${lateDays} ${lateDays > 1 ? 'Days' : 'Day'}`}
       </Tag>;

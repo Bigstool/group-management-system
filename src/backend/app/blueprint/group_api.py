@@ -1,5 +1,3 @@
-import hmac
-import secrets
 import time
 import uuid
 
@@ -127,8 +125,9 @@ def create_group():
     user.group_id = new_group.uuid
 
     db.session.add(new_group)
-    # delete applications https://stackoverflow.com/questions/48839482/deleting-list-of-items-in-sqlalchemy-flask
-    db.session.delete(GroupApplication.query.filter_by(applicant_uuid=user.uuid).all())
+    # delete applications
+    for application in GroupApplication.query.filter_by(applicant_uuid=user.uuid).all():
+        db.session.delete(application)
     db.session.commit()
 
     return MyResponse(data=None).build()
@@ -208,14 +207,14 @@ def get_group_list():
             favorite = False
         user = User.query.filter_by(uuid=group.owner_uuid).first()
         group_list.append({"uuid": str(uuid.UUID(bytes=group.uuid)),
-                          "favorite": favorite,
-                          "name": group.name,
-                          "title": group.title,
-                          "description": group.description,
-                          "owner": {"alias": user.alias, "email": user.email},
-                          "creation_time": group.creation_time,
-                          "member_count": group.member_num,
-                          "application_enabled": group.application_enabled})
+                           "favorite": favorite,
+                           "name": group.name,
+                           "title": group.title,
+                           "description": group.description,
+                           "owner": {"alias": user.alias, "email": user.email},
+                           "creation_time": group.creation_time,
+                           "member_count": group.member_num,
+                           "application_enabled": group.application_enabled})
 
     return MyResponse(data=group_list).build()
 
@@ -377,7 +376,9 @@ def get_group_info(group_uuid):
     members = User.query.filter_by(group_id=group.uuid).all()
     member_list = []
     for member in members:
-        member_list.append({'uuid': str(uuid.UUID(bytes=member.uuid)), 'alias': member.alias, 'email': member.email})
+        if member.uuid != owner.uuid:
+            member_list.append(
+                {'uuid': str(uuid.UUID(bytes=member.uuid)), 'alias': member.alias, 'email': member.email})
 
     # comment info
     comments = GroupComment.query.filter_by(group_uuid=group.uuid).all()

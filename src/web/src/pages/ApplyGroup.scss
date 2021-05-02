@@ -1,22 +1,24 @@
 // 1rem === 16px
 
-.apply-group {
+.ApplyGroup {
   padding: 1rem 1.5rem;
+
+  .EditItem {
+    margin-bottom: 0.7rem;
+
+    .Title {
+      margin-bottom: 0.7rem;
+      font-size: 1.3rem;
+    }
+
+    .Content {
+      textarea {
+        resize: none;
+      }
+    }
+  }
 }
 
-.apply-group .edit-item {
-  margin-bottom: 0.7rem;
-}
-
-.apply-group .edit-item .title {
-  margin-bottom: 0.7rem;
-  font-size: 1.3rem;
-}
-
-.apply-group .edit-item .content textarea {
-  resize: none;
-}
-
-.gap {
+.Gap {
   padding-top: 1rem;
 }

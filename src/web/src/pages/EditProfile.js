@@ -4,7 +4,7 @@ import {Button, Card, Input} from 'antd';
 import {LoadingOutlined} from '@ant-design/icons';
 import {boundMethod} from "autobind-decorator";
 import AppBar from "../components/AppBar";
-import './EditProfile.scss';
+import styles from './EditProfile.scss';
 import {AuthContext} from "../utilities/AuthProvider";
 import Avatar from "react-avatar";
 
@@ -147,40 +147,39 @@ export default class EditProfile extends React.Component {
     }
 
     // Photo
-    let photo = <div className={'photo'}>
-      <Card.Meta avatar={<Avatar size={64} round={true} name={this.state.name}/>}
-                 className={'card'}/>
-      <div className={'gap'}/>
+    let photo = <div>
+      <Card.Meta avatar={<Avatar size={64} round={true} name={this.state.name}/>}/>
+      <div className={styles.Gap}/>
     </div>;
 
     // Name
-    let name = <div className={'edit-item'}>
-      <h1 className={'title'}>Name</h1>
-      <Input className={'content'} onChange={this.onNameChange}
+    let name = <div className={styles.EditItem}>
+      <h1 className={styles.Title}>Name</h1>
+      <Input className={styles.Content} onChange={this.onNameChange}
              value={this.state.name} maxLength={this.state.nameLimit}
              disabled={!this.state.isAdmin}/>
     </div>;
 
     // Email
-    let email = <div className={'edit-item'}>
-      <h1 className={'title'}>Email</h1>
-      <Input className={'content'} onChange={this.onEmailChange}
+    let email = <div className={styles.EditItem}>
+      <h1 className={styles.Title}>Email</h1>
+      <Input className={styles.Content} onChange={this.onEmailChange}
              value={this.state.email} maxLength={this.state.emailLimit}
              disabled={!this.state.isAdmin}/>
     </div>
 
     // Bio
-    let bio = <div className={'edit-item'}>
-      <h1 className={'title'}>Bio</h1>
-      <Input.TextArea showCount className={'content'} rows={5} onChange={this.onBioChange}
+    let bio = <div className={styles.EditItem}>
+      <h1 className={styles.Title}>Bio</h1>
+      <Input.TextArea showCount className={styles.Content} rows={5} onChange={this.onBioChange}
                       value={this.state.bio} maxLength={this.state.bioLimit}/>
-      <div className={'gap'} />
+      <div className={styles.Gap} />
     </div>;
 
     // Save
     let save = <React.Fragment>
-      <div className={'gap'} />
-      <div className={'gap'} />
+      <div className={styles.Gap} />
+      <div className={styles.Gap} />
       <Button type={'primary'} block size={'large'} onClick={this.onSave} loading={this.state.saving}>
         Save
       </Button>
@@ -188,15 +187,15 @@ export default class EditProfile extends React.Component {
 
     // Cancel
     let cancel = <React.Fragment>
-      <div className={'gap'} />
+      <div className={styles.Gap} />
       <Button block size={'large'} onClick={this.onCancel}>Cancel</Button>
     </React.Fragment>;
 
     return (
       <React.Fragment>
         {appBar}
-        <div className={'edit-profile'}>
-          <div className={'photo-frame'}>
+        <div className={styles.EditProfile}>
+          <div>
             {photo}
             {name}
           </div>

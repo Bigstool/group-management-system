@@ -1,7 +1,7 @@
 import React from "react";
 import {PageHeader} from "antd";
 import PropTypes from "prop-types";
-import "./AppBar.scss";
+import styles from "./AppBar.scss";
 import {Link} from "react-router-dom";
 import {EllipsisOutlined} from "@ant-design/icons";
 import {boundMethod} from "autobind-decorator";
@@ -42,12 +42,12 @@ class AppBar extends React.PureComponent {
         return (
             <>
                 <PageHeader
-                    className={"AppBar"}
+                    className={styles.AppBar}
                     onBack={this.props.backTo ? this.onBackClicked : null}
                     title={this.props.title}
                     extra={this.props.dotMenuTarget &&
                     <Link to={this.props.dotMenuTarget}>
-                        <EllipsisOutlined className={"ThreeDot"}/>
+                        <EllipsisOutlined className={styles.ThreeDot}/>
                     </Link>}
                 />
             </>

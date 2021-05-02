@@ -4,7 +4,7 @@ import {Button, Input} from 'antd';
 import {LoadingOutlined} from '@ant-design/icons';
 import {boundMethod} from "autobind-decorator";
 import AppBar from "../components/AppBar";
-import './EditGroupProfile.scss';
+import styles from './EditGroupProfile.scss';
 import {AuthContext} from "../utilities/AuthProvider";
 import {Redirect} from "react-router-dom";
 import GroupProfileForm from "../components/GroupProfileForm";

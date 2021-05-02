@@ -5,7 +5,7 @@ import {LoadingOutlined} from '@ant-design/icons';
 import {boundMethod} from "autobind-decorator";
 import AppBar from "../components/AppBar";
 import TabNav from "../components/TabNav";
-import './AccountPanel.scss';
+import styles from './AccountPanel.scss';
 import {AuthContext} from "../utilities/AuthProvider";
 import PageContainer from "../components/PageContainer";
 import {Redirect, Link} from "react-router-dom";
@@ -152,25 +152,25 @@ export default class AccountPanel extends React.Component {
 
     // Title
     let title = <React.Fragment>
-      <Link to={`/user/${this.state.userUuid}`} className={'title'}>
+      <Link to={`/user/${this.state.userUuid}`} className={styles.Title}>
         <Card.Meta avatar={<Avatar size={64} round={true} name={this.state.name}/>}
                    title={this.state.name} description={this.state.email}
                    className={'card'}/>
       </Link>
-      <div className={'gap'} />
-      <div className={'gap'} />
+      <div className={styles.Gap} />
+      <div className={styles.Gap} />
     </React.Fragment>;
 
     // Edit Profile, Change Password (All Users) (All Stages)
     let editProfile = <React.Fragment>
-      <div className={'gap'} />
+      <div className={styles.Gap} />
       <Button type={'primary'} block size={'large'}
               onClick={this.onEditProfile}>
         Edit Profile
       </Button>
     </React.Fragment>;
     let changePassword = <React.Fragment>
-      <div className={'gap'} />
+      <div className={styles.Gap} />
       <Button block size={'large'}>Change Password</Button>
     </React.Fragment>;
 
@@ -178,7 +178,7 @@ export default class AccountPanel extends React.Component {
     let createGroup = null;
     if (!this.state.isJoined && !this.state.isAdmin && !this.state.afterGroupingDDL) {
       createGroup = <React.Fragment>
-        <div className={'gap'} />
+        <div className={styles.Gap} />
         <Button block size={'large'}
                 onClick={this.onCreateGroup}>
           Create Group
@@ -190,19 +190,19 @@ export default class AccountPanel extends React.Component {
     let resetPassword = null, semesterTools = null, reports = null, archives = null;
     if (this.state.isAdmin) {
       resetPassword = <React.Fragment>
-        <div className={'gap'} />
+        <div className={styles.Gap} />
         <Button block size={'large'}>Reset Password For A Student</Button>
       </React.Fragment>;
       semesterTools = <React.Fragment>
-        <div className={'gap'} />
+        <div className={styles.Gap} />
         <Button block size={'large'}>Semester Tools</Button>
       </React.Fragment>;
       reports = <React.Fragment>
-        <div className={'gap'} />
+        <div className={styles.Gap} />
         <Button block size={'large'}>Reports</Button>
       </React.Fragment>;
       archives = <React.Fragment>
-        <div className={'gap'} />
+        <div className={styles.Gap} />
         <Button block size={'large'}>Change Password</Button>
       </React.Fragment>;
     }
@@ -210,7 +210,7 @@ export default class AccountPanel extends React.Component {
     return (
       <React.Fragment>
         <PageContainer header={appBar} footer={tabNav}>
-          <div className={'account-profile'}>
+          <div className={styles.AccountProfile}>
             {title}
             {editProfile}
             {changePassword}

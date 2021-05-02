@@ -4,7 +4,7 @@ import {Button, Divider} from 'antd';
 import {LoadingOutlined} from '@ant-design/icons';
 import {boundMethod} from "autobind-decorator";
 import AppBar from "../components/AppBar";
-import './GroupConfig.scss';
+import styles from './GroupConfig.scss';
 import {AuthContext} from "../utilities/AuthProvider";
 import {Redirect} from "react-router-dom";
 
@@ -389,7 +389,7 @@ export default class GroupConfig extends React.Component {
     // Caution Zone
     let cautionZone = [];
     cautionZone.push(
-      <Divider className={'caution-zone'} orientation="center" plain key={'divider'}>
+      <Divider className={styles.CautionZone} orientation="center" plain key={'divider'}>
         Caution Zone
       </Divider>
     );
@@ -457,7 +457,7 @@ export default class GroupConfig extends React.Component {
     return (
       <React.Fragment>
         {appBar}
-        <div className={'group-config'}>
+        <div className={styles.GroupConfig}>
           {profile}
           {memberManagement}
           {showcase}

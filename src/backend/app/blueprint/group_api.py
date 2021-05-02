@@ -89,10 +89,10 @@ def create_group():
         raise ApiPermissionException("Permission denied: Grouping is finished, you cannot create a new group!")
 
     args_json = parser.parse({
-        "name": fields.Str(required=True, validate=validate.Length(max=256)),
-        "title": fields.Str(required=True, validate=validate.Length(max=256)),
-        "description": fields.Str(required=True, validate=validate.Length(max=4096)),
-        "proposal": fields.Str(missing=None, validate=validate.Length(max=4096))
+        "name": fields.Str(required=True, validate=validate.Length(min=4, max=256)),
+        "title": fields.Str(required=True, validate=validate.Length(min=4, max=256)),
+        "description": fields.Str(required=True, validate=validate.Length(min=2, max=4096)),
+        "proposal": fields.Str(missing=None, validate=validate.Length(min=2, max=4096))
     }, request, location="json")
     name: str = args_json["name"]
     title: str = args_json["title"]
@@ -110,7 +110,7 @@ def create_group():
     user = User.query.filter_by(uuid=uuid.UUID(uuid_in_token).bytes).first()
     if user.group_id is not None:
         raise ApiPermissionException(
-            f'Permission denied: you are in group {user.group_id}, you cannot create a new group!')
+            f'Permission denied: you belongs to one group, you cannot create a new group!')
 
     # create a new group
     new_group = Group(uuid=uuid.uuid4().bytes,
@@ -471,11 +471,11 @@ def update_group_info(group_uuid):
         "group_uuid": fields.Str(required=True, validate=MyValidator.Uuid())}, request, location="path")
 
     args_json = parser.parse({
-        "name": fields.Str(missing=None, validate=validate.Length(max=256)),
-        "title":fields.Str(missing=None, validate=validate.Length(max=256)),
-        "description": fields.Str(missing=None, validate=validate.Length(max=4096)),
+        "name": fields.Str(missing=None, validate=validate.Length(min=4, max=256)),
+        "title": fields.Str(missing=None, validate=validate.Length(min=4, max=256)),
+        "description": fields.Str(missing=None, validate=validate.Length(min=2, max=4096)),
         "owner_uuid": fields.Str(missing=None, validate=MyValidator.Uuid()),
-        "proposal": fields.Str(missing=None, validate=validate.Length(max=4096)),
+        "proposal": fields.Str(missing=None, validate=validate.Length(min=2, max=4096)),
         "proposal_state": fields.Str(missing=None, validate=validate.OneOf(
             ["PENDING", "SUBMITTED", "APPROVED", "REJECT"])),
         "application_enabled": fields.Boolean(missing=None)
@@ -853,7 +853,7 @@ def add_comment(group_uuid):
             "Permission denied: you must be admin, group owner or group member to make a comment")
 
     args_json = parser.parse({
-        "content": fields.Str(required=True, validate=validate.Length(max=4096))}, request, location="json")
+        "content": fields.Str(required=True, validate=validate.Length(min=1, max=4096))}, request, location="json")
     content: str = args_json["content"]
 
     new_comment = GroupComment(uuid=uuid.uuid4().bytes,

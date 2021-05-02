@@ -392,6 +392,7 @@ def get_group_info(group_uuid):
         "proposal": group.proposal,
         "owner": {'uuid': str(uuid.UUID(bytes=group.owner_uuid)), 'alias': owner.alias, 'email': owner.email},
         "proposal_state": group.proposal_state,
+        "proposal_update_time": group.proposal_update_time,
         "proposal_late": group.proposal_late,
         "member": member_list,
         "application_enabled": group.application_enabled,

@@ -84,7 +84,7 @@ export default class CreateGroup extends React.Component {
     // Check system: whether after Grouping DDL
     let sysConfig = await this.context.getSysConfig();
     let groupingDDL = sysConfig["system_state"]["grouping_ddl"];
-    if (Date.now() > groupingDDL) return false;
+    if ((Date.now() / 1000) > groupingDDL) return false;
 
     // Check passed, user is permitted, return true
     return true;

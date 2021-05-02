@@ -377,7 +377,8 @@ def get_group_info(group_uuid):
     members = User.query.filter_by(group_id=group.uuid).all()
     member_list = []
     for member in members:
-        member_list.append({'uuid': str(uuid.UUID(bytes=member.uuid)), 'alias': member.alias, 'email': member.email})
+        if member.uuid != owner.uuid:
+            member_list.append({'uuid': str(uuid.UUID(bytes=member.uuid)), 'alias': member.alias, 'email': member.email})
 
     # comment info
     comments = GroupComment.query.filter_by(group_uuid=group.uuid).all()

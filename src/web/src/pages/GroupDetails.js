@@ -299,7 +299,7 @@ class GroupBar extends React.Component {
     let apply = null, yourGroup = null, full = null;
     // check if the group is full, display if before grouping ddl
     if (this.props.sysConfig["system_state"]["grouping_ddl"] > (Date.now() / 1000) &&
-      this.props.groupInfo['application_enabled'] === false) {
+      !this.props.groupInfo['application_enabled']) {
       full = <Tag className={'your-group'} color="grey">Application Disabled</Tag>;
     }
     // check if the group is your group
@@ -308,9 +308,10 @@ class GroupBar extends React.Component {
     }
     // check if the apply button is applicable: not admin, not in any group, before grouping ddl
     else if (this.props.sysConfig["system_state"]["grouping_ddl"] > (Date.now() / 1000) &&
-      this.props.userProfile['created_group'] === null &&
-      this.props.userProfile['joined_group'] === null &&
-      this.props.userRole === 'USER') {
+      !this.props.userProfile['created_group'] &&
+      !this.props.userProfile['joined_group'] &&
+      this.props.userRole === 'USER' &&
+      this.props.groupInfo['application_enabled']) {
       // Apply & revoke
       apply = <Button className={'apply'} type={this.state.isApplied ? 'default' : 'primary'}
                       shape={'round'} size={'small'} onClick={this.onApplyButtonClicked}

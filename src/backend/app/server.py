@@ -103,31 +103,47 @@ with app.app_context():
                           creation_time=int(time.time()),
                           role="ADMIN")
         db.session.add(admin_user)
-        # db.session.commit()
-        # TODO insert dummy data
+        db.session.commit()
+        # Insert dummy data TODO!!! remove line in prod env
+        # ----------------------
+        # Groups
+        # - Group A with name, title, description, proposal and some comments
+        # - Group B with name, title, description and proposal
+        #
+        # Users
+        # - User 1: a group owner of group A
+        # - User 2: a member of group A
+        # - User 3: a group owner of group B
+        # - User 4: a member of group B
+        # - User 5: a student that does not belong to any group
+        # - User 6: a student that does not belong to any group
         groupA_uuid=uuid.uuid4().bytes
         groupB_uuid=uuid.uuid4().bytes
         user1_uuid=uuid.uuid4().bytes
         user2_uuid=uuid.uuid4().bytes
         user3_uuid=uuid.uuid4().bytes
         user4_uuid=uuid.uuid4().bytes
+        user5_uuid=uuid.uuid4().bytes
+        user6_uuid=uuid.uuid4().bytes
         password_salt = b'-\x93\x85\xcd\xd1\xd3?\xe5\x12U\x0e\x7f\x10u\xd8\xb2'
         password = '5baa61e4c9b93f3f0682250b6cf8331b7ee68fd8'
         password_hash = hmac.new(password_salt, bytes.fromhex(password), "sha1").digest()
         group_A=Group(uuid=groupA_uuid,
                       creation_time=time.time(),
-                      name="GroupA",
-                      description="This is groupA. This is the first group for testing.",
-                      proposal="We want to build up a group management system which might be useful for our teacher.",
+                      name="Team Yellow",
+                      title="IoT Teapot",
+                      description="Implement a teapot that gives status code 418.",
+                      proposal="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas placerat urna eu risus dignissim sagittis. Quisque lobortis, lacus sed bibendum blandit, erat nisi ornare mauris, ut euismod nibh elit in est. Curabitur suscipit nisi enim, quis vehicula nulla ornare et. Duis felis dolor, tempus nec odio a, facilisis maximus orci. Vivamus imperdiet mi vel interdum accumsan. Phasellus fringilla ut nulla at malesuada. Phasellus tristique finibus interdum. Phasellus eu hendrerit erat. Ut mauris sem, posuere non tincidunt eget, fringilla id justo.",
                       proposal_state="PENDING",
                       owner_uuid=user1_uuid
                       )
         db.session.add(group_A)
         group_B = Group(uuid=groupB_uuid,
                         creation_time=time.time(),
-                        name="GroupB",
-                        description="This is groupB. This is the second group for testing.",
-                        proposal="Our group would like to build a blog website",
+                        name="Team Blue",
+                        title="IoT Coffee Machine",
+                        description="Implement a coffee machine that does not give status code 418.",
+                        proposal="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas placerat urna eu risus dignissim sagittis. Quisque lobortis, lacus sed bibendum blandit, erat nisi ornare mauris, ut euismod nibh elit in est. Curabitur suscipit nisi enim, quis vehicula nulla ornare et. Duis felis dolor, tempus nec odio a, facilisis maximus orci. Vivamus imperdiet mi vel interdum accumsan. Phasellus fringilla ut nulla at malesuada. Phasellus tristique finibus interdum. Phasellus eu hendrerit erat. Ut mauris sem, posuere non tincidunt eget, fringilla id justo.",
                         proposal_state="PENDING",
                         owner_uuid=user3_uuid
                         )
@@ -135,52 +151,67 @@ with app.app_context():
         user_1=User(uuid=user1_uuid,
                     creation_time=time.time(),
                     email="user1@test.com",
-                    alias='User1',
+                    alias='Dolores Britton',
                     password_salt=password_salt,
                     password_hash=password_hash,
                     role="USER",
+                    bio="During my own Google interview, I was asked the implications if P=NP were true. I said, \"P = 0 or N = 1\". Then, before the interviewer had even finished laughing, I examined Google's public certificate and wrote the private key on the whiteboard.",
                     group_id=groupA_uuid
                    )
         db.session.add(user_1)
         user_2 = User(uuid=user2_uuid,
                       creation_time=time.time(),
                       email="user2@test.com",
-                      alias='User2',
+                      alias='Ciara Philip',
                       password_salt=password_salt,
                       password_hash=password_hash,
                       role="USER",
+                      bio="Compilers don't warn me. I warn compilers.",
                       group_id=groupA_uuid
                       )
         db.session.add(user_2)
         user_3 = User(uuid=user3_uuid,
                       creation_time=time.time(),
                       email="user3@test.com",
-                      alias='User3',
+                      alias='Imaani Person',
                       password_salt=password_salt,
                       password_hash=password_hash,
                       role="USER",
+                      bio="The rate at which I produce code jumped by a factor of 40 in late 2000 when I upgraded my keyboard to USB 2.0.",
                       group_id=groupB_uuid
                       )
         db.session.add(user_3)
         user_4 = User(uuid=user4_uuid,
                       creation_time=time.time(),
                       email="user4@test.com",
-                      alias='User4',
+                      alias='Chandni Gonzalez',
                       password_salt=password_salt,
                       password_hash=password_hash,
                       role="USER",
+                      bio="I build my code before committing it, but only to check for compiler and linker bugs.",
                       group_id=groupB_uuid
                       )
         db.session.add(user_4)
-        user_5 = User(uuid=uuid.uuid4().bytes,
+        user_5 = User(uuid=user5_uuid,
                       creation_time=time.time(),
                       email="user5@test.com",
-                      alias='User5',
+                      alias='Kurtis Peck',
                       password_salt=password_salt,
                       password_hash=password_hash,
                       role="USER",
+                      bio="When I has an ergonomic evaluation, it is for the protection of his keyboard.",
                       )
         db.session.add(user_5)
+        user_6 = User(uuid=user6_uuid,
+                      creation_time=time.time(),
+                      email="user6@test.com",
+                      alias='Layla-Mae Dudley',
+                      password_salt=password_salt,
+                      password_hash=password_hash,
+                      role="USER",
+                      bio="gcc -O4 emails your code to me for a rewrite.",
+                      )
+        db.session.add(user_6)
         comment1=GroupComment(
             uuid=uuid.uuid4().bytes,
             creation_time=time.time(),
@@ -190,25 +221,14 @@ with app.app_context():
         )
         db.session.add(comment1)
         db.session.commit()
-        # ----------------------
-        # Groups
-        # - Group A with name, title, description, proposal and some comments
-        # - Group B with name, title, description and proposal
-        #
-        # Users
-        # - User 1: a group owner of group A
-        # - User 2: A member of group A
-        # - User 3: A group owner of group B
-        # - User 4: A member of group B
-        # - User 5: A student that does not belong to any group
         # Insert system config info
         semester = Semester(
             uuid=uuid.uuid4().bytes,
             name="CURRENT",
             start_time=int(time.time()),
             config={
-                "system_state": {"grouping_ddl": datetime(2021, 4, 30, 17).timestamp(),
-                                 "proposing_ddl": datetime(2021, 5, 5, 12).timestamp()},
+                "system_state": {"grouping_ddl": datetime(2021, 5, 15, 17).timestamp(),
+                                 "proposing_ddl": datetime(2021, 8, 15, 12).timestamp()},
                 "group_member_number": [7, 9]
             }
         )

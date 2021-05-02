@@ -1,36 +1,32 @@
 // 1rem === 16px
 
-.edit-profile {
+.EditProfile {
   padding: 1.5rem 1.5rem;
+
+  .EditItem {
+    margin-bottom: 0.7rem;
+
+    .Content {
+      textarea {
+        resize: none;
+      }
+    }
+
+    .Description {
+      margin-bottom: 0.2rem;
+    }
+
+    .Title {
+      margin-bottom: 0;
+      font-size: 1.3rem;
+
+      .Required {
+        color: red;
+      }
+    }
+  }
 }
 
-.edit-profile .edit-item {
-  margin-bottom: 0.7rem;
-}
-
-.edit-profile .edit-item .title {
-  margin-bottom: 0;
-  font-size: 1.3rem;
-}
-
-.edit-profile .edit-item .title .required {
-  color: red;
-}
-
-.edit-profile .edit-item .description {
-  margin-bottom: 0.2rem;
-}
-
-.edit-profile .edit-item .content textarea {
-  resize: none;
-}
-
-.edit-profile .photo-frame {}
-
-.edit-profile .photo-frame .photo {}
-
-.edit-profile .photo-frame .edit-item {}
-
-.gap {
+.Gap {
   padding-top: 1rem;
 }

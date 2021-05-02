@@ -95,7 +95,7 @@ def create_application(group_uuid):
         raise ApiPermissionException("Permission denied: You have already created/joined a group")
     if application:
         raise ApiPermissionException("Permission denied: You have already sent application for this group")
-    if (system_config["system_state"] != "GROUPING" or (not group.application_enabled)):
+    if (system_config["system_state"]["grouping_ddl"] < time.time() or (not group.application_enabled)):
         raise ApiPermissionException("Permission denied: This group cannot be applied")
     if group.member_num >= system_config["group_member_number"]:
         raise ApiPermissionException("Permission denied: This group is full")

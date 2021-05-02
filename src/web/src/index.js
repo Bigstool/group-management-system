@@ -1,4 +1,4 @@
-import './global.scss';
+import styles from './global.scss';
 import "antd/dist/antd.css";
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -22,23 +22,27 @@ import GroupConfig from "./pages/GroupConfig";
 import UserProfile from "./pages/UserProfile";
 import CreateGroup from "./pages/CreateGroup";
 
+const app = document.createElement("div");
+app.id = styles.ReactApp;
+document.body.appendChild(app)
+
 ReactDOM.render((
-    <AuthProvider>
-        <HtmlHead/>
-        <Router>
-            <Switch>
-                <PrivateRoute exact path={"/"} component={GroupList}/>
-                <PrivateRoute exact path={"/user/edit"} component={EditProfile}/>
-                <PrivateRoute path={"/user/:uuid"} component={UserProfile}/>
-                <PrivateRoute exact path={"/user"} component={AccountPanel}/>
-                <Route exact path={"/login"} component={Login}/>
-                <PrivateRoute path={"/group/:uuid/apply"} component={ApplyGroup}/>
-                <PrivateRoute path={"/group/:uuid/config"} component={GroupConfig}/>
-                <PrivateRoute path={'/group/:uuid/edit'} component={EditGroupProfile}/>
-                <PrivateRoute path={"/group/:uuid"} component={GroupDetails}/>
-                <PrivateRoute exact path={"/create/group"} component={CreateGroup}/>
-                <Route path={"*"} component={NotFound}/>
-            </Switch>
-        </Router>
-    </AuthProvider>
-), document.getElementById("react-app"));
+      <AuthProvider>
+          <HtmlHead/>
+          <Router>
+              <Switch>
+                  <PrivateRoute exact path={"/"} component={GroupList}/>
+                  <PrivateRoute exact path={"/user/edit"} component={EditProfile}/>
+                  <PrivateRoute path={"/user/:uuid"} component={UserProfile}/>
+                  <PrivateRoute exact path={"/user"} component={AccountPanel}/>
+                  <Route exact path={"/login"} component={Login}/>
+                  <PrivateRoute path={"/group/:uuid/apply"} component={ApplyGroup}/>
+                  <PrivateRoute path={"/group/:uuid/config"} component={GroupConfig}/>
+                  <PrivateRoute path={'/group/:uuid/edit'} component={EditGroupProfile}/>
+                  <PrivateRoute path={"/group/:uuid"} component={GroupDetails}/>
+                  <PrivateRoute exact path={"/create/group"} component={CreateGroup}/>
+                  <Route path={"*"} component={NotFound}/>
+              </Switch>
+          </Router>
+      </AuthProvider>
+), document.getElementById(styles.ReactApp));

@@ -40,6 +40,7 @@ export default class TabNav extends React.Component {
 
         return (
             <>
+                <div className={styles.Margin}/>
                 <div className={styles.TabNav}>
                     <Row>
                         <Col span={12}

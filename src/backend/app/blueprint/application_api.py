@@ -239,6 +239,9 @@ def get_user_application_list(user_uuid):
                       name:
                         type: string
                         example: Jaxzefalk
+                      title:
+                        type: string
+                        example: GMS
                       description:
                         type: string
                         example: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque a ultricies diam. Donec ultrices tortor non lobortis mattis. Mauris euismod tellus ipsum, et porta mi scelerisque ac.
@@ -251,7 +254,6 @@ def get_user_application_list(user_uuid):
                     description: group creation time, unix timestamp
                     example: 1617189103
     """
-    # TODO complete Leo
     args_query = parser.parse({
         "user_uuid": fields.Str(required=True, validate=MyValidator.Uuid())
     }, request, location="path")
@@ -266,11 +268,17 @@ def get_user_application_list(user_uuid):
     application_list = GroupApplication.query.filter_by(applicant_uuid=uuid.UUID(user_uuid).bytes).all()
     response_list = []
     for application in application_list:
-        applicant = application.applicant
-        response_list.append({"applicant": {"alias": applicant.alias, "email": applicant.email,
-                                            "uuid": str(uuid.UUID(bytes=applicant.uuid))},
-                              "comment": application.comment, "creation_time": application.creation_time,
-                              "uuid": str(uuid.UUID(bytes=application.uuid))})
+        group = Group.query.filter_by(uuid=application.group_uuid).first()
+        response_list.append({
+            "group": {
+                "uuid": str(uuid.UUID(bytes=group.uuid)),
+                "name": group.name,
+                "description": group.description,
+                "title": group.title
+            },
+            "comment": application.comment, "creation_time": application.creation_time,
+            "uuid": str(uuid.UUID(bytes=application.uuid))
+        })
     return MyResponse(data=response_list, msg='query success').build()
 
 

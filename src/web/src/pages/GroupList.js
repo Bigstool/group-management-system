@@ -87,7 +87,7 @@ export default class GroupList extends React.PureComponent {
               }
               {this.state.error !== null && errorMsg}
             </Tabs.TabPane>
-            {this.state.loading || this.state.topGroupUuid ||
+            {this.state.loading || this.state.topGroupUuid || this.context.getUser().role === "ADMIN" ||
             <Tabs.TabPane tab="Applied" key="2">
               {this.state.applicationList && this.state.applicationList
                 .map(item => (

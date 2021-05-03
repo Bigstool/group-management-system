@@ -161,6 +161,14 @@ export default class AccountPanel extends React.Component {
       <div className={styles.Gap} />
     </React.Fragment>;
 
+    const logout = <>
+      <div className={styles.Gap} />
+      <Button danger block size={'large'}
+              onClick={this.context.logout}>
+        Logout
+      </Button>
+    </>
+
     // Edit Profile, Change Password (All Users) (All Stages)
     let editProfile = <React.Fragment>
       <div className={styles.Gap} />
@@ -219,6 +227,7 @@ export default class AccountPanel extends React.Component {
             {semesterTools}
             {reports}
             {archives}
+            {logout}
           </div>
         </PageContainer>
       </React.Fragment>

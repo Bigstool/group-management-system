@@ -225,7 +225,7 @@ def refresh_token():
     })
     new_refresh_token: str = jwt_util.encode_token({
         "uuid": user_uuid,
-        "operator_type": user_role,
+        "role": user_role,
         "nbf": datetime.utcnow(),
         "exp": datetime.utcnow() + timedelta(seconds=refresh_token_exp),
         "iat": datetime.utcnow(),

@@ -39,6 +39,8 @@ jobs:
           admin_password: ${{ secrets.ADMIN_PASSWORD }}
           jwt_private_key: "./jwt/jwt.key"
           jwt_public_key: "./jwt/jwt.key.pub"
+          access_token_validation_period: "5m"  # TODO!!! set to higher value in prod env
+          refresh_token_validation_period: "30d"
           mysql_host: mysql
           mysql_port: 3306
           mysql_database: ${{ secrets.MYSQL_DATABASE }}

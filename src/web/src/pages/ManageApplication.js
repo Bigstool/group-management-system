@@ -32,8 +32,6 @@ export default class ManageApplication extends React.Component {
       error: false,
       redirect: '',
       push: false,
-      // Event related
-      deleting: false,
     }
   }
 

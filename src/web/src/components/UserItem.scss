@@ -1,3 +1,5 @@
-.user-item .ant-list-item-meta {
-  align-items: center;
+.UserItem {
+  :global(.ant-list-item-meta) {
+    align-items: center;
+  }
 }

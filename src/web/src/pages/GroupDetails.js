@@ -10,6 +10,7 @@ import {boundMethod} from "autobind-decorator";
 import UserItem from "../components/UserItem";
 import {Redirect, Link} from "react-router-dom";
 import Avatar from "react-avatar";
+import ErrorMessage from "../components/ErrorMessage";
 
 /* Bigstool's class notations
 *  #T: Top-level component
@@ -101,8 +102,7 @@ export default class GroupDetails extends React.Component {
       return (
         <React.Fragment>
           {appBar}
-          <h1>Oops, something went wrong</h1>
-          <h2>Perhaps reload?</h2>
+          <ErrorMessage/>
         </React.Fragment>
       );
     }

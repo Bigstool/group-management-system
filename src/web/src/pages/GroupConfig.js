@@ -389,9 +389,12 @@ export default class GroupConfig extends React.Component {
     // Caution Zone
     let cautionZone = [];
     cautionZone.push(
-      <Divider className={styles.CautionZone} orientation="center" plain key={'divider'}>
-        Caution Zone
-      </Divider>
+      <div className={styles.CautionZone}>
+        <Divider orientation="center" plain key={'divider'}>
+          Caution Zone
+        </Divider>
+      </div>
+
     );
     // Leave Group (Member) (Before Grouping DDL)
     if (this.state.isMember && !this.state.afterGroupingDDL) {

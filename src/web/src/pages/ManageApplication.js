@@ -24,8 +24,8 @@ export default class ManageApplication extends React.Component {
       // User related
       userUuid: this.context.getUser()['uuid'],
       // Group related
-      groupUuid: '',  // TODO: this.props.match.params["uuid"],
-      ownerUuid: '',
+      groupUuid: this.props.match.params["uuid"],
+      // Application related
       applications: null,
       // Component related
       loading: true,
@@ -37,27 +37,68 @@ export default class ManageApplication extends React.Component {
     }
   }
 
-  componentDidMount() {
-    this.setState({
-      applications: [
-        {
-          alias: 'Tom',
-          email: 'tom@xjtlu.edu.cn',
-          uuid: '16fc2db7-cac0-46c2-a0e3-2da6cec54abb',
-        },
-        {
-          alias: 'Bob',
-          email: 'bob@xjtlu.edu.cn',
-          uuid: '17fc2db7-cac0-46c2-a0e3-2da6cec54abb',
-        },
-        {
-          alias: 'Nah',
-          email: 'nah@xjtlu.edu.cn',
-          uuid: '18fc2db7-cac0-46c2-a0e3-2da6cec54abb',
-        },
-      ],
-      loading: false,
-    });
+  async componentDidMount() {
+    // Check permission
+    let isPermitted = await this.isPermitted();
+    if (!isPermitted) {
+      this.setState({
+        'redirect': '/',
+        'push': false,
+      });
+    }
+    // Retrieve application info
+    await this.checkApplications();
+    // Update state
+    this.setState({loading: false,});
+  }
+
+  /**
+   * Retrieves the applications
+   * @returns {Promise<void>}
+   */
+  @boundMethod
+  async checkApplications() {
+    try {
+      let res = await this.context.request({
+        path: `/group/${this.state.groupUuid}/application`,
+        method: 'get'
+      });
+      let applications = res.data['data'];
+      this.setState({
+        applications: applications,
+      });
+    } catch (error) {
+      this.setState({
+        error: true,
+      });
+    }
+  }
+
+  /**
+   * Checks whether the user has the permission to access this page
+   * @returns {Promise<boolean>} true if the user has the permission, false otherwise
+   */
+  @boundMethod
+  async isPermitted() {
+    // Check user: whether is not the group owner
+    try {
+      let res = await this.context.request({
+        path: `/group/${this.state.groupUuid}`,
+        method: 'get'
+      });
+      let groupInfo = res.data['data'];
+      if (this.state.userUuid !== groupInfo['owner']['uuid']) return false;
+    } catch (error) {
+      this.setState({
+        error: true,
+      });
+    }
+    // Check system: whether is after Grouping DDL
+    let sysConfig = await this.context.getSysConfig();
+    let groupingDDL = sysConfig["system_state"]["grouping_ddl"];
+    if ((Date.now() / 1000) > groupingDDL) return false;
+    // Check passed, user is permitted, return true
+    return true;
   }
 
   /**
@@ -107,10 +148,9 @@ export default class ManageApplication extends React.Component {
 
     let applications = [];
     for (let i = 0; i < this.state.applications.length; i++) {
-      let userItem = <UserItem userObject={this.state.applications[i]}
+      let userItem = <UserItem userObject={this.state.applications[i]['applicant']}
                                onItemClicked={this.onClick}
-                               onDeleteClicked={this.onDelete}
-                               key={this.state.applications[i]['uuid']}/>;
+                               key={this.state.applications[i]['applicant']['uuid']}/>;
       applications.push(userItem);
     }
 

@@ -644,15 +644,16 @@ class GroupMembers extends React.Component {
   render() {
     return (
       <List className={styles.GroupMembers} header={<h3>Group Members</h3>}>
-        <Link to={`/user/${this.props.groupInfo.owner.uuid}`}>
+        <Link to={`/user/${this.props.groupInfo.owner.uuid}`}
+              key={this.props.groupInfo.owner.uuid}>
           <UserItem
             userObject={this.props.groupInfo.owner}
             description={"Owner"}/>
         </Link>
         {this.props.groupInfo.member.map(item => (
-          <Link to={`/user/${item.uuid}`}>
+          <Link to={`/user/${item.uuid}`}
+                key={item.uuid}>
             <UserItem
-              key={item.uuid}
               userObject={item}
               description={"Member"}
             />

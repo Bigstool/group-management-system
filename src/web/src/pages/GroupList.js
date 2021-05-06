@@ -8,6 +8,7 @@ import {LoadingOutlined} from "@ant-design/icons";
 import GroupCard from "../components/GroupCard";
 import {AuthContext} from "../utilities/AuthProvider";
 import PageContainer from "../components/PageContainer";
+import ErrorMessage from "../components/ErrorMessage";
 
 export default class GroupList extends React.PureComponent {
   static contextType = AuthContext;
@@ -21,10 +22,6 @@ export default class GroupList extends React.PureComponent {
       topGroupUuid: null,
       error: null
     };
-  }
-
-  onRefreshButtonClicked() {
-    location.reload();
   }
 
   async componentDidMount() {
@@ -55,11 +52,6 @@ export default class GroupList extends React.PureComponent {
   }
 
   render() {
-    const errorMsg = <Result status={"error"}
-                             title={"Error completing your request"}
-                             extra={
-                               <Button type={"primary"} onClick={this.onRefreshButtonClicked}>Refresh</Button>
-                             }/>;
     return (
       <>
         <PageContainer
@@ -85,7 +77,7 @@ export default class GroupList extends React.PureComponent {
                   <GroupCard key={item.uuid} groupItem={item}/>
                 ))
               }
-              {this.state.error !== null && errorMsg}
+              {this.state.error !== null && <ErrorMessage/>}
             </Tabs.TabPane>
             {this.state.loading || this.state.topGroupUuid || this.context.getUser().role === "ADMIN" ||
             <Tabs.TabPane tab="Applied" key="2">
@@ -94,7 +86,7 @@ export default class GroupList extends React.PureComponent {
                   <GroupCard key={item.uuid} groupItem={item.group}/>
                 ))
               }
-              {this.state.error !== null && errorMsg}
+              {this.state.error !== null && <ErrorMessage/>}
             </Tabs.TabPane>
             }
           </Tabs>

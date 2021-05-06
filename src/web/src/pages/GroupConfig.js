@@ -7,6 +7,7 @@ import AppBar from "../components/AppBar";
 import styles from './GroupConfig.scss';
 import {AuthContext} from "../utilities/AuthProvider";
 import {Redirect} from "react-router-dom";
+import ErrorMessage from "../components/ErrorMessage";
 
 /* Bigstool's class notations
 *  #T: Top-level component
@@ -344,8 +345,7 @@ export default class GroupConfig extends React.Component {
       return (
         <React.Fragment>
           {appBar}
-          <h1>Oops, something went wrong</h1>
-          <h3>Perhaps reload?</h3>
+          <ErrorMessage/>
         </React.Fragment>
       );
     }

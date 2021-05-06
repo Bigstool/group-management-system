@@ -4,6 +4,7 @@ import {List, Checkbox} from 'antd';
 import Avatar from 'react-avatar';
 import {boundMethod} from "autobind-decorator";
 import {CloseOutlined} from "@ant-design/icons";
+import "./UserItem.scss";
 
 export default class UserItem extends React.Component {
   static propTypes = {
@@ -46,6 +47,7 @@ export default class UserItem extends React.Component {
   render() {
     return (
       <List.Item
+        className={'user-item'}
         onClick={this.props.onItemClicked && this.onItemClicked}
         actions={[
           this.props.onCheckboxChanged && <Checkbox onChange={this.onCheckboxChanged}/> ||

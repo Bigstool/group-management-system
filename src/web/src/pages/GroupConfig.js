@@ -147,6 +147,15 @@ export default class GroupConfig extends React.Component {
     });
   }
 
+  // On Manage Group Members button clicked
+  @boundMethod
+  onManage() {
+    this.setState({
+      redirect: `/group/${this.state.groupUuid}/manage`,
+      push: true,
+    });
+  }
+
   // On Leave Group button clicked
   @boundMethod
   async onLeave() {
@@ -368,7 +377,7 @@ export default class GroupConfig extends React.Component {
     let memberManagement = null;
     if (this.state.isOwner && !this.state.afterGroupingDDL) {
       memberManagement = <React.Fragment>
-        <Button block size={'large'}>Manage Group Members</Button>
+        <Button block size={'large'} onClick={this.onManage}>Manage Group Members</Button>
         <Button block size={'large'}>Manage Join Applications</Button>
         <br/>
         <br/>

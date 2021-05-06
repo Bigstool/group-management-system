@@ -25,6 +25,7 @@ export default class ManageMember extends React.Component {
       userUuid: this.context.getUser()['uuid'],
       // Group related
       groupUuid: this.props.match.params["uuid"],
+      ownerUuid: '',
       members: null,
       // Component related
       loading: true,
@@ -37,10 +38,10 @@ export default class ManageMember extends React.Component {
   }
 
   async componentDidMount() {
-    // Get group info
-    let groupInfo = await this.getGroupInfo();
+    // Update group info
+    await this.checkGroupInfo();
     // Check permission
-    let isPermitted = this.isPermitted(groupInfo);
+    let isPermitted = await this.isPermitted();
     if (!isPermitted) {
       this.setState({
         'redirect': '/',
@@ -53,35 +54,35 @@ export default class ManageMember extends React.Component {
 
   /**
    * Retrieves the group info
-   * @returns {Promise<Object>} group info
+   * @returns {Promise<void>}
    */
   @boundMethod
-  async getGroupInfo() {
+  async checkGroupInfo() {
     try {
       let res = await this.context.request({
         path: `/group/${this.state.groupUuid}`,
         method: 'get'
       });
       let groupInfo = res.data['data'];
-      this.setState({members: groupInfo['member']});
-      return groupInfo;
+      this.setState({
+        ownerUuid: groupInfo['owner']['uuid'],
+        members: groupInfo['member'],
+      });
     } catch (error) {
       this.setState({
         error: true,
       });
     }
-    return null;
   }
 
   /**
    * Checks whether the user has the permission to access this page
-   * @param groupInfo {Object} the info of the group
    * @returns {Promise<boolean>} true if the user has the permission, false otherwise
    */
   @boundMethod
-  async isPermitted(groupInfo) {
+  async isPermitted() {
     // Check user: whether is not the group owner
-    if (this.state.userUuid !== groupInfo['owner']['uuid']) return false;
+    if (this.state.userUuid !== this.state.ownerUuid) return false;
     // Check system: whether is after Grouping DDL
     let sysConfig = await this.context.getSysConfig();
     let groupingDDL = sysConfig["system_state"]["grouping_ddl"];
@@ -114,7 +115,7 @@ export default class ManageMember extends React.Component {
         path: `/group/${this.state.groupUuid}/member/${userObject['uuid']}`,
         method: 'delete'
       });
-      await this.getGroupInfo();
+      await this.checkGroupInfo();
     } catch (error) {
       this.setState({
         deleting: false,

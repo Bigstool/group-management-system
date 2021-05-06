@@ -35,15 +35,15 @@ ReactDOM.render((
               <Switch>
                   <PrivateRoute exact path={"/"} component={GroupList}/>
                   <PrivateRoute exact path={"/user/edit"} component={EditProfile}/>
-                  <PrivateRoute path={"/user/:uuid"} component={UserProfile}/>
+                  <PrivateRoute exact path={"/user/:uuid"} component={UserProfile}/>
                   <PrivateRoute exact path={"/user"} component={AccountPanel}/>
                   <Route exact path={"/login"} component={Login}/>
-                  <PrivateRoute path={"/group/:uuid/apply"} component={ApplyGroup}/>
-                  <PrivateRoute path={"/group/:uuid/config"} component={GroupConfig}/>
-                  <PrivateRoute path={'/group/:uuid/edit'} component={EditGroupProfile}/>
-                  <PrivateRoute path={'/group/:uuid/manage'} component={ManageMember}/>
-                  <PrivateRoute path={'/group/:uuid/applications'} component={ManageApplication}/>
-                  <PrivateRoute path={"/group/:uuid"} component={GroupDetails}/>
+                  <PrivateRoute exact path={"/group/:uuid/apply"} component={ApplyGroup}/>
+                  <PrivateRoute exact path={"/group/:uuid/config"} component={GroupConfig}/>
+                  <PrivateRoute exact path={'/group/:uuid/edit'} component={EditGroupProfile}/>
+                  <PrivateRoute exact path={'/group/:uuid/manage'} component={ManageMember}/>
+                  <PrivateRoute exact path={'/group/:uuid/applications'} component={ManageApplication}/>
+                  <PrivateRoute exact path={"/group/:uuid"} component={GroupDetails}/>
                   <PrivateRoute exact path={"/create/group"} component={CreateGroup}/>
                   <Route path={"*"} component={NotFound}/>
               </Switch>

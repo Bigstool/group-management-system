@@ -10,6 +10,7 @@ import {AuthContext} from "../utilities/AuthProvider";
 import PageContainer from "../components/PageContainer";
 import {Redirect, Link} from "react-router-dom";
 import Avatar from "react-avatar";
+import ErrorMessage from "../components/ErrorMessage";
 
 /* Bigstool's class notations
 *  #T: Top-level component
@@ -133,8 +134,7 @@ export default class AccountPanel extends React.Component {
       return (
         <React.Fragment>
           {appBar}
-          <h1>Oops, something went wrong</h1>
-          <h3>Perhaps reload?</h3>
+          <ErrorMessage/>
           {tabNav}
         </React.Fragment>
       );

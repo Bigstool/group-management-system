@@ -25,9 +25,9 @@ export default class UserProfile extends React.Component {
       // User related
       userUuid: this.context.getUser()['uuid'],
       // Group related
-      groupUuid: '',  // TODO: this.props.match.params['groupUuid'],
+      groupUuid: this.props.match.params['groupUuid'],
       // Application related
-      applicationUuid: '',  // TODO: this.props.match.params['applicationUuid'],
+      applicationUuid: this.props.match.params['applicationUuid'],
       name: '',
       email: '',
       comment: '',
@@ -43,22 +43,16 @@ export default class UserProfile extends React.Component {
   }
 
   async componentDidMount() {
-    // // Check permission
-    // let isPermitted = await this.isPermitted();
-    // if (!isPermitted) {
-    //   this.setState({
-    //     'redirect': '/',
-    //     'push': false,
-    //   });
-    // }
-    // // Retrieve application info
-    // await this.checkApplication();
-    // TODO: remove
-    this.setState({
-      name: 'Li Hua',
-      email: 'hua.li@xjtlu.edu.cn',
-      comment: 'Your group looks promising, can I please join your group?',
-    });
+    // Check permission
+    let isPermitted = await this.isPermitted();
+    if (!isPermitted) {
+      this.setState({
+        'redirect': '/',
+        'push': false,
+      });
+    }
+    // Retrieve application info
+    await this.checkApplication();
     // Update state
     this.setState({loading: false,});
   }
@@ -103,25 +97,60 @@ export default class UserProfile extends React.Component {
       return;
     }
     // Search in the list
+    let found = false;
     for (let i = 0; i < applications.length; i++) {
-      if (applications[i]['applicant']['uuid'] === this.state.applicationUuid) {
+      if (applications[i]['uuid'] === this.state.applicationUuid) {
+        found = true;
         this.setState({
           name: applications[i]['applicant']['alias'],
           email: applications[i]['applicant']['email'],
-          comment: applications[i]['applicant']['comment'],
+          comment: applications[i]['comment'],
         });
-        return;
       }
     }
     // If not found, indicate error
-    this.setState({error: true,});
+    if (!found) this.setState({error: true,});
   }
 
   @boundMethod
-  onAccept() {}
+  async onAccept() {
+    this.setState({accepting: true});
+    try {
+      await this.context.request({
+        path: `/application/accepted`,
+        method: "post",
+        data: {
+          uuid: this.state.applicationUuid,
+        }
+      });
+      this.setState({
+        redirect: `/group/${this.state.groupUuid}/applications`,
+        push: false,
+      });
+    } catch (error) {  // If failed, set saving to false
+      this.setState({accepting: false});
+    }
+  }
 
   @boundMethod
-  onReject() {}
+  async onReject() {
+    this.setState({rejecting: true});
+    try {
+      await this.context.request({
+        path: `/application/rejected`,
+        method: "post",
+        data: {
+          uuid: this.state.applicationUuid,
+        }
+      });
+      this.setState({
+        redirect: `/group/${this.state.groupUuid}/applications`,
+        push: false,
+      });
+    } catch (error) {  // If failed, set saving to false
+      this.setState({rejecting: false});
+    }
+  }
 
   render() {
     // Check if redirect is needed

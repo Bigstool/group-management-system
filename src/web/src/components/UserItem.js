@@ -21,25 +21,16 @@ export default class UserItem extends React.Component {
 
   @boundMethod
   onItemClicked(e) {
-    // e.preventDefault();
-    // e.stopPropagation();
-    e.nativeEvent.stopImmediatePropagation();
     this.props.onItemClicked(this.props.userObject);
   }
 
   @boundMethod
   onCheckboxChanged(e) {
-    // e.preventDefault();
-    // e.stopPropagation();
-    e.nativeEvent.stopImmediatePropagation();
     this.props.onCheckboxChanged(this.props.userObject, e.target.checked);
   }
 
   @boundMethod
   onDeleteClicked(e) {
-    // e.preventDefault();
-    // e.stopPropagation();
-    e.nativeEvent.stopImmediatePropagation();
     this.props.onDeleteClicked(this.props.userObject);
   }
 
@@ -48,7 +39,6 @@ export default class UserItem extends React.Component {
     return (
       <List.Item
         className={styles.UserItem}
-        onClick={this.props.onItemClicked && this.onItemClicked}
         actions={[
           this.props.onCheckboxChanged && <Checkbox onChange={this.onCheckboxChanged}/> ||
           this.props.onDeleteClicked && <CloseOutlined onClick={this.onDeleteClicked}/>
@@ -57,6 +47,7 @@ export default class UserItem extends React.Component {
           avatar={<Avatar size={32} round={true} name={this.props.userObject.alias}/>}
           title={this.props.userObject.alias}
           description={this.props.description}
+          onClick={this.props.onItemClicked && this.onItemClicked}
         />
       </List.Item>
     );

@@ -107,7 +107,18 @@ export default class ManageApplication extends React.Component {
    */
   @boundMethod
   onClick(userObject) {
-
+    let applicationUuid = 'notfound';
+    let userUuid = userObject['uuid'];
+    for (let i = 0; i < this.state.applications.length; i++) {
+      if (this.state.applications[i]['applicant']['uuid'] === userUuid) {
+        applicationUuid = this.state.applications[i]['uuid'];
+        break;
+      }
+    }
+    this.setState({
+      'redirect': `/group/${this.state.groupUuid}/application/${applicationUuid}`,
+      'push': true,
+    });
   }
 
   render() {

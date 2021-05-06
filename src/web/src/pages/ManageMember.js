@@ -1,11 +1,9 @@
 import React from "react";
-import {Button, Card, Input} from 'antd';
 import {LoadingOutlined} from '@ant-design/icons';
 import {boundMethod} from "autobind-decorator";
 import AppBar from "../components/AppBar";
 import styles from './ManageMember.scss';
 import {AuthContext} from "../utilities/AuthProvider";
-import Avatar from "react-avatar";
 import {Redirect} from "react-router-dom";
 import UserItem from "../components/UserItem";
 
@@ -26,7 +24,7 @@ export default class ManageMember extends React.Component {
       // User related
       userUuid: this.context.getUser()['uuid'],
       // Group related
-      groupUuid: '',  // TODO: this.props.match.params["uuid"],
+      groupUuid: this.props.match.params["uuid"],
       members: null,
       // Component related
       loading: true,
@@ -38,27 +36,58 @@ export default class ManageMember extends React.Component {
     }
   }
 
-  componentDidMount() {
-    this.setState({
-      members: [
-        {
-          alias: 'Tom',
-          email: 'tom@xjtlu.edu.cn',
-          uuid: '16fc2db7-cac0-46c2-a0e3-2da6cec54abb',
-        },
-        {
-          alias: 'Bob',
-          email: 'bob@xjtlu.edu.cn',
-          uuid: '17fc2db7-cac0-46c2-a0e3-2da6cec54abb',
-        },
-        {
-          alias: 'Nah',
-          email: 'nah@xjtlu.edu.cn',
-          uuid: '18fc2db7-cac0-46c2-a0e3-2da6cec54abb',
-        },
-      ],
-      loading: false,
-    });
+  async componentDidMount() {
+    // Get group info
+    let groupInfo = await this.getGroupInfo();
+    // Check permission
+    let isPermitted = this.isPermitted(groupInfo);
+    if (!isPermitted) {
+      this.setState({
+        'redirect': '/',
+        'push': false,
+      });
+    }
+    // Update state
+    this.setState({loading: false,});
+  }
+
+  /**
+   * Retrieves the group info
+   * @returns {Promise<Object>} group info
+   */
+  @boundMethod
+  async getGroupInfo() {
+    try {
+      let res = await this.context.request({
+        path: `/group/${this.state.groupUuid}`,
+        method: 'get'
+      });
+      let groupInfo = res.data['data'];
+      this.setState({members: groupInfo['member']});
+      return groupInfo;
+    } catch (error) {
+      this.setState({
+        error: true,
+      });
+    }
+    return null;
+  }
+
+  /**
+   * Checks whether the user has the permission to access this page
+   * @param groupInfo {Object} the info of the group
+   * @returns {Promise<boolean>} true if the user has the permission, false otherwise
+   */
+  @boundMethod
+  async isPermitted(groupInfo) {
+    // Check user: whether is not the group owner
+    if (this.state.userUuid !== groupInfo['owner']['uuid']) return false;
+    // Check system: whether is after Grouping DDL
+    let sysConfig = await this.context.getSysConfig();
+    let groupingDDL = sysConfig["system_state"]["grouping_ddl"];
+    if ((Date.now() / 1000) > groupingDDL) return false;
+    // Check passed, user is permitted, return true
+    return true;
   }
 
   /**
@@ -67,7 +96,10 @@ export default class ManageMember extends React.Component {
    */
   @boundMethod
   onClick(userObject) {
-
+    this.setState({
+      'redirect': `/user/${userObject['uuid']}`,
+      'push': true,
+    });
   }
 
   /**
@@ -75,8 +107,19 @@ export default class ManageMember extends React.Component {
    * @param userObject {Object} the user object
    */
   @boundMethod
-  onDelete(userObject) {
-
+  async onDelete(userObject) {
+    this.setState({deleting: true});
+    try {
+      await this.context.request({
+        path: `/group/${this.state.groupUuid}/member/${userObject['uuid']}`,
+        method: 'delete'
+      });
+      await this.getGroupInfo();
+    } catch (error) {
+      this.setState({
+        deleting: false,
+      });
+    }
   }
 
   render() {

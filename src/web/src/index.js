@@ -23,6 +23,7 @@ import UserProfile from "./pages/UserProfile";
 import CreateGroup from "./pages/CreateGroup";
 import ManageMember from "./pages/ManageMember";
 import ManageApplication from "./pages/ManageApplication";
+import ApplicationDetails from './pages/ApplicationDetails';
 
 const app = document.createElement("div");
 app.id = styles.ReactApp;
@@ -43,6 +44,7 @@ ReactDOM.render((
                   <PrivateRoute path={'/group/:uuid/edit'} component={EditGroupProfile}/>
                   <PrivateRoute path={'/group/:uuid/manage'} component={ManageMember}/>
                   <PrivateRoute path={'/group/:uuid/applications'} component={ManageApplication}/>
+                  <PrivateRoute path={'/group/:groupUuid/application/:applicationUuid'} component={ApplicationDetails}/>
                   <PrivateRoute path={"/group/:uuid"} component={GroupDetails}/>
                   <PrivateRoute exact path={"/create/group"} component={CreateGroup}/>
                   <Route path={"*"} component={NotFound}/>

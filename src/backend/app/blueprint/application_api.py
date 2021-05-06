@@ -172,7 +172,6 @@ def get_group_application_list(group_uuid):
                     description: group creation time, unix timestamp
                     example: 1617189103
     """
-    # TODO complete Leo
     args_query = parser.parse({
         "group_uuid": fields.Str(required=True, validate=MyValidator.Uuid())
     }, request, location="path")
@@ -316,7 +315,8 @@ def accept_application():
     """
     # Check identity
     args_json = parser.parse({
-        "application_uuid": fields.Str(required=True, validate=MyValidator.Uuid())}, request, location="json")
+        "uuid": fields.Str(required=True, validate=MyValidator.Uuid())
+    }, request, location="json")
     application_uuid: str = args_json["application_uuid"]
     application = GroupApplication.query.filter_by(uuid=uuid.UUID(application_uuid).bytes).first()
     applicant = User.query.filter_by(uuid=application.applicant_uuid).first()
@@ -380,7 +380,8 @@ def reject_application():
     """
     # Check identity
     args_json = parser.parse({
-        "application_uuid": fields.Str(required=True, validate=MyValidator.Uuid())}, request, location="json")
+        "uuid": fields.Str(required=True, validate=MyValidator.Uuid())
+    }, request, location="json")
     application_uuid: str = args_json["application_uuid"]
     application = GroupApplication.query.filter_by(uuid=application_uuid).first()
     applicant = User.query.filter_by(uuid=application.applicant_uuid).first()

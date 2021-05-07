@@ -26,11 +26,15 @@ export default class UserProfile extends React.Component {
       userUuid: this.context.getUser()['uuid'],
       // Group related
       groupUuid: this.props.match.params['groupUuid'],
+      groupSize: 0,  // size of the group, # of members + 1 (owner)
       // Application related
       applicationUuid: this.props.match.params['applicationUuid'],
       name: '',
       email: '',
       comment: '',
+      // System related
+      upperLimit: 0,
+      groupingDDL: 0,
       // Component related
       loading: true,
       error: false,
@@ -43,6 +47,8 @@ export default class UserProfile extends React.Component {
   }
 
   async componentDidMount() {
+    // Retrieve system info
+    await this.checkSystem();
     // Check permission
     let isPermitted = await this.isPermitted();
     if (!isPermitted) {
@@ -53,6 +59,8 @@ export default class UserProfile extends React.Component {
     }
     // Retrieve application info
     await this.checkApplication();
+    // Retrieve group info
+    await this.checkGroup();
     // Update state
     this.setState({loading: false,});
   }
@@ -73,11 +81,18 @@ export default class UserProfile extends React.Component {
       });
     }
     // Check system: whether is after Grouping DDL
-    let sysConfig = await this.context.getSysConfig();
-    let groupingDDL = sysConfig["system_state"]["grouping_ddl"];
-    if ((Date.now() / 1000) > groupingDDL) return false;
+    if ((Date.now() / 1000) > this.state.groupingDDL) return false;
     // Check passed, user is permitted, return true
     return true;
+  }
+
+  @boundMethod
+  async checkSystem() {
+    let sysConfig = await this.context.getSysConfig();
+    this.setState({
+      upperLimit: sysConfig['group_member_number'][1],
+      groupingDDL: sysConfig["system_state"]["grouping_ddl"],
+    });
   }
 
   @boundMethod
@@ -110,6 +125,22 @@ export default class UserProfile extends React.Component {
     }
     // If not found, indicate error
     if (!found) this.setState({error: true,});
+  }
+
+  @boundMethod
+  async checkGroup() {
+    try {
+      let res = await this.context.request({
+        path: `/group/${this.state.groupUuid}`,
+        method: 'get'
+      });
+      let groupInfo = res.data['data'];
+      this.setState({groupSize: groupInfo['member'].length + 1});
+    } catch (error) {
+      this.setState({
+        error: true,
+      });
+    }
   }
 
   @boundMethod
@@ -196,15 +227,28 @@ export default class UserProfile extends React.Component {
     </div>;
 
     // Comment
+    let content;
+    if (this.state.comment) content = <p className={styles.Content}>{this.state.comment}</p>;
+    else content = <p className={styles.Content}><i>[No application letter provided]</i></p>;
+    
     let comment = <div className={styles.Comment}>
       <Divider orientation="left">Application Letter</Divider>
-      <p className={styles.Content}>{this.state.comment}</p>
+      {content}
     </div>;
+
+    // Limit
+    let limit = null;
+    if (this.state.groupSize >= this.state.upperLimit) {
+      limit = <p className={styles.Limit}>
+        Your group has reached the size limit
+      </p>;
+    }
 
     // Accept
     let accept = <Button type={'primary'} block size={'large'}
                          className={styles.Accept} onClick={this.onAccept}
-                         loading={this.state.accepting}>
+                         loading={this.state.accepting}
+                         disabled={this.state.groupSize >= this.state.upperLimit}>
       Accept
     </Button>;
 
@@ -220,6 +264,7 @@ export default class UserProfile extends React.Component {
         <div className={styles.ApplicationDetails}>
           {title}
           {comment}
+          {limit}
           {accept}
           {reject}
         </div>

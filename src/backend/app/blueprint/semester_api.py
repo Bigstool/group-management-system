@@ -152,4 +152,31 @@ def rename_semester(semester_uuid):
 
 @semester_api.route("/semester/<semester_uuid>", methods=["DELETE"])
 def delete_semester(semester_uuid):
+    """Delete a archived semester
+    ---
+    tags:
+      - semester
+
+    description: |
+      ## Constrains
+      * operator must be admin
+      * all objects related to the semester need to be deleted
+
+    parameters:
+      - name: semester_uuid
+        in: path
+        required: true
+        description: semester uuid
+        schema:
+          type: string
+          example: 16fc2db7-cac0-46c2-a0e3-2da6cec54abb
+
+    responses:
+      200:
+        description: query success
+        content:
+          application/json:
+            schema:
+              type: object
+    """
     pass  # TODO

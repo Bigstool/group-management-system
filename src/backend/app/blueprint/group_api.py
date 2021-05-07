@@ -198,7 +198,11 @@ def get_group_list():
     token_info = Auth.get_payload(request)
     uuid_in_token = token_info['uuid']
 
-    data = Group.query.all()
+    data = Group.query.filter_by(semester_name=request.args.get('semester')).all()
+
+    if not data:
+        raise ApiResourceNotFoundException("No record of this semester!")
+
     group_list = []
     for group in data:
         if GroupFavorite.query.filter_by(group_uuid=group.uuid, user_uuid=uuid.UUID(uuid_in_token).bytes).first():

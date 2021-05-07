@@ -26,6 +26,7 @@ export default class UserProfile extends React.Component {
       userUuid: this.context.getUser()['uuid'],
       // Group related
       groupUuid: this.props.match.params['groupUuid'],
+      groupSize: 0,  // size of the group, # of members + 1 (owner)
       // Application related
       applicationUuid: this.props.match.params['applicationUuid'],
       name: '',
@@ -58,6 +59,8 @@ export default class UserProfile extends React.Component {
     }
     // Retrieve application info
     await this.checkApplication();
+    // Retrieve group info
+    await this.checkGroup();
     // Update state
     this.setState({loading: false,});
   }
@@ -122,6 +125,22 @@ export default class UserProfile extends React.Component {
     }
     // If not found, indicate error
     if (!found) this.setState({error: true,});
+  }
+
+  @boundMethod
+  async checkGroup() {
+    try {
+      let res = await this.context.request({
+        path: `/group/${this.state.groupUuid}`,
+        method: 'get'
+      });
+      let groupInfo = res.data['data'];
+      this.setState({groupSize: groupInfo['member'].length + 1});
+    } catch (error) {
+      this.setState({
+        error: true,
+      });
+    }
   }
 
   @boundMethod
@@ -213,10 +232,19 @@ export default class UserProfile extends React.Component {
       <p className={styles.Content}>{this.state.comment}</p>
     </div>;
 
+    // Limit
+    let limit = null;
+    if (this.state.groupSize >= this.state.upperLimit) {
+      limit = <p className={styles.Limit}>
+        Your group has reached the size limit
+      </p>;
+    }
+
     // Accept
     let accept = <Button type={'primary'} block size={'large'}
                          className={styles.Accept} onClick={this.onAccept}
-                         loading={this.state.accepting}>
+                         loading={this.state.accepting}
+                         disabled={this.state.groupSize >= this.state.upperLimit}>
       Accept
     </Button>;
 
@@ -232,6 +260,7 @@ export default class UserProfile extends React.Component {
         <div className={styles.ApplicationDetails}>
           {title}
           {comment}
+          {limit}
           {accept}
           {reject}
         </div>

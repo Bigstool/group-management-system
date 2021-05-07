@@ -106,6 +106,21 @@ with app.app_context():
                           role="ADMIN")
         db.session.add(admin_user)
         db.session.commit()
+
+        # Insert system config info
+        semester = Semester(
+            uuid="fef9f76a-432d-4b44-8d5f-012630bfab05",
+            name="CURRENT",
+            start_time=int(time.time()),
+            config={
+                "system_state": {"grouping_ddl": datetime(2021, 5, 15, 17).timestamp(),
+                                 "proposal_ddl": datetime(2021, 8, 15, 12).timestamp()},
+                "group_member_number": [7, 9]
+            }
+        )
+        db.session.add(semester)
+        db.session.commit()
+
         # Insert dummy data TODO!!! remove line in prod env
         # ----------------------
         # Groups
@@ -137,7 +152,8 @@ with app.app_context():
                       description="Implement a teapot that gives status code 418.",
                       proposal="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas placerat urna eu risus dignissim sagittis. Quisque lobortis, lacus sed bibendum blandit, erat nisi ornare mauris, ut euismod nibh elit in est. Curabitur suscipit nisi enim, quis vehicula nulla ornare et. Duis felis dolor, tempus nec odio a, facilisis maximus orci. Vivamus imperdiet mi vel interdum accumsan. Phasellus fringilla ut nulla at malesuada. Phasellus tristique finibus interdum. Phasellus eu hendrerit erat. Ut mauris sem, posuere non tincidunt eget, fringilla id justo.",
                       proposal_state="PENDING",
-                      owner_uuid=user1_uuid
+                      owner_uuid=user1_uuid,
+                      semester_name="CURRENT"
                       )
         db.session.add(group_A)
         group_B = Group(uuid=groupB_uuid,
@@ -147,7 +163,8 @@ with app.app_context():
                         description="Implement a coffee machine that does not give status code 418.",
                         proposal="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas placerat urna eu risus dignissim sagittis. Quisque lobortis, lacus sed bibendum blandit, erat nisi ornare mauris, ut euismod nibh elit in est. Curabitur suscipit nisi enim, quis vehicula nulla ornare et. Duis felis dolor, tempus nec odio a, facilisis maximus orci. Vivamus imperdiet mi vel interdum accumsan. Phasellus fringilla ut nulla at malesuada. Phasellus tristique finibus interdum. Phasellus eu hendrerit erat. Ut mauris sem, posuere non tincidunt eget, fringilla id justo.",
                         proposal_state="PENDING",
-                        owner_uuid=user3_uuid
+                        owner_uuid=user3_uuid,
+                        semester_name="CURRENT"
                         )
         db.session.add(group_B)
         user_1=User(uuid=user1_uuid,
@@ -222,19 +239,6 @@ with app.app_context():
             content="This is very good proposal!"
         )
         db.session.add(comment1)
-        db.session.commit()
-        # Insert system config info
-        semester = Semester(
-            uuid=uuid.uuid4().bytes,
-            name="CURRENT",
-            start_time=int(time.time()),
-            config={
-                "system_state": {"grouping_ddl": datetime(2021, 5, 15, 17).timestamp(),
-                                 "proposal_ddl": datetime(2021, 8, 15, 12).timestamp()},
-                "group_member_number": [7, 9]
-            }
-        )
-        db.session.add(semester)
         db.session.commit()
 
 # Swagger docs

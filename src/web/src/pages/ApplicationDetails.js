@@ -227,9 +227,13 @@ export default class UserProfile extends React.Component {
     </div>;
 
     // Comment
+    let content;
+    if (this.state.comment) content = <p className={styles.Content}>{this.state.comment}</p>;
+    else content = <p className={styles.Content}><i>[No application letter provided]</i></p>;
+    
     let comment = <div className={styles.Comment}>
       <Divider orientation="left">Application Letter</Divider>
-      <p className={styles.Content}>{this.state.comment}</p>
+      {content}
     </div>;
 
     // Limit

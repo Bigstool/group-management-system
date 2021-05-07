@@ -132,3 +132,46 @@ def patch_sys_config():
     db.session.commit()
 
     return MyResponse(data=None, msg='query success').build()
+
+
+@system_api.route("/semester<semester_uuid>/rename", methods=["PATCH"])
+def rename_semster(semester_uuid):
+    """Renamed the archived semester
+    ---
+    tags:
+     - system
+
+    description: |
+     ## Constrains
+     * operator must be admin
+     * cannot rename the current semester
+
+    parameters:
+      - name: semester_uuid
+        in: path
+        required: true
+        description: semester uuid
+        schema:
+          type: string
+          example: 16fc2db7-cac0-46c2-a0e3-2da6cec54abb
+
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                description: new semester name
+                example: 2020 Semester2
+    responses:
+     200:
+       description: query success
+       content:
+         application/json:
+           schema:
+             type: object
+   """
+    pass

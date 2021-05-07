@@ -27,16 +27,126 @@ def handle_error(error, req, schema, *, error_status_code, error_headers):
 
 @semester_api.route("/semester/archived", methods=["POST"])
 def archive_semester():
+    """Archive the current semester
+    ---
+    tags:
+      - semester
+
+    description: |
+      ## Constrains
+      * operator must be admin
+
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                description: semester name
+                example: 2020-2021
+                max: 256
+            required:
+              - name
+
+    responses:
+      '200':
+        description: query success
+        content:
+          application/json:
+            schema:
+              type: object
+    """
     pass  # TODO
 
 
 @semester_api.route("/semester", methods=["GET"])
 def get_semester_name_list():
+    """Get list of semester
+    ---
+    tags:
+      - semester
+
+    description: |
+      ## Constrains
+        * operator must be admin
+
+    responses:
+      200:
+        description: query success
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                properties:
+                  uuid:
+                    type: string
+                    description: semester name uuid
+                    example: b86a6406-14ca-4459-80ea-c0190fc43bd3
+                  name:
+                    type: string
+                    description: semester name
+                    example: 2020-2021
+                  start_time:
+                    type: number
+                    description: unix timestamp of semester creation time
+                    example: 1618847321
+                  end_time:
+                    type: number
+                    description: unix timestamp of semester archived time
+                    example: 1618847321
+
+    """
     pass  # TODO
 
 
 @semester_api.route("/semester/<semester_uuid>", methods=["PATCH"])
 def rename_semester(semester_uuid):
+    """Rename the archived semester
+    ---
+    tags:
+      - semester
+
+    description: |
+      ## Constrains
+      * operator must be admin
+      * semester must not be current
+    parameters:
+      - name: semester_uuid
+        in: path
+        required: true
+        description: semester uuid
+        schema:
+          type: string
+          example: 16fc2db7-cac0-46c2-a0e3-2da6cec54abb
+
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                description: semester name
+                example: 2020-2021
+                max: 256
+            required:
+              - name
+
+    responses:
+      '200':
+        description: query success
+        content:
+          application/json:
+            schema:
+              type: object
+    """
     pass  # TODO
 
 

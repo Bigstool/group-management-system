@@ -31,6 +31,9 @@ export default class UserProfile extends React.Component {
       name: '',
       email: '',
       comment: '',
+      // System related
+      upperLimit: 0,
+      groupingDDL: 0,
       // Component related
       loading: true,
       error: false,
@@ -43,6 +46,8 @@ export default class UserProfile extends React.Component {
   }
 
   async componentDidMount() {
+    // Retrieve system info
+    await this.checkSystem();
     // Check permission
     let isPermitted = await this.isPermitted();
     if (!isPermitted) {
@@ -73,11 +78,18 @@ export default class UserProfile extends React.Component {
       });
     }
     // Check system: whether is after Grouping DDL
-    let sysConfig = await this.context.getSysConfig();
-    let groupingDDL = sysConfig["system_state"]["grouping_ddl"];
-    if ((Date.now() / 1000) > groupingDDL) return false;
+    if ((Date.now() / 1000) > this.state.groupingDDL) return false;
     // Check passed, user is permitted, return true
     return true;
+  }
+
+  @boundMethod
+  async checkSystem() {
+    let sysConfig = await this.context.getSysConfig();
+    this.setState({
+      upperLimit: sysConfig['group_member_number'][1],
+      groupingDDL: sysConfig["system_state"]["grouping_ddl"],
+    });
   }
 
   @boundMethod

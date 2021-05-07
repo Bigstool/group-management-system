@@ -120,7 +120,8 @@ def create_group():
                       proposal_update_time=int(time.time()) if proposal is not None else None,
                       proposal_state='PENDING',
                       creation_time=int(time.time()),
-                      owner_uuid=uuid.UUID(uuid_in_token).bytes)
+                      owner_uuid=uuid.UUID(uuid_in_token).bytes,
+                      semester_name="CURRENT")
     # update User db
     user.group_id = new_group.uuid
 
@@ -133,14 +134,23 @@ def create_group():
     return MyResponse(data=None).build()
 
 
-@group_api.route("/group", methods=["GET"])
-def get_group_list():
+@group_api.route("/semester/<semester_uuid>/group", methods=["GET"])
+def get_group_list(semester_uuid):
     """Get list of group
     ---
     tags:
       - group
 
     description: |
+
+    parameters:
+      - name: semester_uuid
+        in: path
+        required: true
+        description: semester uuid
+        schema:
+          type: string
+          example: 16fc2db7-cac0-46c2-a0e3-2da6cec54abb
 
     responses:
       200:
@@ -198,7 +208,16 @@ def get_group_list():
     token_info = Auth.get_payload(request)
     uuid_in_token = token_info['uuid']
 
-    data = Group.query.all()
+    # check semester
+    args_query = parser.parse({
+        "semester_uuid": fields.Str(required=True, validate=MyValidator.Uuid())}, request, location="path")
+    semester_uuid: str = args_query["semester_uuid"]
+
+    semester = Semester.query.filter_by(uuid=uuid.UUID(semester_uuid).bytes).first()
+    if semester is None:
+        raise ApiResourceNotFoundException("No such semester!")
+
+    data = Group.query.filter_by(semester_name=semester.name).all()
     group_list = []
     for group in data:
         if GroupFavorite.query.filter_by(group_uuid=group.uuid, user_uuid=uuid.UUID(uuid_in_token).bytes).first():
@@ -214,7 +233,8 @@ def get_group_list():
                            "owner": {"alias": user.alias, "email": user.email},
                            "creation_time": group.creation_time,
                            "member_count": group.member_num,
-                           "application_enabled": group.application_enabled})
+                           "application_enabled": group.application_enabled,
+                           "semester": group.semester_name})
 
     return MyResponse(data=group_list).build()
 

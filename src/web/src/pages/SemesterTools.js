@@ -34,10 +34,10 @@ export default class AccountPanel extends React.Component {
       proposalDDL: null,
       afterGroupingDDL: false,
       afterProposalDDL: false,
-      newSizeLower: 0,  // TODO: for new values, when setting initial state:
-      newSizeUpper: 0,  // TODO: If already set, use set values
-      newGroupingDDL: 1621098000,  // TODO: If not set, use some default values
-      newProposalDDL: 1629028800,
+      newSizeLower: 0,
+      newSizeUpper: 0,
+      newGroupingDDL: 0,
+      newProposalDDL: 0,
       // Component related
       loading: true,
       error: false,
@@ -327,7 +327,6 @@ export default class AccountPanel extends React.Component {
 
     // Archive Semester (After Import)
     let archive = <Button danger block size={'large'} className={styles.ToolItem}
-                          disabled={!this.state.isImported}
                           onClick={null}>
       Archive Semester
     </Button>

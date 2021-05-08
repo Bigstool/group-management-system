@@ -24,6 +24,7 @@ import CreateGroup from "./pages/CreateGroup";
 import ManageMember from "./pages/ManageMember";
 import ManageApplication from "./pages/ManageApplication";
 import ApplicationDetails from './pages/ApplicationDetails';
+import SemesterTools from './pages/SemesterTools';
 
 const app = document.createElement("div");
 app.id = styles.ReactApp;
@@ -47,6 +48,7 @@ ReactDOM.render((
                   <PrivateRoute exact path={'/group/:groupUuid/application/:applicationUuid'} component={ApplicationDetails}/>
                   <PrivateRoute exact path={"/group/:uuid"} component={GroupDetails}/>
                   <PrivateRoute exact path={"/create/group"} component={CreateGroup}/>
+                  <PrivateRoute exact path={"/semester/tools"} component={SemesterTools}/>
                   <Route path={"*"} component={NotFound}/>
               </Switch>
           </Router>

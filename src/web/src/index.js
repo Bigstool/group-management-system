@@ -26,6 +26,7 @@ import ManageApplication from "./pages/ManageApplication";
 import ApplicationDetails from './pages/ApplicationDetails';
 import SemesterTools from './pages/SemesterTools';
 import ChangePassword from "./pages/ChangePassword";
+import ResetPassword from "./pages/ResetPassword";
 
 const app = document.createElement("div");
 app.id = styles.ReactApp;
@@ -51,6 +52,7 @@ ReactDOM.render((
                   <PrivateRoute exact path={"/group/:uuid"} component={GroupDetails}/>
                   <PrivateRoute exact path={"/create/group"} component={CreateGroup}/>
                   <PrivateRoute exact path={"/semester/tools"} component={SemesterTools}/>
+                  <PrivateRoute exact path={"/admin/reset"} component={ResetPassword}/>
                   <Route path={"*"} component={NotFound}/>
               </Switch>
           </Router>

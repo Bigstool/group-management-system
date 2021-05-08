@@ -104,6 +104,14 @@ export default class AccountPanel extends React.Component {
   }
 
   @boundMethod
+  onChangePassword() {
+    this.setState({
+      'redirect': `/user/password`,
+      'push': true,
+    });
+  }
+
+  @boundMethod
   onCreateGroup() {
     this.setState({
       'redirect': `/create/group`,
@@ -187,7 +195,9 @@ export default class AccountPanel extends React.Component {
     </React.Fragment>;
     let changePassword = <React.Fragment>
       <div className={styles.Gap} />
-      <Button block size={'large'}>Change Password</Button>
+      <Button block size={'large'} onClick={this.onChangePassword}>
+        Change Password
+      </Button>
     </React.Fragment>;
 
     // Create Group (Student) (Before Grouping DDL)

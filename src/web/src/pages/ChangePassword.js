@@ -41,6 +41,25 @@ export default class ChangePassword extends React.Component {
     this.setState({loading: false});
   }
 
+  @boundMethod
+  onCurrentChange(event) {
+    this.setState({currentPassword: event.target.value});
+  }
+
+  @boundMethod
+  onNewChange(event) {
+    this.setState({newPassword: event.target.value});
+  }
+
+  @boundMethod
+  onConfirmChange(event) {
+    this.setState({confirmPassword: event.target.value});
+  }
+
+  onCancel() {
+    window.history.back();
+  }
+
   render() {
     // App Bar
     let appBar = <AppBar/>;

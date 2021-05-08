@@ -20,5 +20,9 @@ class Group(db.Model):
     owner_uuid = db.Column("owner_uuid", db.BINARY(16), nullable=False)  # FK
     member_num = db.Column('member_num', db.Integer, nullable=False, default=1)
 
+    # change 2
+    semester_name = db.Column("semester_name", db.String(256), db.ForeignKey("semester.name"), default="CURRENT")  # FK
+
+
     def __repr__(self):
         return f"<Group {self.uuid.hex()}: {self.name}>"

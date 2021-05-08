@@ -169,7 +169,7 @@ export default class AccountPanel extends React.Component {
     // Download Students List (After Import)
     let download = <Button block size={'large'} className={styles.ToolItem}
                            disabled={!this.state.isImported} onClick={null}>
-      Download Student List
+      Download Student Credentials
     </Button>;
 
     // Group Size (?)

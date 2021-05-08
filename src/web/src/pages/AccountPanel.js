@@ -120,6 +120,14 @@ export default class AccountPanel extends React.Component {
   }
 
   @boundMethod
+  onResetPassword() {
+    this.setState({
+      'redirect': `/admin/reset`,
+      'push': true,
+    });
+  }
+
+  @boundMethod
   onSemesterTools() {
     this.setState({
       'redirect': `/semester/tools`,
@@ -217,7 +225,9 @@ export default class AccountPanel extends React.Component {
     if (this.state.isAdmin) {
       resetPassword = <React.Fragment>
         <div className={styles.Gap} />
-        <Button block size={'large'}>Reset Password For A Student</Button>
+        <Button block size={'large'} onClick={this.onResetPassword}>
+          Reset Password For A Student
+        </Button>
       </React.Fragment>;
       semesterTools = <React.Fragment>
         <div className={styles.Gap} />

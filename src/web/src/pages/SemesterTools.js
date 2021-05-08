@@ -26,18 +26,18 @@ export default class AccountPanel extends React.Component {
       // User related
       userRole: this.context.getUser()['role'],
       // Students related
-      isImported: true,
+      isImported: false,
       // System related
-      sizeLower: 5,
-      sizeUpper: 7,
-      groupingDDL: 1621098000,
-      proposalDDL: 1629028800,
+      sizeLower: 0,
+      sizeUpper: 0,
+      groupingDDL: null,
+      proposalDDL: null,
       afterGroupingDDL: false,
       afterProposalDDL: false,
-      newSizeLower: 5,  // TODO: for new values, when setting initial state:
-      newSizeUpper: 7,  // TODO: If already set, use set values
-      newGroupingDDL: 1621098000,  // TODO: If not set, use some default values
-      newProposalDDL: 1629028800,
+      newSizeLower: 0,
+      newSizeUpper: 0,
+      newGroupingDDL: 0,
+      newProposalDDL: 0,
       // Component related
       loading: true,
       error: false,
@@ -51,7 +51,34 @@ export default class AccountPanel extends React.Component {
   }
 
   async componentDidMount() {
+    await this.checkSystem();
+    console.debug(this.state);
     this.setState({loading: false});
+  }
+
+  @boundMethod
+  async checkSystem() {
+    let sizeLower = 5;
+    let sizeUpper = 7;
+    let groupingDDL = 1621098000;
+    let proposalDDL = 1629028800;
+    let afterGroupingDDL = groupingDDL ? (Date.now() / 1000) > groupingDDL : false;
+    let afterProposalDDL = proposalDDL ? (Date.now() / 1000) > proposalDDL: false;
+    let newSizeLower = sizeLower, newSizeUpper = sizeUpper;
+    let newGroupingDDL = groupingDDL ? groupingDDL : this.momentToTimestamp(moment().add(10, 'days'));
+    let newProposalDDL = proposalDDL ? proposalDDL : this.momentToTimestamp(moment().add(20, 'days'));
+    this.setState({
+      sizeLower: sizeLower,
+      sizeUpper: sizeUpper,
+      groupingDDL: groupingDDL,
+      proposalDDL: proposalDDL,
+      afterGroupingDDL: afterGroupingDDL,
+      afterProposalDDL: afterProposalDDL,
+      newSizeLower: newSizeLower,
+      newSizeUpper: newSizeUpper,
+      newGroupingDDL: newGroupingDDL,
+      newProposalDDL: newProposalDDL,
+    });
   }
 
   /**
@@ -160,11 +187,22 @@ export default class AccountPanel extends React.Component {
     }
 
     // Import Students (Before Import)/View Students (After Import)
-    let students = <Button type={'primary'} block size={'large'}
-                           className={styles.ToolItem}
-                           onClick={null}>
+    let studentsCheckDDL = !this.state.groupingDDL || !this.state.proposalDDL;
+    let studentsButton = <Button type={'primary'} block size={'large'}
+                                 disabled={studentsCheckDDL}
+                                 onClick={null}>
       {this.state.isImported ? 'View Students' : 'Import Students'}
     </Button>;
+    let studentsWarning = null;
+    if (studentsCheckDDL) {
+      studentsWarning = <p className={styles.Warning}>
+        Please set the deadlines before importing<br/>You may change the deadlines later
+      </p>;
+    }
+    let students = <div className={styles.ToolItem}>
+      {studentsButton}
+      {studentsWarning}
+    </div>
 
     // Download Students List (After Import)
     let download = <Button block size={'large'} className={styles.ToolItem}
@@ -203,12 +241,14 @@ export default class AccountPanel extends React.Component {
       </div>
     }
 
-    // Grouping DDL (Before Grouping DDL) TODO: DDL not set
+    // Grouping DDL (Before Grouping DDL)
     let groupingButton = <Button block size={'large'}
                                  disabled={this.state.afterGroupingDDL}
                                  onClick={this.onGrouping}>
-      {`Grouping DDL: ${false ? 'Not Set' : moment.unix(this.state.groupingDDL).format('YYYY-MM-DD HH:mm')}`}
+      {`Grouping DDL: ${!this.state.groupingDDL ? 'Not Set' : moment.unix(this.state.groupingDDL).format('YYYY-MM-DD HH:mm')}`}
     </Button>;
+    let groupingCheckAfterNow = this.state.newGroupingDDL <= (Date.now() / 1000);
+    let groupingCheckBeforeProposal = this.state.proposalDDL && this.state.newGroupingDDL >= this.state.proposalDDL;
     let adjustGrouping = <div className={styles.Adjust}>
       <Space>
         <DatePicker showTime showNow={false} format={'YYYY-MM-DD HH:mm'}
@@ -216,18 +256,17 @@ export default class AccountPanel extends React.Component {
                     onOk={this.onGroupingChange} allowClear={false}/>
         <Button type={'primary'} onClick={this.onSaveGrouping}
                 disabled={(this.state.groupingDDL === this.state.newGroupingDDL) ||
-                (this.state.newGroupingDDL <= (Date.now() / 1000)) ||
-                (this.state.newGroupingDDL >= this.state.proposalDDL)}>
+                groupingCheckAfterNow || groupingCheckBeforeProposal}>
           Save
         </Button>
       </Space>
     </div>;
     let groupingWarning = null;
-    if (this.state.newGroupingDDL <= (Date.now() / 1000)) {
+    if (groupingCheckAfterNow) {
       groupingWarning = <p className={styles.Warning}>
         The Grouping DDL must be after the current time
       </p>
-    } else if (this.state.newGroupingDDL >= this.state.proposalDDL) {
+    } else if (groupingCheckBeforeProposal) {
       groupingWarning = <p className={styles.Warning}>
         The Grouping DDL must be before the Proposal DDL
       </p>
@@ -247,8 +286,9 @@ export default class AccountPanel extends React.Component {
     let proposalButton = <Button block size={'large'}
                                  disabled={this.state.afterProposalDDL}
                                  onClick={this.onProposal}>
-      {`Proposal DDL: ${false ? 'Not Set' : moment.unix(this.state.proposalDDL).format('YYYY-MM-DD HH:mm')}`}
+      {`Proposal DDL: ${!this.state.proposalDDL ? 'Not Set' : moment.unix(this.state.proposalDDL).format('YYYY-MM-DD HH:mm')}`}
     </Button>;
+    let proposalCheckAfterGrouping = this.state.groupingDDL && this.state.newProposalDDL <= this.state.groupingDDL;
     let adjustProposal = <div className={styles.Adjust}>
       <Space>
         <DatePicker showTime showNow={false} format={'YYYY-MM-DD HH:mm'}
@@ -256,13 +296,13 @@ export default class AccountPanel extends React.Component {
                     onOk={this.onProposalChange} allowClear={false}/>
         <Button type={'primary'} onClick={this.onSaveProposal}
                 disabled={(this.state.proposalDDL === this.state.newProposalDDL) ||
-                (this.state.newProposalDDL <= this.state.groupingDDL)}>
+                proposalCheckAfterGrouping}>
           Save
         </Button>
       </Space>
     </div>;
     let proposalWarning = null;
-    if (this.state.newProposalDDL <= this.state.groupingDDL) {
+    if (proposalCheckAfterGrouping) {
       proposalWarning = <p className={styles.Warning}>
         The Proposal DDL must be after the Grouping DDL
       </p>
@@ -287,7 +327,6 @@ export default class AccountPanel extends React.Component {
 
     // Archive Semester (After Import)
     let archive = <Button danger block size={'large'} className={styles.ToolItem}
-                          disabled={!this.state.isImported}
                           onClick={null}>
       Archive Semester
     </Button>

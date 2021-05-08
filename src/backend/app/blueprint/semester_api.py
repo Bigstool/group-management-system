@@ -147,8 +147,25 @@ def rename_semester(semester_uuid):
             schema:
               type: object
     """
-    pass  # TODO
-
+    args_path = parser.parse({
+        "semester_uuid": fields.Str(required=True, validate=MyValidator.Uuid())}, request, location="path")
+    args_json = parser.parse({
+        "name": fields.Str(missing=None, validate=validate.Length(min=1, max=256)),
+    }, request, location="json")
+    semester_uuid: str = args_path["semester_uuid"]
+    new_name: str = args_json["name"]
+    token_info = Auth.get_payload(request)
+    if not token_info['role'] == 'ADMIN':
+        raise ApiPermissionException('You have no permission to change the name of semester!')
+    semester = Semester.query.filter_by(uuid=uuid.UUID(semester_uuid).bytes).first()
+    if semester is None:
+        raise ApiResourceNotFoundException('No such semester!')
+    if semester.name == 'CURRENT':
+        raise ApiPermissionException('Cannot change the name of current semester')
+    if new_name is not None:
+        semester.name = new_name
+    db.session.commit()
+    return MyResponse(data=None, msg='query success').build()
 
 @semester_api.route("/semester/<semester_uuid>", methods=["DELETE"])
 def delete_semester(semester_uuid):

@@ -1,0 +1,30 @@
+// 1rem === 16px
+
+.SemesterTools {
+  padding: 1.5rem 1.5rem;
+
+  .ToolItem {
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+
+  .Adjust {
+    display: flex;
+    justify-content: center;
+    margin-top: 0.5rem;
+    overflow: hidden;
+
+    p {
+      margin: 0;
+    }
+  }
+
+  .Warning {
+    color: red;
+    text-align: center;
+    margin: 0;
+  }
+}
+.Gap {
+  padding-top: 1rem;
+}

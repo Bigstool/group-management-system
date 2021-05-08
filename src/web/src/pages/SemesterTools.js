@@ -17,7 +17,7 @@ import moment from 'moment';
 */
 
 // #T
-export default class AccountPanel extends React.Component {
+export default class SemesterTools extends React.Component {
   static contextType = AuthContext;
 
   constructor(props, context) {

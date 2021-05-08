@@ -25,6 +25,7 @@ import ManageMember from "./pages/ManageMember";
 import ManageApplication from "./pages/ManageApplication";
 import ApplicationDetails from './pages/ApplicationDetails';
 import SemesterTools from './pages/SemesterTools';
+import ChangePassword from "./pages/ChangePassword";
 
 const app = document.createElement("div");
 app.id = styles.ReactApp;
@@ -37,6 +38,7 @@ ReactDOM.render((
               <Switch>
                   <PrivateRoute exact path={"/"} component={GroupList}/>
                   <PrivateRoute exact path={"/user/edit"} component={EditProfile}/>
+                  <PrivateRoute exact path={"/user/password"} component={ChangePassword}/>
                   <PrivateRoute exact path={"/user/:uuid"} component={UserProfile}/>
                   <PrivateRoute exact path={"/user"} component={AccountPanel}/>
                   <Route exact path={"/login"} component={Login}/>

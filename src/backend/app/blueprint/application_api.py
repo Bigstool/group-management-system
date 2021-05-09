@@ -383,7 +383,7 @@ def reject_application():
         "uuid": fields.Str(required=True, validate=MyValidator.Uuid())
     }, request, location="json")
     application_uuid: str = args_json["uuid"]
-    application = GroupApplication.query.filter_by(uuid=application_uuid).first()
+    application = GroupApplication.query.filter_by(uuid=uuid.UUID(application_uuid).bytes).first()
     applicant = User.query.filter_by(uuid=application.applicant_uuid).first()
     group = Group.query.filter_by(uuid=application.group_uuid).first()
     token_info = Auth.get_payload(request)
@@ -442,6 +442,7 @@ def delete_application(application_uuid):
     uuid_in_token = token_info['uuid']
     if (uuid_in_token != str(uuid.UUID(bytes=application.applicant_uuid))):
         raise ApiPermissionException("Permission denied: You are not allowed to manipulate this application")
+
     db.session.delete(application)
     db.session.commit()
     return MyResponse(data=None, msg='query success').build()

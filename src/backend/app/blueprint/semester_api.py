@@ -8,12 +8,18 @@ from sqlalchemy.orm.attributes import flag_modified
 from webargs import fields, validate
 from webargs.flaskparser import parser
 
+from blueprint.group_api import group_api
+from model.GroupApplication import GroupApplication
+from model.GroupComment import GroupComment
+from model.GroupFavorite import GroupFavorite
 from model.Semester import Semester
+from model.User import User
 from shared import get_logger, db
 from utility import MyValidator
 from utility.ApiException import *
 from utility.Auth import Auth
 from utility.MyResponse import MyResponse
+from model.Group import Group
 
 logger = get_logger(__name__)
 semester_api = Blueprint("semester_api", __name__)
@@ -196,4 +202,43 @@ def delete_semester(semester_uuid):
             schema:
               type: object
     """
-    pass  # TODO
+    token_info = Auth.get_payload(request)
+    if token_info["role"] != "ADMIN":
+        raise ApiPermissionException("Permission denied: you are not the administrator!")
+
+    args_path = parser.parse({
+        "semester_uuid": fields.Str(required=True, validate=MyValidator.Uuid())}, request, location="path")
+    semester_uuid: str = args_path["semester_uuid"]
+    semester = Semester.query.filter_by(uuid=uuid.UUID(semester_uuid).bytes).first()
+    if semester is None:
+        raise ApiResourceNotFoundException("No such semester!")
+    system_state = Semester.query.filter_by(name="CURRENT").first().config['system_state']
+
+    semester_name = Semester.name
+    groups = Group.query.filter_by(semester_name=semester_name).all()
+
+    for group in groups:
+
+        group_application = GroupApplication.query.filter_by(group_uuid=group.uuid).all()
+        for application in group_application:
+            db.session.delete(application)
+
+        group_comment = GroupComment.query.filter_by(group_uuid=group.uuid).all()
+        for comment in group_comment:
+            db.session.delete(comment)
+
+        group_Favorite = GroupFavorite.query.filter_by(group_uuid=group.uuid).all()
+        for favorite in group_Favorite:
+            db.session.delete(favorite)
+
+        #default: all students during the semester assigned to a group
+        users = User.query.filter_by(group_id=group.uuid).all()
+        for user in users:
+            db.session.delete(user)
+
+        db.session.delete(group)
+        db.session.commit()
+
+    db.session.delete(semester)
+    db.session.commit()
+    return MyResponse(data=None).build()

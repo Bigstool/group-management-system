@@ -108,9 +108,9 @@ with app.app_context():
         db.session.commit()
 
         # Insert system config info
+        semester_uuid = uuid.uuid4().bytes
         semester = Semester(
-            uuid="fef9f76a-432d-4b44-8d5f-012630bfab05",
-            name="CURRENT",
+            uuid=semester_uuid,
             start_time=int(time.time()),
             config={
                 "system_state": {"grouping_ddl": datetime(2021, 5, 15, 17).timestamp(),
@@ -175,7 +175,8 @@ with app.app_context():
                     password_hash=password_hash,
                     role="USER",
                     bio="During my own Google interview, I was asked the implications if P=NP were true. I said, \"P = 0 or N = 1\". Then, before the interviewer had even finished laughing, I examined Google's public certificate and wrote the private key on the whiteboard.",
-                    group_id=groupA_uuid
+                    group_id=groupA_uuid,
+                    semester_id=semester_uuid
                    )
         db.session.add(user_1)
         user_2 = User(uuid=user2_uuid,
@@ -186,7 +187,8 @@ with app.app_context():
                       password_hash=password_hash,
                       role="USER",
                       bio="Compilers don't warn me. I warn compilers.",
-                      group_id=groupA_uuid
+                      group_id=groupA_uuid,
+                      semester_id=semester_uuid
                       )
         db.session.add(user_2)
         user_3 = User(uuid=user3_uuid,
@@ -197,7 +199,8 @@ with app.app_context():
                       password_hash=password_hash,
                       role="USER",
                       bio="The rate at which I produce code jumped by a factor of 40 in late 2000 when I upgraded my keyboard to USB 2.0.",
-                      group_id=groupB_uuid
+                      group_id=groupB_uuid,
+                      semester_id = semester_uuid
                       )
         db.session.add(user_3)
         user_4 = User(uuid=user4_uuid,
@@ -208,7 +211,8 @@ with app.app_context():
                       password_hash=password_hash,
                       role="USER",
                       bio="I build my code before committing it, but only to check for compiler and linker bugs.",
-                      group_id=groupB_uuid
+                      group_id=groupB_uuid,
+                      semester_id=semester_uuid
                       )
         db.session.add(user_4)
         user_5 = User(uuid=user5_uuid,
@@ -219,6 +223,8 @@ with app.app_context():
                       password_hash=password_hash,
                       role="USER",
                       bio="When I has an ergonomic evaluation, it is for the protection of his keyboard.",
+                      group_id=groupA_uuid,
+                     semester_id=semester_uuid
                       )
         db.session.add(user_5)
         user_6 = User(uuid=user6_uuid,
@@ -229,6 +235,8 @@ with app.app_context():
                       password_hash=password_hash,
                       role="USER",
                       bio="gcc -O4 emails your code to me for a rewrite.",
+                      group_id=groupA_uuid,
+                      semester_id=semester_uuid
                       )
         db.session.add(user_6)
         comment1=GroupComment(

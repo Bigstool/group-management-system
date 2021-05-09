@@ -442,6 +442,7 @@ def delete_application(application_uuid):
     uuid_in_token = token_info['uuid']
     if (uuid_in_token != str(uuid.UUID(bytes=application.applicant_uuid))):
         raise ApiPermissionException("Permission denied: You are not allowed to manipulate this application")
+
     db.session.delete(application)
     db.session.commit()
     return MyResponse(data=None, msg='query success').build()

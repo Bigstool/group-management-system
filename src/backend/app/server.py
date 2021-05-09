@@ -118,23 +118,24 @@ with app.app_context():
                           creation_time=int(time.time()),
                           role="ADMIN")
         db.session.add(admin_user)
-        db.session.commit()
 
-        # Insert system config info
+        # insert semester
         semester = Semester(
-            uuid="fef9f76a-432d-4b44-8d5f-012630bfab05",
+            uuid=uuid.uuid4().bytes,
             name="CURRENT",
             start_time=int(time.time()),
             config={
-                "system_state": {"grouping_ddl": datetime(2021, 5, 15, 17).timestamp(),
-                                 "proposal_ddl": datetime(2021, 8, 15, 12).timestamp()},
+                "system_state": {
+                    "grouping_ddl": datetime(2021, 5, 15, 17).timestamp(),
+                    "proposal_ddl": datetime(2021, 8, 15, 12).timestamp()
+                },
                 "group_member_number": [7, 9]
             }
         )
         db.session.add(semester)
         db.session.commit()
 
-        # Insert dummy data TODO!!! remove line in prod env
+        # Insert dummy data TODO!!! remove block in prod env
         # ----------------------
         # Groups
         # - Group A with name, title, description, proposal and some comments
@@ -147,49 +148,32 @@ with app.app_context():
         # - User 4: a member of group B
         # - User 5: a student that does not belong to any group
         # - User 6: a student that does not belong to any group
-        groupA_uuid=uuid.uuid4().bytes
-        groupB_uuid=uuid.uuid4().bytes
-        user1_uuid=uuid.uuid4().bytes
-        user2_uuid=uuid.uuid4().bytes
-        user3_uuid=uuid.uuid4().bytes
-        user4_uuid=uuid.uuid4().bytes
-        user5_uuid=uuid.uuid4().bytes
-        user6_uuid=uuid.uuid4().bytes
-        password_salt = b'-\x93\x85\xcd\xd1\xd3?\xe5\x12U\x0e\x7f\x10u\xd8\xb2'
-        password = '5baa61e4c9b93f3f0682250b6cf8331b7ee68fd8'
-        password_hash = hmac.new(password_salt, bytes.fromhex(password), "sha1").digest()
-        group_A=Group(uuid=groupA_uuid,
+
+        groupA_uuid = uuid.uuid4().bytes
+        groupB_uuid = uuid.uuid4().bytes
+        user1_uuid = uuid.uuid4().bytes
+        user2_uuid = uuid.uuid4().bytes
+        user3_uuid = uuid.uuid4().bytes
+        user4_uuid = uuid.uuid4().bytes
+        user5_uuid = uuid.uuid4().bytes
+        user6_uuid = uuid.uuid4().bytes
+
+        password = "password"
+        import hashlib
+
+        password_sha1 = hashlib.sha1(password.encode()).digest()
+        password_salt = secrets.token_bytes(16)
+        password_hash = hmac.new(password_salt, password_sha1, "sha1").digest()
+
+        user_1 = User(uuid=user1_uuid,
                       creation_time=time.time(),
-                      name="Team Yellow",
-                      title="IoT Teapot",
-                      description="Implement a teapot that gives status code 418.",
-                      proposal="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas placerat urna eu risus dignissim sagittis. Quisque lobortis, lacus sed bibendum blandit, erat nisi ornare mauris, ut euismod nibh elit in est. Curabitur suscipit nisi enim, quis vehicula nulla ornare et. Duis felis dolor, tempus nec odio a, facilisis maximus orci. Vivamus imperdiet mi vel interdum accumsan. Phasellus fringilla ut nulla at malesuada. Phasellus tristique finibus interdum. Phasellus eu hendrerit erat. Ut mauris sem, posuere non tincidunt eget, fringilla id justo.",
-                      proposal_state="PENDING",
-                      owner_uuid=user1_uuid,
-                      semester_name="CURRENT"
+                      email="user1@test.com",
+                      alias='Dolores Britton',
+                      password_salt=password_salt,
+                      password_hash=password_hash,
+                      role="USER",
+                      bio="During my own Google interview, I was asked the implications if P=NP were true. I said, \"P = 0 or N = 1\". Then, before the interviewer had even finished laughing, I examined Google's public certificate and wrote the private key on the whiteboard.",
                       )
-        db.session.add(group_A)
-        group_B = Group(uuid=groupB_uuid,
-                        creation_time=time.time(),
-                        name="Team Blue",
-                        title="IoT Coffee Machine",
-                        description="Implement a coffee machine that does not give status code 418.",
-                        proposal="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas placerat urna eu risus dignissim sagittis. Quisque lobortis, lacus sed bibendum blandit, erat nisi ornare mauris, ut euismod nibh elit in est. Curabitur suscipit nisi enim, quis vehicula nulla ornare et. Duis felis dolor, tempus nec odio a, facilisis maximus orci. Vivamus imperdiet mi vel interdum accumsan. Phasellus fringilla ut nulla at malesuada. Phasellus tristique finibus interdum. Phasellus eu hendrerit erat. Ut mauris sem, posuere non tincidunt eget, fringilla id justo.",
-                        proposal_state="PENDING",
-                        owner_uuid=user3_uuid,
-                        semester_name="CURRENT"
-                        )
-        db.session.add(group_B)
-        user_1=User(uuid=user1_uuid,
-                    creation_time=time.time(),
-                    email="user1@test.com",
-                    alias='Dolores Britton',
-                    password_salt=password_salt,
-                    password_hash=password_hash,
-                    role="USER",
-                    bio="During my own Google interview, I was asked the implications if P=NP were true. I said, \"P = 0 or N = 1\". Then, before the interviewer had even finished laughing, I examined Google's public certificate and wrote the private key on the whiteboard.",
-                    group_id=groupA_uuid
-                   )
         db.session.add(user_1)
         user_2 = User(uuid=user2_uuid,
                       creation_time=time.time(),
@@ -198,8 +182,7 @@ with app.app_context():
                       password_salt=password_salt,
                       password_hash=password_hash,
                       role="USER",
-                      bio="Compilers don't warn me. I warn compilers.",
-                      group_id=groupA_uuid
+                      bio="Compilers don't warn me. I warn compilers."
                       )
         db.session.add(user_2)
         user_3 = User(uuid=user3_uuid,
@@ -209,8 +192,7 @@ with app.app_context():
                       password_salt=password_salt,
                       password_hash=password_hash,
                       role="USER",
-                      bio="The rate at which I produce code jumped by a factor of 40 in late 2000 when I upgraded my keyboard to USB 2.0.",
-                      group_id=groupB_uuid
+                      bio="The rate at which I produce code jumped by a factor of 40 in late 2000 when I upgraded my keyboard to USB 2.0."
                       )
         db.session.add(user_3)
         user_4 = User(uuid=user4_uuid,
@@ -220,8 +202,7 @@ with app.app_context():
                       password_salt=password_salt,
                       password_hash=password_hash,
                       role="USER",
-                      bio="I build my code before committing it, but only to check for compiler and linker bugs.",
-                      group_id=groupB_uuid
+                      bio="I build my code before committing it, but only to check for compiler and linker bugs."
                       )
         db.session.add(user_4)
         user_5 = User(uuid=user5_uuid,
@@ -241,10 +222,40 @@ with app.app_context():
                       password_salt=password_salt,
                       password_hash=password_hash,
                       role="USER",
-                      bio="gcc -O4 emails your code to me for a rewrite.",
+                      bio="gcc -O4 emails your code to me for a rewrite."
                       )
         db.session.add(user_6)
-        comment1=GroupComment(
+        db.session.commit()
+
+        group_A = Group(uuid=groupA_uuid,
+                        creation_time=time.time(),
+                        name="Team Yellow",
+                        title="IoT Teapot",
+                        description="Implement a teapot that gives status code 418.",
+                        proposal="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas placerat urna eu risus dignissim sagittis. Quisque lobortis, lacus sed bibendum blandit, erat nisi ornare mauris, ut euismod nibh elit in est. Curabitur suscipit nisi enim, quis vehicula nulla ornare et. Duis felis dolor, tempus nec odio a, facilisis maximus orci. Vivamus imperdiet mi vel interdum accumsan. Phasellus fringilla ut nulla at malesuada. Phasellus tristique finibus interdum. Phasellus eu hendrerit erat. Ut mauris sem, posuere non tincidunt eget, fringilla id justo.",
+                        proposal_state="PENDING",
+                        owner_uuid=user1_uuid
+                        )
+        db.session.add(group_A)
+        group_B = Group(uuid=groupB_uuid,
+                        creation_time=time.time(),
+                        name="Team Blue",
+                        title="IoT Coffee Machine",
+                        description="Implement a coffee machine that does not give status code 418.",
+                        proposal="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas placerat urna eu risus dignissim sagittis. Quisque lobortis, lacus sed bibendum blandit, erat nisi ornare mauris, ut euismod nibh elit in est. Curabitur suscipit nisi enim, quis vehicula nulla ornare et. Duis felis dolor, tempus nec odio a, facilisis maximus orci. Vivamus imperdiet mi vel interdum accumsan. Phasellus fringilla ut nulla at malesuada. Phasellus tristique finibus interdum. Phasellus eu hendrerit erat. Ut mauris sem, posuere non tincidunt eget, fringilla id justo.",
+                        proposal_state="PENDING",
+                        owner_uuid=user3_uuid
+                        )
+        db.session.add(group_B)
+
+        db.session.commit()
+
+        group_A.member.append(user_2)
+        group_B.member.append(user_4)
+
+        db.session.commit()
+
+        comment1 = GroupComment(
             uuid=uuid.uuid4().bytes,
             creation_time=time.time(),
             author_uuid=user1_uuid,

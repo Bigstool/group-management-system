@@ -4,22 +4,25 @@ from shared import db
 class User(db.Model):
     __tablename__ = "user"
 
-    uuid = db.Column("uuid", db.BINARY(16), primary_key=True)   # PK
-    creation_time = db.Column("creation_time", db.Integer, nullable=False)
-    email = db.Column("email", db.String(256))
-    alias = db.Column("alias", db.String(256), nullable=True)
-    bio = db.Column("bio", db.Text, nullable=True)
-    password_salt = db.Column("password_salt", db.BINARY(16), nullable=False)
-    password_hash = db.Column("password_hash", db.BINARY(20), nullable=False)
-    role = db.Column("role", db.String(256), default="USER", nullable=False)
-    # r_group = db.relationship("Group", backref="owner", lazy=True, uselist=False)
-    r_group_comment = db.relationship("GroupComment", backref="author", lazy=True)
-    r_group_application = db.relationship("GroupApplication", backref="applicant", lazy=True)
+    # attr
+    uuid = db.Column(db.BINARY(16), primary_key=True)   # PK
+    creation_time = db.Column(db.Integer, nullable=False)
+    email = db.Column(db.String(256))
+    alias = db.Column(db.String(256))
+    bio = db.Column(db.Text)
+    password_salt = db.Column(db.BINARY(16), nullable=False)
+    password_hash = db.Column(db.BINARY(20), nullable=False)
+    role = db.Column(db.String(256), default="USER", nullable=False)
 
-    #change
-    group_id = db.Column("group_id", db.BINARY(16), db.ForeignKey("group.uuid"))
-    r_group_favorite = db.relationship("GroupFavorite", backref="follower", lazy=True)
-    group = db.relationship("Group", backref ="member", lazy=True)
+    # rel
+    owned_group = db.relationship("Group", uselist=False, back_populates="owner", foreign_keys="Group.owner_uuid")
+
+    joined_group_uuid = db.Column(db.BINARY(16), db.ForeignKey("group.uuid", ondelete="SET NULL", onupdate="CASCADE", use_alter=True))   # FK
+    joined_group = db.relationship("Group", back_populates="member", foreign_keys=[joined_group_uuid])
+
+    application = db.relationship("GroupApplication", uselist=False, back_populates="applicant")
+
+    comment = db.relationship("GroupComment", uselist=False, back_populates="author")
 
     def __repr__(self):
         return f"<User {self.uuid.hex()}: {self.email}>"

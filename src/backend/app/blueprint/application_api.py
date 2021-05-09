@@ -383,7 +383,7 @@ def reject_application():
         "uuid": fields.Str(required=True, validate=MyValidator.Uuid())
     }, request, location="json")
     application_uuid: str = args_json["uuid"]
-    application = GroupApplication.query.filter_by(uuid=application_uuid).first()
+    application = GroupApplication.query.filter_by(uuid=uuid.UUID(application_uuid).bytes).first()
     applicant = User.query.filter_by(uuid=application.applicant_uuid).first()
     group = Group.query.filter_by(uuid=application.group_uuid).first()
     token_info = Auth.get_payload(request)

@@ -88,7 +88,20 @@ db.init_app(app)
 
 # init database
 with app.app_context():
-    db.drop_all() # TODO!!! remove line when in prod env
+    # TODO!!! remove block when in prod env
+    tables = db.session.execute("SELECT "
+                                "table_name "
+                                "FROM "
+                                "information_schema.tables "
+                                "WHERE "
+                                f"table_schema = :db_name;",
+                                {"db_name": config.get('mysql_database')})
+    db.session.execute("SET FOREIGN_KEY_CHECKS = 0;")
+    for table in tables:
+        logger.warning(f"Delete table {table[0]}")
+        db.session.execute(f"DROP TABLE `{table[0]}`;")
+    db.session.execute("SET FOREIGN_KEY_CHECKS = 1;")
+
     db.create_all()  # create if table not exists
     # if user table empty
     if not User.query.first():

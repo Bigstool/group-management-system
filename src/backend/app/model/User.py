@@ -21,5 +21,8 @@ class User(db.Model):
     r_group_favorite = db.relationship("GroupFavorite", backref="follower", lazy=True)
     group = db.relationship("Group", backref ="member", lazy=True)
 
+    # semester
+    semester_id = db.Column("semester_uuid", db.BINARY(16), db.ForeignKey("semester.uuid"))
+
     def __repr__(self):
         return f"<User {self.uuid.hex()}: {self.email}>"

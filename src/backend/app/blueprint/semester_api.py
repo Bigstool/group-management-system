@@ -152,7 +152,19 @@ def get_semester_name_list():
                     example: 1618847321
 
     """
-    pass  # TODO
+    token_info = Auth.get_payload(request)
+    if token_info["role"] != "ADMIN":
+        raise ApiPermissionException("Permission denied: you are not the administrator!")
+    semester_list = Semester.query.all()
+    response_list = []
+    for semester in semester_list:
+        response_list.append({
+            "uuid": str(uuid.UUID(bytes=semester.uuid)),
+            "name": semester.name,
+            "start_time": semester.start_time,
+            "end_time": semester.end_time
+        })
+    return MyResponse(data=response_list, msg='query success').build()
 
 
 @semester_api.route("/semester/<semester_uuid>", methods=["PATCH"])

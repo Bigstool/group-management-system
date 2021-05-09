@@ -9,6 +9,7 @@ from webargs import fields, validate
 from webargs.flaskparser import parser
 
 from model.Semester import Semester
+from model.Group import Group
 from shared import get_logger, db
 from utility import MyValidator
 from utility.ApiException import *
@@ -60,6 +61,50 @@ def archive_semester():
               type: object
     """
     pass  # TODO
+    #check the role
+    token_info = Auth.get_payload(request)
+    uuid_in_token = token_info['uuid']
+    if not (token_info["role"] == "ADMIN"):
+        raise ApiPermissionException("You have no permission to archive the semester!")
+
+    #rename the current semester
+    args_json = parser.parse({
+        "name": fields.Str(required=True, validate=validate.Length(min=1, max=256))
+    }, request, location="json")
+    new_name: str = args_json["name"]
+
+    # foreign key constrains
+    semester = Semester.query.filter_by(name="CURRENT").first()
+    if new_name:
+        semester.name = new_name
+    semester.end_time = int(time.time())
+
+    #If there is no cascade setting
+    # group_list = Group.query.filter_by(semester_name="CURRENT").all()
+    # for each in group_list:
+    #     each.semester_name = new_name
+
+    #create a new semester
+    args_json = parser.parse({
+        "system_state": fields.Nested({
+                "grouping_ddl": fields.Number(missing=None),
+                "proposal_ddl": fields.Number(missing=None)}, missing=None),
+        "group_member_number": fields.List(fields.Int(), missing=None)
+    }, request, location="json")
+    new_system_state = args_json["system_state"]
+    new_group_member_number = args_json["group_member_number"]
+    new_config = {"system_state": new_system_state, "group_member_number": new_group_member_number}
+
+    new_semester = Semester(uuid=uuid.uuid4().bytes,
+                            name="CURRENT",
+                            start_time=int(time.time()),
+                            end_time=None,
+                            config=new_config)
+    db.session.add(new_semester)
+    db.session.commit()
+    return MyResponse(data=None, msg='query success').build()
+
+
 
 
 @semester_api.route("/semester", methods=["GET"])
@@ -166,6 +211,7 @@ def rename_semester(semester_uuid):
         semester.name = new_name
     db.session.commit()
     return MyResponse(data=None, msg='query success').build()
+
 
 @semester_api.route("/semester/<semester_uuid>", methods=["DELETE"])
 def delete_semester(semester_uuid):

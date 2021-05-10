@@ -263,10 +263,13 @@ def update_user_profile(user_uuid):
                 type: string
                 description: user alias
                 example: Jeff Dean
+                min: 4
+                max: 32
               bio:
                 type: string
                 description: user bio
                 example: I write O(1/n) algorithms
+                max: 4096
 
     responses:
       '200':

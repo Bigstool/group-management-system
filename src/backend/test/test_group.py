@@ -22,7 +22,7 @@ group_list = [
     }
 ]
 
-
+@pytest.fixture(scope="package")
 def test_create_group(test_user_sign_in):
     # User1 create groupA
     r = requests.post(f"{api}/group", headers={
@@ -36,17 +36,37 @@ def test_create_group(test_user_sign_in):
     }, json=group_list[1])
     log_res(logger, r)
     assert r.status_code == 200
+    # User5 create groupC
+    r = requests.post(f"{api}/group", headers={
+        "Authorization": f"Bearer {test_user_sign_in[4]['token_access']}"
+    }, json={
+        "name": "GroupC",
+        "title": "ProjectC",
+        "description": "test group C"
+    })
+    log_res(logger, r)
+    assert r.status_code == 200
+    # User6 create groupD
+    r = requests.post(f"{api}/group", headers={
+        "Authorization": f"Bearer {test_user_sign_in[5]['token_access']}"
+    }, json={
+        "name": "GroupD",
+        "title": "ProjectD",
+        "description": "test group D"
+    })
+    log_res(logger, r)
+    assert r.status_code == 200
 
 
 @pytest.fixture(scope="package")
-def test_get_group_list(test_user_sign_in):
+def test_get_group_list(test_create_group, test_user_sign_in):
     # User1 get
     r = requests.get(f"{api}/group", headers={
         "Authorization": f"Bearer {test_user_sign_in[0]['token_access']}"
     })
     log_res(logger, r)
     assert r.status_code == 200
-    return r.json()["data"]
+    return sorted(r.json()["data"], key=lambda i: i["name"])
 
 
 def test_get_group_info(test_user_sign_in, test_get_group_list):
@@ -108,6 +128,21 @@ def test_add_group_comment(test_user_sign_in, test_admin_sign_in, test_get_group
         "Authorization": f"Bearer {test_admin_sign_in['token_access']}"
     }, json={
         "content": "Admin comment"
+    })
+    log_res(logger, r)
+    assert r.status_code == 200
+
+
+def test_delete_group(test_user_sign_in, test_admin_sign_in, test_get_group_list):
+    # User5 delete GroupC
+    r = requests.delete(f"{api}/group/{test_get_group_list[2]['uuid']}", headers={
+        "Authorization": f"Bearer {test_user_sign_in[4]['token_access']}"
+    })
+    log_res(logger, r)
+    assert r.status_code == 200
+    # Admin delete GroupD
+    r = requests.delete(f"{api}/group/{test_get_group_list[3]['uuid']}", headers={
+        "Authorization": f"Bearer {test_admin_sign_in['token_access']}"
     })
     log_res(logger, r)
     assert r.status_code == 200

@@ -28,3 +28,6 @@ class ApiResourceLockedException(ApiException):
 
 class ApiResourceOperationException(ApiException):
     status_code = 500
+
+class ApiUnimplementedException(ApiException):
+    status_code = 501

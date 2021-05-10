@@ -203,7 +203,7 @@ def get_user_profile(user_uuid):
 
     user_uuid: str = args_query["user_uuid"]
 
-    user = User.query.filter_by(uuid=uuid.UUID(user_uuid).bytes).first()
+    user = User.query.get(uuid.UUID(user_uuid).bytes)
 
     if user is None:
         raise ApiResourceNotFoundException("Not found: invalid user uuid")
@@ -298,7 +298,7 @@ def update_user_profile(user_uuid):
     if (user_uuid != token_info["uuid"] and token_info["role"] != "ADMIN"):
         raise ApiPermissionException('Permission denied: you cannot update other user\'s profile!')
 
-    user = User.query.filter_by(uuid=uuid.UUID(token_info["uuid"]).bytes).first()
+    user = User.query.get(uuid.UUID(token_info["uuid"]).bytes)
 
     if user is None:
         logger.debug(f"Update fail: no such user")

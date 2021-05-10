@@ -215,6 +215,11 @@ def refresh_token():
     user_uuid: str = decoded.get("uuid")
     user_role: str = decoded.get("role")
 
+    # check user
+    user = User.query.filter_by(uuid=uuid.UUID(user_uuid).bytes).first()
+    if not user:
+        raise ApiPermissionException("Permission denied: token revoked")
+
     new_access_token: str = jwt_util.encode_token({
         "uuid": user_uuid,
         "role": user_role,

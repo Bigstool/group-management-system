@@ -82,7 +82,7 @@ def create_group():
             schema:
               type: object
     """
-    # check constrains
+    # check grouping ddl
     system_config = Semester.query.filter_by(name="CURRENT").first().config
     if system_config["system_state"]["grouping_ddl"] < time.time():
         raise ApiPermissionException("Permission denied: Grouping is finished, you cannot create a new group!")
@@ -99,17 +99,14 @@ def create_group():
     proposal: str = args_json["proposal"]
 
     token_info = Auth.get_payload(request)
-    uuid_in_token = token_info['uuid']
 
+    # check operator role
     if token_info["role"] == "ADMIN":
-        raise ApiPermissionException(
-            f"Permission denied: must logged in as USER"
-        )
+        raise ApiPermissionException("Permission denied: must logged in as USER")
 
-    user = User.query.filter_by(uuid=uuid.UUID(uuid_in_token).bytes).first()
-    if user.group_id is not None:
-        raise ApiPermissionException(
-            f'Permission denied: you belong to one group, you cannot create a new group!')
+    user = User.query.filter_by(uuid=uuid.UUID(token_info['uuid']).bytes).first()
+    if user.owned_group is not None or user.joined_group is not None:
+        raise ApiPermissionException(f'Permission denied: you belong to one group, you cannot create a new group!')
 
     # create a new group
     new_group = Group(uuid=uuid.uuid4().bytes,
@@ -117,15 +114,15 @@ def create_group():
                       title=title,
                       description=description,
                       proposal=proposal,
-                      proposal_update_time=int(time.time()) if proposal is not None else None,
+                      proposal_update_time=proposal and int(time.time()),
                       proposal_state='PENDING',
                       creation_time=int(time.time()),
-                      owner_uuid=uuid.UUID(uuid_in_token).bytes)
-    # update User db
-    user.group_id = new_group.uuid
+                      owner_uuid=uuid.UUID(token_info['uuid']).bytes)
 
     db.session.add(new_group)
-    # delete applications
+    db.session.commit()
+
+    # delete all user applications
     for application in GroupApplication.query.filter_by(applicant_uuid=user.uuid).all():
         db.session.delete(application)
     db.session.commit()
@@ -195,32 +192,40 @@ def get_group_list():
                     description: whether this group accept new application
                     example: true
     """
+    args_query = parser.parse({
+        "semester": fields.Str(missing="CURRENT")
+    }, request, location="query")
+    semester_filter: str = args_query["semester"]
+
     token_info = Auth.get_payload(request)
-    uuid_in_token = token_info['uuid']
 
-    data = Group.query.filter_by(semester_name=request.args.get('semester')).all()
+    semester = Semester.query.filter_by(name=semester_filter).first()
 
-    if not data:
-        raise ApiResourceNotFoundException("No record of this semester!")
+    group_list = Group.query.filter(
+        Group.creation_time.between(semester.start_time, semester.end_time or time.time())).all()
 
-    group_list = []
-    for group in data:
-        if GroupFavorite.query.filter_by(group_uuid=group.uuid, user_uuid=uuid.UUID(uuid_in_token).bytes).first():
-            favorite = True
-        else:
-            favorite = False
-        user = User.query.filter_by(uuid=group.owner_uuid).first()
-        group_list.append({"uuid": str(uuid.UUID(bytes=group.uuid)),
-                           "favorite": favorite,
-                           "name": group.name,
-                           "title": group.title,
-                           "description": group.description,
-                           "owner": {"alias": user.alias, "email": user.email},
-                           "creation_time": group.creation_time,
-                           "member_count": group.member_num,
-                           "application_enabled": group.application_enabled})
+    ret = []
+    for group in group_list:
+        favorite = semester.name == "CURRENT" and bool(
+            GroupFavorite.query.filter_by(group_uuid=group.uuid, user_uuid=uuid.UUID(token_info["uuid"]).bytes).first())
 
-    return MyResponse(data=group_list).build()
+        ret.append({
+            "uuid": str(uuid.UUID(bytes=group.uuid)),
+            "favorite": favorite,
+            "name": group.name,
+            "title": group.title,
+            "description": group.description,
+            "owner": {
+                "uuid": str(uuid.UUID(bytes=group.owner_uuid)),
+                "alias": group.owner.alias,
+                "email": group.owner.email
+            },
+            "creation_time": group.creation_time,
+            "member_count": len(group.member),
+            "application_enabled": group.application_enabled
+        })
+
+    return MyResponse(data=ret).build()
 
 
 @group_api.route("/group/<group_uuid>", methods=["GET"])
@@ -355,58 +360,46 @@ def get_group_info(group_uuid):
                   description: group creation time, unix timestamp
                   example: 1617189103
     """
-    args_query = parser.parse({
+    args_path = parser.parse({
         "group_uuid": fields.Str(required=True, validate=MyValidator.Uuid())}, request, location="path")
-    group_uuid: str = args_query["group_uuid"]
+    group_uuid: str = args_path["group_uuid"]
 
-    group = Group.query.filter_by(uuid=uuid.UUID(group_uuid).bytes).first()
+    token_info = Auth.get_payload(request)
+
+    group = Group.query.get(uuid.UUID(group_uuid).bytes)
     if group is None:
         raise ApiResourceNotFoundException('Not found: No such group!')
 
-    # favorite info
-    token_info = Auth.get_payload(request)
-    uuid_in_token = token_info['uuid']
-    favorite_group_list = GroupFavorite.query.filter_by(user_uuid=uuid.UUID(uuid_in_token).bytes).all()
-    favorite = False
-    for fav_group in favorite_group_list:
-        if fav_group.group_uuid == group.uuid:
-            favorite = True
-            break
-
-    # owner info
-    owner = User.query.filter_by(uuid=group.owner_uuid).first()
-
-    # member_list info
-    members = User.query.filter_by(group_id=group.uuid).all()
-    member_list = []
-    for member in members:
-        if member.uuid != owner.uuid:
-            member_list.append(
-                {'uuid': str(uuid.UUID(bytes=member.uuid)), 'alias': member.alias, 'email': member.email})
-
-    # comment info
-    comments = GroupComment.query.filter_by(group_uuid=group.uuid).all()
-    comment_list = []
-    for comment in comments:
-        author = User.query.filter_by(uuid=comment.author_uuid).first()
-        comment_list.append({'content': comment.content,
-                             'author': {'uuid': str(uuid.UUID(bytes=author.uuid)), 'alias': author.alias,
-                                        'email': author.email},
-                             'creation_time': comment.creation_time})
-
     return MyResponse(data={
-        "favorite": favorite,
+        "favorite": bool(GroupFavorite.query.filter_by(user_uuid=str(uuid.UUID(bytes=token_info["uuid"])),
+                                                       group_uuid=group.uuid).first()),
         "name": group.name,
         "title": group.title,
         "description": group.description,
         "proposal": group.proposal,
-        "owner": {'uuid': str(uuid.UUID(bytes=group.owner_uuid)), 'alias': owner.alias, 'email': owner.email},
+        "owner": {
+            'uuid': str(uuid.UUID(bytes=group.owner_uuid)),
+            'alias': group.owner.alias,
+            'email': group.owner.email
+        },
         "proposal_state": group.proposal_state,
         "proposal_update_time": group.proposal_update_time,
         "proposal_late": group.proposal_late,
-        "member": member_list,
+        "member": [{
+            "uuid": str(uuid.UUID(bytes=member.uuid)),
+            "alias": member.alias,
+            "email": member.email
+        } for member in group.member],
         "application_enabled": group.application_enabled,
-        "comment": comment_list,
+        "comment": [{
+            "content": comment.content,
+            "author": {
+                "uuid": str(uuid.UUID(bytes=comment.author.uuid)),
+                "alias": comment.author.alias,
+                "email": comment.author.email
+            },
+            "creation_time": comment.creation_time
+        } for comment in group.comment],
         "creation_time": group.creation_time
     }).build()
 
@@ -424,6 +417,7 @@ def update_group_info(group_uuid):
       * if operator not admin, then name/description/proposal/owner_uuid/application_enabled can be changed if system state is GROUPING/PROPOSING and proposal_state is PENDING
       * owner_uuid must be one of group member uuid
       * refer to late-submission-states.jpg in /docs for proposal_state constrains
+      * group owner cannot change proposal state if proposal has not been set
 
     parameters:
       - name: group_uuid
@@ -445,21 +439,22 @@ def update_group_info(group_uuid):
                 type: string
                 description: new group name
                 example: Jaxzefalk
+                max: 256
               title:
                 type: string
                 description: new group project title
                 example: Group Management System
+                max: 256
               description:
                 type: string
                 description: new group description
                 example: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque a ultricies diam. Donec ultrices tortor non lobortis mattis.
-              owner_uuid:
-                type: string
-                description: new group owner uuid
+                max: 4096
               proposal:
                 type: string
                 description: new group proposal
                 example: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque a ultricies diam. Donec ultrices tortor non lobortis mattis.
+                max: 4096
               proposal_state:
                 type: string
                 description: new state of group submission
@@ -484,40 +479,38 @@ def update_group_info(group_uuid):
         "name": fields.Str(missing=None, validate=validate.Length(min=1, max=256)),
         "title": fields.Str(missing=None, validate=validate.Length(min=1, max=256)),
         "description": fields.Str(missing=None, validate=validate.Length(min=1, max=4096)),
-        "owner_uuid": fields.Str(missing=None, validate=MyValidator.Uuid()),
         "proposal": fields.Str(missing=None, validate=validate.Length(max=4096)),
-        "proposal_state": fields.Str(missing=None, validate=validate.OneOf(
-            ["PENDING", "SUBMITTED", "APPROVED", "REJECT"])),
+        "proposal_state": fields.Str(missing=None,
+                                     validate=validate.OneOf(["PENDING", "SUBMITTED", "APPROVED", "REJECT"])),
         "application_enabled": fields.Boolean(missing=None)
     }, request, location="json")
     group_uuid: str = args_path["group_uuid"]
     new_name: str = args_json["name"]
     new_title: str = args_json["title"]
     new_description: str = args_json["description"]
-    new_owner_uuid: str = args_json["owner_uuid"]
     new_proposal: str = args_json["proposal"]
     new_proposal_state: str = args_json["proposal_state"]
     new_application_enabled: bool = args_json["application_enabled"]
 
-    group = Group.query.filter_by(uuid=uuid.UUID(group_uuid).bytes).first()
+    token_info = Auth.get_payload(request)
+
+    group = Group.query.get(uuid.UUID(group_uuid).bytes)
     if group is None:
         raise ApiResourceNotFoundException("No such group!")
-    system_state = Semester.query.filter_by(name="CURRENT").first().config['system_state']
-    token_info = Auth.get_payload(request)
-    uuid_in_token = token_info['uuid']
-    if not (token_info["role"] == "ADMIN" or uuid_in_token == str(uuid.UUID(bytes=group.owner_uuid))):
-        raise ApiPermissionException("You have no permission to update information of this group!")
-    if uuid_in_token == str(uuid.UUID(bytes=group.owner_uuid)):
+
+    semester = Semester.query.filter_by(name="CURRENT").first()
+
+    if token_info["role"] != "ADMIN" and token_info["uuid"] != str(uuid.UUID(bytes=group.owner_uuid)):
+        raise ApiPermissionException("Permission denied: Not logged in as group owner")
+
+    if token_info["uuid"] == str(uuid.UUID(bytes=group.owner_uuid)):
         # Constrains for the group owner
-        if (time.time() > system_state['proposal_ddl']):
-            raise ApiPermissionException(
-                "Grouping or proposal activity is finished, you cannot change your group information. ")
-        if group.proposal_state == "Approved":
-            raise ApiPermissionException(
-                "Your proposal has been approved. You cannot change group information anymore.")
-        if new_proposal_state == 'Approved':
-            raise ApiPermissionException(
-                "You are not admin and you cannot approve the proposal! ")
+        if time.time() > semester.config["system_state"]['proposal_ddl']:
+            raise ApiPermissionException("Permission denied: Proposal ddl reached")
+        if group.proposal_state == "APPROVED":
+            raise ApiPermissionException("Permission denied: Proposal is APPROVED")
+        if new_proposal_state == 'APPROVED':
+            raise ApiPermissionException("Permission denied: Not logged in as ADMIN")
 
     if new_name is not None:
         group.name = new_name
@@ -525,26 +518,22 @@ def update_group_info(group_uuid):
         group.title = new_title
     if new_description is not None:
         group.description = new_description
-    if new_owner_uuid is not None:
-        new_owner = User.query.filter_by(uuid=uuid.UUID(new_owner_uuid).bytes).first()
-        if new_owner is None:
-            raise ApiInvalidInputException("You might typed in a wrong new_owner, please check and try again!")
-        if new_owner.group_id is None or str(uuid.UUID(bytes=new_owner.group_id)) != group_uuid:
-            raise ApiPermissionException("The new owner of this group should be your group member!")
-        group.owner_uuid = uuid.UUID(new_owner_uuid).bytes
     if new_proposal is not None:
         group.proposal = new_proposal
         group.proposal_update_time = int(time.time())
     if new_proposal_state is not None:
+        # proposal state can be changed only if the proposal is not none
         if group.proposal == None:
-            # This ensures that the proposal state can be changed only if the proposal is not none
-            raise ApiInvalidInputException("You cannot change the proposal state since there isn't any proposal yet.")
-        if group.proposal_state == "PENDING" and new_proposal_state == "SUBMITTED":
-            if time.time() > system_state['proposal_ddl']:
-                group.proposal_late = time.time() - system_state['proposal_ddl']
+            raise ApiInvalidInputException("Invalid input: Proposal empty")
+        # calculate late submission
+        if group.proposal_state == "PENDING" and \
+                new_proposal_state == "SUBMITTED" and \
+                time.time() > semester.config["system_state"]['proposal_ddl']:
+            group.proposal_late = time.time() - semester.config["system_state"]['proposal_ddl']
         group.proposal_state = new_proposal_state
     if new_application_enabled is not None:
         group.application_enabled = new_application_enabled
+
     db.session.commit()
     return MyResponse(data=None, msg='query success').build()
 
@@ -581,30 +570,33 @@ def delete_group(group_uuid):
     args_path = parser.parse({
         "group_uuid": fields.Str(required=True, validate=MyValidator.Uuid())}, request, location="path")
     group_uuid: str = args_path["group_uuid"]
-    group = Group.query.filter_by(uuid=uuid.UUID(group_uuid).bytes).first()
-    if group is None:
-        raise ApiResourceNotFoundException("No such group!")
-    system_state = Semester.query.filter_by(name="CURRENT").first().config['system_state']
+
     token_info = Auth.get_payload(request)
-    uuid_in_token = token_info['uuid']
-    if not (token_info["role"] == "ADMIN" or uuid_in_token == str(uuid.UUID(bytes=group.owner_uuid))):
-        raise ApiPermissionException("You have no permission to delete this group!")
-    if uuid_in_token == str(uuid.UUID(bytes=group.owner_uuid)):
-        # Constrains for the group owner
-        if (time.time() > system_state['grouping_ddl']):
-            raise ApiPermissionException(
-                "Grouping activity is finished, you cannot delete your group. ")
-    group_application = GroupApplication.query.filter_by(group_uuid=uuid.UUID(group_uuid).bytes).all()
-    for application in group_application:
-        db.session.delete(application)
-    group_comment = GroupComment.query.filter_by(group_uuid=uuid.UUID(group_uuid).bytes).all()
-    for comment in group_comment:
-        db.session.delete(comment)
-    group_Favorite = GroupFavorite.query.filter_by(group_uuid=uuid.UUID(group_uuid).bytes).all()
-    for favorite in group_Favorite:
-        db.session.delete(favorite)
+
+    group = Group.query.get(uuid.UUID(group_uuid).bytes)
+    if group is None:
+        raise ApiResourceNotFoundException("Not found: invalid group uuid")
+
+    semester = Semester.query.filter_by(name="CURRENT").first()
+
+    if token_info["role"] != "ADMIN" and token_info["uuid"] != str(uuid.UUID(bytes=group.owner_uuid)):
+        raise ApiPermissionException("Permission denied: must logged in as group owner or ADMIN")
+    if token_info["role"] != "ADMIN" and time.time() > semester.config["system_state"]["grouping_ddl"]:
+        raise ApiPermissionException("Permission denied: grouping ddl reached")
+
+    # Notification for members
+    for member in group.member:
+        new_notification = Notification(uuid=uuid.uuid4().bytes,
+                                        user_uuid=member.uuid,
+                                        title="Group dismissed",
+                                        content=f"Group {group.name} has been dismissed",
+                                        creation_time=int(time.time()))
+        db.session.add(new_notification)
+        db.session.commit()
+
     db.session.delete(group)
     db.session.commit()
+
     return MyResponse(data=None).build()
 
 
@@ -648,31 +640,33 @@ def remove_member(group_uuid, user_uuid):
         "user_uuid": fields.Str(required=True, validate=MyValidator.Uuid())}, request, location="path")
     group_uuid: str = args_path["group_uuid"]
     user_uuid: str = args_path["user_uuid"]
-    group = Group.query.filter_by(uuid=uuid.UUID(group_uuid).bytes).first()
-    user = User.query.filter_by(uuid=uuid.UUID(user_uuid).bytes).first()
-    # Check Identity
+
     token_info = Auth.get_payload(request)
-    uuid_in_token = token_info['uuid']
-    if (uuid_in_token != str(uuid.UUID(bytes=group.owner_uuid)) and uuid_in_token != str(uuid.UUID(bytes=user.uuid))):
-        raise ApiPermissionException("Permission denied: You are not allowed to leave the group/kick the member")
-    user.group_id = None
-    group.member_num = group.member_num - 1
+
+    group = Group.query.get(uuid.UUID(group_uuid).bytes)
+    user = User.query.get(uuid.UUID(user_uuid).bytes)
+
+    # Check Identity
+    if token_info["uuid"] != str(uuid.UUID(bytes=group.owner_uuid)) and token_info["uuid"] != user_uuid:
+        raise ApiPermissionException("Permission denied: Must be the member or group owner")
+
+    user.joined_group_uuid = None
     db.session.commit()
     # Notification for group owner
-    if (uuid_in_token == str(uuid.UUID(bytes=user.uuid))):
+    if (token_info["uuid"] == user_uuid):
         new_notification = Notification(uuid=uuid.uuid4().bytes,
                                         user_uuid=group.owner_uuid,
-                                        title="Member Removed",
-                                        content="Group member " + user.alias + " has left the group",
+                                        title="Member Left",
+                                        content=f"Group member {user.alias} has left the group",
                                         creation_time=int(time.time()))
         db.session.add(new_notification)
         db.session.commit()
     # Notification for group member
-    if (uuid_in_token == str(uuid.UUID(bytes=group.owner_uuid))):
+    if (token_info["uuid"] == str(uuid.UUID(bytes=group.owner_uuid))):
         new_notification = Notification(uuid=uuid.uuid4().bytes,
                                         user_uuid=user.uuid,
-                                        title="Member Removed",
-                                        content="You have been kicked from the group " + group.name,
+                                        title="Removed from group",
+                                        content=f"You have been removed from the group {group.name}",
                                         creation_time=int(time.time()))
         db.session.add(new_notification)
         db.session.commit()
@@ -715,7 +709,7 @@ def merge_group():
             schema:
               type: object
     """
-    pass  # TODO
+    raise ApiUnimplementedException("Unimplemented")  # TODO
 
 
 @group_api.route("/group/<group_uuid>/favorite", methods=["POST"])
@@ -744,19 +738,21 @@ def favorite_group(group_uuid):
             schema:
               type: object
     """
-    args_query = parser.parse({
+    args_path = parser.parse({
         "group_uuid": fields.Str(required=True, validate=MyValidator.Uuid())}, request, location="path")
-    group_uuid: str = args_query["group_uuid"]
+    group_uuid: str = args_path["group_uuid"]
 
     token_info = Auth.get_payload(request)
-    uuid_in_token = token_info['uuid']
 
-    new_favorite = GroupFavorite(uuid=uuid.uuid4().bytes,
-                                 user_uuid=uuid.UUID(uuid_in_token).bytes,
-                                 group_uuid=uuid.UUID(group_uuid).bytes)
+    favorite = GroupFavorite.query.filter_by(user_uuid=uuid.UUID(token_info["uuid"]).bytes, group_uuid=uuid.UUID(group_uuid).bytes)
 
-    db.session.add(new_favorite)
-    db.session.commit()
+    if favorite is None:
+        new_favorite = GroupFavorite(uuid=uuid.uuid4().bytes,
+                                     user_uuid=uuid.UUID(token_info["uuid"]).bytes,
+                                     group_uuid=uuid.UUID(group_uuid).bytes)
+        db.session.add(new_favorite)
+        db.session.commit()
+
     return MyResponse(data=None).build()
 
 
@@ -786,23 +782,17 @@ def undo_favorite_group(group_uuid):
                 schema:
                   type: object
         """
-    token_info = Auth.get_payload(request)
-    uuid_in_token = token_info["uuid"]
 
-    args_query = parser.parse({
+    args_path = parser.parse({
         "group_uuid": fields.Str(required=True, validate=MyValidator.Uuid())}, request, location="path")
-    group_uuid: str = args_query["group_uuid"]
+    group_uuid: str = args_path["group_uuid"]
 
-    favorite_groups_by_user = GroupFavorite.query.filter_by(user_uuid=uuid.UUID(uuid_in_token).bytes).all()
-    undo_group = None
-    for group in favorite_groups_by_user:
-        if group.group_uuid == uuid.UUID(group_uuid).bytes:
-            undo_group = group
-    if undo_group is None:
-        raise ApiResourceNotFoundException("Not found: you cannot undo the favorite to this group!")
+    token_info = Auth.get_payload(request)
 
-    db.session.delete(undo_group)
-    db.session.commit()
+    favorite = GroupFavorite.query.filter_by(user_uuid=uuid.UUID(token_info["uuid"]).bytes, group_uuid=uuid.UUID(group_uuid).bytes)
+    if favorite is not None:
+        db.session.delete(favorite)
+        db.session.commit()
 
     return MyResponse(data=None).build()
 
@@ -848,25 +838,24 @@ def add_comment(group_uuid):
             schema:
               type: object
     """
-    token_info = Auth.get_payload(request)
-    uuid_in_token = token_info['uuid']
-    user = User.query.filter_by(uuid=uuid.UUID(uuid_in_token).bytes).first()
-
-    args_query = parser.parse({
+    args_path = parser.parse({
         "group_uuid": fields.Str(required=True, validate=MyValidator.Uuid())}, request, location="path")
-    group_uuid: str = args_query["group_uuid"]
-
-    if user.group_id != uuid.UUID(group_uuid).bytes and token_info["role"] != "ADMIN":
-        raise ApiPermissionException(
-            "Permission denied: you must be admin, group owner or group member to make a comment")
-
     args_json = parser.parse({
         "content": fields.Str(required=True, validate=validate.Length(min=1, max=4096))}, request, location="json")
+    group_uuid: str = args_path["group_uuid"]
     content: str = args_json["content"]
+
+    token_info = Auth.get_payload(request)
+
+    group = Group.query.get(uuid.UUID(group_uuid).bytes)
+
+    if token_info["role"] != "ADMIN" and \
+            uuid.UUID(token_info["uuid"]).bytes not in [group.owner_uuid] + [member.uuid for member in group.member]:
+        raise ApiPermissionException("Permission denied: you must be admin, group owner or group member to make a comment")
 
     new_comment = GroupComment(uuid=uuid.uuid4().bytes,
                                creation_time=int(time.time()),
-                               author_uuid=user.uuid,
+                               author_uuid=uuid.UUID(token_info["uuid"]).bytes,
                                group_uuid=uuid.UUID(group_uuid).bytes,
                                content=content)
     db.session.add(new_comment)

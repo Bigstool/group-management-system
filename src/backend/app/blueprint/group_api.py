@@ -371,7 +371,7 @@ def get_group_info(group_uuid):
         raise ApiResourceNotFoundException('Not found: No such group!')
 
     return MyResponse(data={
-        "favorite": bool(GroupFavorite.query.filter_by(user_uuid=str(uuid.UUID(bytes=token_info["uuid"])),
+        "favorite": bool(GroupFavorite.query.filter_by(user_uuid=uuid.UUID(token_info["uuid"]).bytes,
                                                        group_uuid=group.uuid).first()),
         "name": group.name,
         "title": group.title,
@@ -389,7 +389,7 @@ def get_group_info(group_uuid):
             "uuid": str(uuid.UUID(bytes=member.uuid)),
             "alias": member.alias,
             "email": member.email
-        } for member in group.member],
+        } for member in (group.member or [])],
         "application_enabled": group.application_enabled,
         "comment": [{
             "content": comment.content,
@@ -399,7 +399,7 @@ def get_group_info(group_uuid):
                 "email": comment.author.email
             },
             "creation_time": comment.creation_time
-        } for comment in group.comment],
+        } for comment in (group.comment or [])],
         "creation_time": group.creation_time
     }).build()
 
@@ -789,7 +789,7 @@ def undo_favorite_group(group_uuid):
 
     token_info = Auth.get_payload(request)
 
-    favorite = GroupFavorite.query.filter_by(user_uuid=uuid.UUID(token_info["uuid"]).bytes, group_uuid=uuid.UUID(group_uuid).bytes)
+    favorite = GroupFavorite.query.filter_by(user_uuid=uuid.UUID(token_info["uuid"]).bytes, group_uuid=uuid.UUID(group_uuid).bytes).first()
     if favorite is not None:
         db.session.delete(favorite)
         db.session.commit()

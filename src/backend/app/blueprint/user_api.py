@@ -1,11 +1,15 @@
+import hashlib
 import hmac
+import random
 import secrets
+import string
 import time
 import uuid
 
 from flask import Blueprint, request
+from marshmallow import Schema
 from webargs import fields, validate
-from webargs.flaskparser import parser
+from webargs.flaskparser import parser, use_args
 
 from model.User import User
 from shared import get_logger, db
@@ -24,8 +28,14 @@ def handle_error(error, req, schema, *, error_status_code, error_headers):
     raise ApiInvalidInputException(error.messages)
 
 
+class UserSchema(Schema):
+    email = fields.Str(required=True, validate=validate.Email())
+    alias = fields.Str(missing=None, validate=validate.Length(min=4, max=32))
+
+
 @user_api.route("/user", methods=["POST"])
-def create_user():
+@use_args(UserSchema(many=True))
+def create_user(args):
     """
     Create a new user
     ---
@@ -42,25 +52,22 @@ def create_user():
       content:
         application/json:
           schema:
-            type: object
-            properties:
-              email:
-                type: string
-                description: user email
-                example: jeff.dean@internet.com
-              alias:
-                type: string
-                min: 4
-                max: 32
-                description: user alias
-                example: Jeff Dean
-              password:
-                type: string
-                description: sha1(password)
-                example: 5F4DCC3B5AA765D61D8327DEB882CF99
-            required:
-              - email
-              - password
+            type: array
+            items:
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: user email
+                  example: jeff.dean@internet.com
+                alias:
+                  type: string
+                  min: 4
+                  max: 32
+                  description: user alias
+                  example: Jeff Dean
+              required:
+                - email
 
     responses:
       '200':
@@ -70,38 +77,47 @@ def create_user():
             schema:
               type: object
     """
-    args_json = parser.parse({
-        "email": fields.Str(required=True, validate=validate.Email()),
-        "alias": fields.Str(missing=None, validate=validate.Length(min=4, max=32)),
-        "password": fields.Str(required=True, validate=MyValidator.Sha1())
-    }, request, location="json")
 
-    email: str = args_json["email"].lower()
-    alias: str = args_json["alias"]
-    password: str = args_json["password"]
-
-    # # limit access to admin only
-    # user_info = Auth.get_payload(request)
-    # if user_info["role"] != "ADMIN":
-    #     raise ApiPermissionException("Permission denied: not logged in as admin")
+    # limit access to admin only
+    user_info = Auth.get_payload(request)
+    if user_info["role"] != "ADMIN":
+        raise ApiPermissionException("Permission denied: not logged in as admin")
 
     # check duplicate email
-    old_user = User.query.filter_by(email=email).first()
-    if old_user is not None:
-        raise ApiDuplicateResourceException(f"Conflict: a user with the email already exists")
+    for user in args:
+        # TODO check input dup
+        old_user = User.query.filter_by(email=user["email"]).first()
+        if old_user is not None:
+            raise ApiDuplicateResourceException(f"Conflict: a user with the email already exists")
 
-    # Generate password
-    password_salt = secrets.token_bytes(16)
-    password_hash = hmac.new(password_salt, bytes.fromhex(password), "sha1").digest()
-    new_user = User(uuid=uuid.uuid4().bytes,
-                    email=email,
-                    alias=alias,
-                    password_salt=password_salt,
-                    password_hash=password_hash,
-                    creation_time=int(time.time()))
-    db.session.add(new_user)
-    db.session.commit()
-    return MyResponse(data=None).build()
+    ret = []
+
+    for user in args:
+        # Generate password
+        password = "".join(random.choice(string.ascii_letters + string.digits) for _ in range(10))
+        password_sha1 = hashlib.sha1(password.encode()).digest()
+        password_salt = secrets.token_bytes(16)
+        password_hash = hmac.new(password_salt, password_sha1, "sha1").digest()
+
+        # create user
+        new_uuid = uuid.uuid4()
+        new_user = User(uuid=new_uuid.bytes,
+                        email=user["email"],
+                        alias=user["alias"],
+                        password_salt=password_salt,
+                        password_hash=password_hash,
+                        creation_time=int(time.time()))
+        db.session.add(new_user)
+        db.session.commit()
+
+        ret.append({
+            "uuid": str(new_uuid),
+            "email": user["email"],
+            "alias": user["alias"],
+            "password": password
+        })
+
+    return MyResponse(data=ret).build()
 
 
 @user_api.route("/user/<user_uuid>", methods=["GET"])
@@ -153,6 +169,10 @@ def get_user_profile(user_uuid):
                       type: string
                       description: group name
                       example: Jaxzefalk
+                    title:
+                      type: string
+                      description: group project title
+                      example: GMS
                     description:
                       type: string
                       description: group description
@@ -168,6 +188,10 @@ def get_user_profile(user_uuid):
                       type: string
                       description: group name
                       example: Jaxzefalk
+                    title:
+                      type: string
+                      description: group project title
+                      example: GMS
                     description:
                       type: string
                       description: group description
@@ -184,33 +208,23 @@ def get_user_profile(user_uuid):
     if user is None:
         raise ApiResourceNotFoundException("Not found: invalid user uuid")
 
-    group = user.group
-
-    if group is None:
-        return MyResponse(data={
-            "alias": user.alias,
-            "email": user.email,
-            "bio": user.bio,
-            "created_group": None,
-            "joined_group": None
-        }).build()
-    elif group.owner_uuid == uuid.UUID(user_uuid).bytes:
-        return MyResponse(data={
-            "alias": user.alias,
-            "email": user.email,
-            "bio": user.bio,
-            "created_group": {"uuid": str(uuid.UUID(bytes=group.uuid)), "name": group.name,
-                              "description": group.description},
-            "joined_group": None
-        }).build()
-    else:
-        return MyResponse(data={
-            "alias": user.alias,
-            "email": user.email,
-            "bio": user.bio,
-            "created_group": None,
-            "joined_group": {"uuid": str(uuid.UUID(bytes=group.uuid)), "name": group.name, "description": group.description}
-        }).build()
+    return MyResponse(data={
+        "alias": user.alias,
+        "email": user.email,
+        "bio": user.bio,
+        "created_group": user.owned_group and {
+            "uuid": str(uuid.UUID(user.owned_group.uuid)),
+            "name": user.owned_group.name,
+            "title": user.owned_group.title,
+            "description": user.owned_group.description
+        },
+        "joined_group": user.owned_group and {
+            "uuid": str(uuid.UUID(user.joined_group.uuid)),
+            "name": user.joined_group.name,
+            "title": user.joined_group.title,
+            "description": user.joined_group.description
+        }
+    }).build()
 
 
 @user_api.route("/user/<user_uuid>", methods=["PATCH"])
@@ -222,7 +236,8 @@ def update_user_profile(user_uuid):
 
     description: |
       ## Constrains
-      * operator must be the user to be modified
+      * if not admin, operator must be the user to be modified
+      * if not admin, email and alias cannot be modified
 
     parameters:
       - name: user_uuid
@@ -240,14 +255,14 @@ def update_user_profile(user_uuid):
           schema:
             type: object
             properties:
-              # email:
-              #   type: string
-              #   description: user email
-              #   example: jeff.dean@internet.com
-              # alias:
-              #   type: string
-              #   description: user alias
-              #   example: Jeff Dean
+              email:
+                type: string
+                description: user email
+                example: jeff.dean@internet.com
+              alias:
+                type: string
+                description: user alias
+                example: Jeff Dean
               bio:
                 type: string
                 description: user bio
@@ -276,25 +291,25 @@ def update_user_profile(user_uuid):
     new_bio: str = args_json["bio"]
 
     token_info = Auth.get_payload(request)
-    uuid_in_token = token_info['uuid']
 
-    if (user_uuid != uuid_in_token):
+    if (user_uuid != token_info["uuid"] and token_info["role"] != "ADMIN"):
         raise ApiPermissionException('Permission denied: you cannot update other user\'s profile!')
 
-    user = User.query.filter_by(uuid=uuid.UUID(uuid_in_token).bytes).first()
+    user = User.query.filter_by(uuid=uuid.UUID(token_info["uuid"]).bytes).first()
 
     if user is None:
         logger.debug(f"Update fail: no such user")
         raise ApiPermissionException("Permission denied: invalid credential")
 
+    if token_info["role"] != "ADMIN" and (new_email is not None or new_alias is not None):
+        raise ApiPermissionException("Permission denied: only admin can change email or alias")
+
+    if new_email is not None:
+        user.email = new_email
+    if new_alias is not None:
+        user.alias = new_alias
     if new_bio is not None:
         user.bio = new_bio
-
-    if user.role=="ADMIN":
-        if new_email is not None:
-            user.email = new_email
-        if new_alias is not None:
-            user.alias = new_alias
 
     db.session.commit()
 

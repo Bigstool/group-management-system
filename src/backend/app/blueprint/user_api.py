@@ -75,7 +75,22 @@ def create_user(args):
         content:
           application/json:
             schema:
-              type: object
+              type: array
+              item:
+                type: object
+                properties:
+                  uuid:
+                    type: string
+                    example: 16fc2db7-cac0-46c2-a0e3-2da6cec54abb
+                  email:
+                    type: string
+                    example: test@local.com
+                  alias:
+                    type: string
+                    example: Jeff
+                  password:
+                    type: string
+                    example: J89Ybnq23
     """
 
     # limit access to admin only

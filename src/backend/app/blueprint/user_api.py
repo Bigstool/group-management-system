@@ -213,13 +213,13 @@ def get_user_profile(user_uuid):
         "email": user.email,
         "bio": user.bio,
         "created_group": user.owned_group and {
-            "uuid": str(uuid.UUID(user.owned_group.uuid)),
+            "uuid": str(uuid.UUID(bytes=user.owned_group.uuid)),
             "name": user.owned_group.name,
             "title": user.owned_group.title,
             "description": user.owned_group.description
         },
         "joined_group": user.owned_group and {
-            "uuid": str(uuid.UUID(user.joined_group.uuid)),
+            "uuid": str(uuid.UUID(bytes=user.joined_group.uuid)),
             "name": user.joined_group.name,
             "title": user.joined_group.title,
             "description": user.joined_group.description

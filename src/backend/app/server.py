@@ -136,135 +136,136 @@ with app.app_context():
         db.session.add(semester)
         db.session.commit()
 
-        # Insert dummy data TODO!!! remove block in prod env
-        # ----------------------
-        # Groups
-        # - Group A with name, title, description, proposal and some comments
-        # - Group B with name, title, description and proposal
-        #
-        # Users
-        # - User 1: a group owner of group A
-        # - User 2: a member of group A
-        # - User 3: a group owner of group B
-        # - User 4: a member of group B
-        # - User 5: a student that does not belong to any group
-        # - User 6: a student that does not belong to any group
+        if os.getenv("ENV", "DEV") == "PROD":
+            # Insert dummy data TODO!!! remove block in prod env
+            # ----------------------
+            # Groups
+            # - Group A with name, title, description, proposal and some comments
+            # - Group B with name, title, description and proposal
+            #
+            # Users
+            # - User 1: a group owner of group A
+            # - User 2: a member of group A
+            # - User 3: a group owner of group B
+            # - User 4: a member of group B
+            # - User 5: a student that does not belong to any group
+            # - User 6: a student that does not belong to any group
 
-        groupA_uuid = uuid.uuid4().bytes
-        groupB_uuid = uuid.uuid4().bytes
-        user1_uuid = uuid.uuid4().bytes
-        user2_uuid = uuid.uuid4().bytes
-        user3_uuid = uuid.uuid4().bytes
-        user4_uuid = uuid.uuid4().bytes
-        user5_uuid = uuid.uuid4().bytes
-        user6_uuid = uuid.uuid4().bytes
+            groupA_uuid = uuid.uuid4().bytes
+            groupB_uuid = uuid.uuid4().bytes
+            user1_uuid = uuid.uuid4().bytes
+            user2_uuid = uuid.uuid4().bytes
+            user3_uuid = uuid.uuid4().bytes
+            user4_uuid = uuid.uuid4().bytes
+            user5_uuid = uuid.uuid4().bytes
+            user6_uuid = uuid.uuid4().bytes
 
-        password = "password"
-        import hashlib
+            password = "password"
+            import hashlib
 
-        password_sha1 = hashlib.sha1(password.encode()).digest()
-        password_salt = secrets.token_bytes(16)
-        password_hash = hmac.new(password_salt, password_sha1, "sha1").digest()
+            password_sha1 = hashlib.sha1(password.encode()).digest()
+            password_salt = secrets.token_bytes(16)
+            password_hash = hmac.new(password_salt, password_sha1, "sha1").digest()
 
-        user_1 = User(uuid=user1_uuid,
-                      creation_time=time.time(),
-                      email="user1@test.com",
-                      alias='Dolores Britton',
-                      password_salt=password_salt,
-                      password_hash=password_hash,
-                      role="USER",
-                      bio="During my own Google interview, I was asked the implications if P=NP were true. I said, \"P = 0 or N = 1\". Then, before the interviewer had even finished laughing, I examined Google's public certificate and wrote the private key on the whiteboard.",
-                      )
-        db.session.add(user_1)
-        user_2 = User(uuid=user2_uuid,
-                      creation_time=time.time(),
-                      email="user2@test.com",
-                      alias='Ciara Philip',
-                      password_salt=password_salt,
-                      password_hash=password_hash,
-                      role="USER",
-                      bio="Compilers don't warn me. I warn compilers."
-                      )
-        db.session.add(user_2)
-        user_3 = User(uuid=user3_uuid,
-                      creation_time=time.time(),
-                      email="user3@test.com",
-                      alias='Imaani Person',
-                      password_salt=password_salt,
-                      password_hash=password_hash,
-                      role="USER",
-                      bio="The rate at which I produce code jumped by a factor of 40 in late 2000 when I upgraded my keyboard to USB 2.0."
-                      )
-        db.session.add(user_3)
-        user_4 = User(uuid=user4_uuid,
-                      creation_time=time.time(),
-                      email="user4@test.com",
-                      alias='Chandni Gonzalez',
-                      password_salt=password_salt,
-                      password_hash=password_hash,
-                      role="USER",
-                      bio="I build my code before committing it, but only to check for compiler and linker bugs."
-                      )
-        db.session.add(user_4)
-        user_5 = User(uuid=user5_uuid,
-                      creation_time=time.time(),
-                      email="user5@test.com",
-                      alias='Kurtis Peck',
-                      password_salt=password_salt,
-                      password_hash=password_hash,
-                      role="USER",
-                      bio="When I has an ergonomic evaluation, it is for the protection of his keyboard.",
-                      )
-        db.session.add(user_5)
-        user_6 = User(uuid=user6_uuid,
-                      creation_time=time.time(),
-                      email="user6@test.com",
-                      alias='Layla-Mae Dudley',
-                      password_salt=password_salt,
-                      password_hash=password_hash,
-                      role="USER",
-                      bio="gcc -O4 emails your code to me for a rewrite."
-                      )
-        db.session.add(user_6)
-        db.session.commit()
+            user_1 = User(uuid=user1_uuid,
+                          creation_time=time.time(),
+                          email="user1@test.com",
+                          alias='Dolores Britton',
+                          password_salt=password_salt,
+                          password_hash=password_hash,
+                          role="USER",
+                          bio="During my own Google interview, I was asked the implications if P=NP were true. I said, \"P = 0 or N = 1\". Then, before the interviewer had even finished laughing, I examined Google's public certificate and wrote the private key on the whiteboard.",
+                          )
+            db.session.add(user_1)
+            user_2 = User(uuid=user2_uuid,
+                          creation_time=time.time(),
+                          email="user2@test.com",
+                          alias='Ciara Philip',
+                          password_salt=password_salt,
+                          password_hash=password_hash,
+                          role="USER",
+                          bio="Compilers don't warn me. I warn compilers."
+                          )
+            db.session.add(user_2)
+            user_3 = User(uuid=user3_uuid,
+                          creation_time=time.time(),
+                          email="user3@test.com",
+                          alias='Imaani Person',
+                          password_salt=password_salt,
+                          password_hash=password_hash,
+                          role="USER",
+                          bio="The rate at which I produce code jumped by a factor of 40 in late 2000 when I upgraded my keyboard to USB 2.0."
+                          )
+            db.session.add(user_3)
+            user_4 = User(uuid=user4_uuid,
+                          creation_time=time.time(),
+                          email="user4@test.com",
+                          alias='Chandni Gonzalez',
+                          password_salt=password_salt,
+                          password_hash=password_hash,
+                          role="USER",
+                          bio="I build my code before committing it, but only to check for compiler and linker bugs."
+                          )
+            db.session.add(user_4)
+            user_5 = User(uuid=user5_uuid,
+                          creation_time=time.time(),
+                          email="user5@test.com",
+                          alias='Kurtis Peck',
+                          password_salt=password_salt,
+                          password_hash=password_hash,
+                          role="USER",
+                          bio="When I has an ergonomic evaluation, it is for the protection of his keyboard.",
+                          )
+            db.session.add(user_5)
+            user_6 = User(uuid=user6_uuid,
+                          creation_time=time.time(),
+                          email="user6@test.com",
+                          alias='Layla-Mae Dudley',
+                          password_salt=password_salt,
+                          password_hash=password_hash,
+                          role="USER",
+                          bio="gcc -O4 emails your code to me for a rewrite."
+                          )
+            db.session.add(user_6)
+            db.session.commit()
 
-        group_A = Group(uuid=groupA_uuid,
-                        creation_time=time.time(),
-                        name="Team Yellow",
-                        title="IoT Teapot",
-                        description="Implement a teapot that gives status code 418.",
-                        proposal="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas placerat urna eu risus dignissim sagittis. Quisque lobortis, lacus sed bibendum blandit, erat nisi ornare mauris, ut euismod nibh elit in est. Curabitur suscipit nisi enim, quis vehicula nulla ornare et. Duis felis dolor, tempus nec odio a, facilisis maximus orci. Vivamus imperdiet mi vel interdum accumsan. Phasellus fringilla ut nulla at malesuada. Phasellus tristique finibus interdum. Phasellus eu hendrerit erat. Ut mauris sem, posuere non tincidunt eget, fringilla id justo.",
-                        proposal_state="PENDING",
-                        owner_uuid=user1_uuid
-                        )
-        db.session.add(group_A)
-        group_B = Group(uuid=groupB_uuid,
-                        creation_time=time.time(),
-                        name="Team Blue",
-                        title="IoT Coffee Machine",
-                        description="Implement a coffee machine that does not give status code 418.",
-                        proposal="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas placerat urna eu risus dignissim sagittis. Quisque lobortis, lacus sed bibendum blandit, erat nisi ornare mauris, ut euismod nibh elit in est. Curabitur suscipit nisi enim, quis vehicula nulla ornare et. Duis felis dolor, tempus nec odio a, facilisis maximus orci. Vivamus imperdiet mi vel interdum accumsan. Phasellus fringilla ut nulla at malesuada. Phasellus tristique finibus interdum. Phasellus eu hendrerit erat. Ut mauris sem, posuere non tincidunt eget, fringilla id justo.",
-                        proposal_state="PENDING",
-                        owner_uuid=user3_uuid
-                        )
-        db.session.add(group_B)
+            group_A = Group(uuid=groupA_uuid,
+                            creation_time=time.time(),
+                            name="Team Yellow",
+                            title="IoT Teapot",
+                            description="Implement a teapot that gives status code 418.",
+                            proposal="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas placerat urna eu risus dignissim sagittis. Quisque lobortis, lacus sed bibendum blandit, erat nisi ornare mauris, ut euismod nibh elit in est. Curabitur suscipit nisi enim, quis vehicula nulla ornare et. Duis felis dolor, tempus nec odio a, facilisis maximus orci. Vivamus imperdiet mi vel interdum accumsan. Phasellus fringilla ut nulla at malesuada. Phasellus tristique finibus interdum. Phasellus eu hendrerit erat. Ut mauris sem, posuere non tincidunt eget, fringilla id justo.",
+                            proposal_state="PENDING",
+                            owner_uuid=user1_uuid
+                            )
+            db.session.add(group_A)
+            group_B = Group(uuid=groupB_uuid,
+                            creation_time=time.time(),
+                            name="Team Blue",
+                            title="IoT Coffee Machine",
+                            description="Implement a coffee machine that does not give status code 418.",
+                            proposal="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas placerat urna eu risus dignissim sagittis. Quisque lobortis, lacus sed bibendum blandit, erat nisi ornare mauris, ut euismod nibh elit in est. Curabitur suscipit nisi enim, quis vehicula nulla ornare et. Duis felis dolor, tempus nec odio a, facilisis maximus orci. Vivamus imperdiet mi vel interdum accumsan. Phasellus fringilla ut nulla at malesuada. Phasellus tristique finibus interdum. Phasellus eu hendrerit erat. Ut mauris sem, posuere non tincidunt eget, fringilla id justo.",
+                            proposal_state="PENDING",
+                            owner_uuid=user3_uuid
+                            )
+            db.session.add(group_B)
 
-        db.session.commit()
+            db.session.commit()
 
-        group_A.member.append(user_2)
-        group_B.member.append(user_4)
+            group_A.member.append(user_2)
+            group_B.member.append(user_4)
 
-        db.session.commit()
+            db.session.commit()
 
-        comment1 = GroupComment(
-            uuid=uuid.uuid4().bytes,
-            creation_time=time.time(),
-            author_uuid=user1_uuid,
-            group_uuid=groupA_uuid,
-            content="This is very good proposal!"
-        )
-        db.session.add(comment1)
-        db.session.commit()
+            comment1 = GroupComment(
+                uuid=uuid.uuid4().bytes,
+                creation_time=time.time(),
+                author_uuid=user1_uuid,
+                group_uuid=groupA_uuid,
+                content="This is very good proposal!"
+            )
+            db.session.add(comment1)
+            db.session.commit()
 
 # Swagger docs
 swagger_config = {

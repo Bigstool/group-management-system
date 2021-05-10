@@ -26,5 +26,7 @@ class Group(db.Model):
 
     comment = db.relationship("GroupComment", uselist=False, back_populates="group")
 
+    favorite = db.relationship("GroupFavorite", uselist=False, back_populates="group")
+
     def __repr__(self):
         return f"<Group {self.uuid.hex()}: {self.name}>"

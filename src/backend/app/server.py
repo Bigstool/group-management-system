@@ -54,6 +54,7 @@ def after_request(response):
 # Exception handler
 @app.errorhandler(ApiException)  # controlled exception
 def err_handler(e):
+    db.session.rollback()
     return MyResponse(status_code=e.status_code,
                       msg=str(e)).build()
 

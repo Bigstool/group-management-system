@@ -8,6 +8,7 @@ import uuid
 
 from flask import Blueprint, request
 from marshmallow import Schema
+from sqlalchemy import and_
 from webargs import fields, validate
 from webargs.flaskparser import parser, use_args
 
@@ -99,12 +100,18 @@ def create_user(args):
     if user_info["role"] != "ADMIN":
         raise ApiPermissionException("Permission denied: not logged in as admin")
 
+    semester = Semester.query.filter_by(name="CURRENT").first()
+
     # check duplicate email
+    checked = []
     for user in args:
-        # TODO check input dup, support same email across semester
-        old_user = User.query.filter_by(email=user["email"]).first()
+        old_user = User.query.filter(and_(User.email == user["email"], User.creation_time >= semester.start_time)).first()
         if old_user is not None:
-            raise ApiDuplicateResourceException(f"Conflict: a user with the email already exists")
+            raise ApiDuplicateResourceException(f"Conflict: a user with the email already exists in current semester")
+        # check input dup
+        if user["email"] in checked:
+            raise ApiInvalidInputException(f"Invalid input: {user['email']} duplicate")
+        checked.append(user["email"])
 
     ret = []
 

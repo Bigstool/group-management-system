@@ -15,14 +15,14 @@ class User(db.Model):
     role: str = db.Column(db.String(256), default="USER", nullable=False)
 
     # rel
-    owned_group: 'Group' = db.relationship("Group", uselist=False, back_populates="owner", foreign_keys="Group.owner_uuid")
+    owned_group: 'Group' = db.relationship("Group", back_populates="owner", uselist=False, foreign_keys="Group.owner_uuid")
 
     joined_group_uuid: bytes = db.Column(db.BINARY(16), db.ForeignKey("group.uuid", ondelete="SET NULL", onupdate="CASCADE", use_alter=True))   # FK
-    joined_group: 'Group' = db.relationship("Group", back_populates="member", foreign_keys=[joined_group_uuid])
+    joined_group: 'Group' = db.relationship("Group", back_populates="member", uselist=False, foreign_keys=[joined_group_uuid])
 
-    application = db.relationship("GroupApplication", uselist=False, back_populates="applicant")
+    application = db.relationship("GroupApplication", back_populates="applicant", uselist=True)
 
-    comment = db.relationship("GroupComment", uselist=False, back_populates="author")
+    comment = db.relationship("GroupComment", back_populates="author", uselist=True)
 
     def __repr__(self):
         return f"<User {self.uuid.hex()}: {self.email}>"

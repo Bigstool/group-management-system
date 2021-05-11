@@ -131,4 +131,6 @@ def patch_sys_config():
     flag_modified(record, "config")
     db.session.commit()
 
+    # TODO set DDL triggered task
+
     return MyResponse().build()

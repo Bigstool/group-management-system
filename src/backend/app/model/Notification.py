@@ -11,7 +11,7 @@ class Notification(db.Model):
     content: str = db.Column(db.String(4096))
 
     # rel
-    user_uuid: bytes = db.Column(db.BINARY(16), db.ForeignKey("user.uuid"))
+    user_uuid: bytes = db.Column(db.BINARY(16), db.ForeignKey("user.uuid", ondelete="CASCADE", onupdate="CASCADE"))
 
 
     def __repr__(self):

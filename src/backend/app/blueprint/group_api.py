@@ -651,24 +651,31 @@ def remove_member(group_uuid, user_uuid):
         raise ApiPermissionException("Permission denied: Must be the member or group owner")
 
     user.joined_group_uuid = None
-    # Notification for group owner
-    if (token_info["uuid"] == user_uuid):
-        new_notification = Notification(uuid=uuid.uuid4().bytes,
-                                        user_uuid=group.owner_uuid,
-                                        title="Member Left",
-                                        content=f"Group member {user.alias} has left the group",
-                                        creation_time=int(time.time()))
-        db.session.add(new_notification)
 
-    # Notification for group member
-    if (token_info["uuid"] == str(uuid.UUID(bytes=group.owner_uuid))):
-        new_notification = Notification(uuid=uuid.uuid4().bytes,
-                                        user_uuid=user.uuid,
-                                        title="Removed from group",
-                                        content=f"You have been removed from the group {group.name}",
-                                        creation_time=int(time.time()))
-        db.session.add(new_notification)
-        db.session.commit()
+    if (token_info["uuid"] == user_uuid):
+        # Notify the group owner and other member
+        for receiver in [group.owner_uuid] + [member.uuid for member in group.member if member.uuid != user.uuid]:
+            db.session.add(Notification(uuid=uuid.uuid4().bytes,
+                                        user_uuid=receiver.uuid,
+                                        title="Member Left",
+                                        content=f"Group member {user.alias} has left the group {group.name}",
+                                        creation_time=int(time.time())))
+    else:
+        # Notify the removed member
+        db.session.add(Notification(uuid=uuid.uuid4().bytes,
+                                    user_uuid=user.uuid,
+                                    title="Removed From Group",
+                                    content=f"You have been removed from the group {group.name}",
+                                    creation_time=int(time.time())))
+        # Notify other member
+        for receiver in [member.uuid for member in group.member if member.uuid != user.uuid]:
+            db.session.add(Notification(uuid=uuid.uuid4().bytes,
+                                        user_uuid=receiver.uuid,
+                                        title="Member Removed",
+                                        content=f"{user.alias} has been removed from the group {group.name}",
+                                        creation_time=int(time.time())))
+
+    db.session.commit()
     return MyResponse().build()
 
 

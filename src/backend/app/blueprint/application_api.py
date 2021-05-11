@@ -346,17 +346,21 @@ def accept_application():
     # Add applicant to group
     applicant = User.query.get(application.applicant_uuid)
     applicant.joined_group_uuid = group.uuid
-    # Remove application
-    db.session.delete(application)
-    # Remove user's other application
-    # TODO
-    # Create Notification
-    new_notification = Notification(uuid=uuid.uuid4().bytes,
-                                    user_uuid=application.applicant.uuid,
-                                    title="Application",
-                                    content="Your application to group " + group.name + " has been approved",
-                                    creation_time=int(time.time()))
-    db.session.add(new_notification)
+    # Remove all user's application
+    GroupApplication.query.filter_by(applicant_uuid=applicant.uuid).delete()
+    # Notify applicant
+    db.session.add(Notification(uuid=uuid.uuid4().bytes,
+                                user_uuid=application.applicant.uuid,
+                                title="Application",
+                                content=f"Your application to group {group.name} has been approved",
+                                creation_time=int(time.time())))
+    # Notify group owner
+    for member in group.member:
+        db.session.add(Notification(uuid=uuid.uuid4().bytes,
+                                    user_uuid=member.uuid,
+                                    title="New member",
+                                    content=f"{applicant.alias} has joined group {group.name}",
+                                    creation_time=int(time.time())))
     db.session.commit()
     return MyResponse().build()
 

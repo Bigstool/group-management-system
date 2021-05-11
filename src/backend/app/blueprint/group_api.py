@@ -962,3 +962,127 @@ def add_comment(group_uuid):
     db.session.commit()
 
     return MyResponse().build()
+
+
+@group_api.route("/group/assigned", methods=["POST"])
+def assign_group():
+    """
+    Create a new group and assign member
+    ---
+    tags:
+      - group
+
+    description: |
+      ## Constrains
+      * operator must be admin
+      * member must has no previous joined group or created group
+
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                description: group name
+                example: Jaxzefalk
+                max: 256
+              title:
+                type: string
+                description: group project title
+                example: Group Management System
+                max: 256
+              description:
+                type: string
+                max: 4096
+                description: group description
+                example: Developing a group management system for CPT202
+              owner_uuid:
+                type: string
+                description: user uuid
+                example: 16fc2db7-cac0-46c2-a0e3-2da6cec54abb
+              member_uuid:
+                type: array
+                items:
+                  type: string
+                  description: user uuid
+                  example: 16fc2db7-cac0-46c2-a0e3-2da6cec54abb
+            required:
+              - name
+              - title
+              - description
+              - owner_uuid
+
+    responses:
+      '200':
+        description: query success
+        content:
+          application/json:
+            schema:
+              type: object
+    """
+    args_json = parser.parse({
+        "name": fields.Str(required=True, validate=validate.Length(min=1, max=256)),
+        "title": fields.Str(required=True, validate=validate.Length(min=1, max=256)),
+        "description": fields.Str(required=True, validate=validate.Length(min=1, max=4096)),
+        "owner_uuid": fields.Str(required=True, validate=MyValidator.Uuid()),
+        "member_uuid": fields.List(fields.Str(validate=MyValidator.Uuid()))
+    }, request, location="json")
+    name: str = args_json["name"]
+    title: str = args_json["title"]
+    description: str = args_json["description"]
+    owner_uuid: str = args_json["owner_uuid"]
+    member_uuid: list = args_json["member_uuid"]
+
+    token_info = Auth.get_payload(request)
+
+    # check operator role
+    if token_info["role"] != "ADMIN":
+        raise ApiPermissionException("Permission denied: must logged in as ADMIN")
+
+    # create a new group
+    owner: User = User.query.get(uuid.UUID(owner_uuid).bytes)
+    if owner is None:
+        raise ApiResourceNotFoundException("Not found: invalid owner_uuid")
+    if owner.joined_group or owner.owned_group:
+        raise ApiInvalidInputException("Invalid input: specified owner already has joined group or created group")
+
+    new_group_uuid = uuid.uuid4().bytes
+    db.session.add(Group(uuid=new_group_uuid,
+                      name=name,
+                      title=title,
+                      description=description,
+                      proposal_state='PENDING',
+                      creation_time=int(time.time()),
+                      owner_uuid=owner.uuid))
+    # Notify user
+    db.session.add(Notification(
+        uuid=uuid.uuid4().bytes,
+        user_uuid=owner.uuid,
+        title="New group",
+        content=f"You have been designated as owner of group {name}",
+        creation_time=int(time.time())
+    ))
+
+    # add members
+    for user_uuid in member_uuid:
+        user = User.query.get(uuid.UUID(user_uuid).bytes)
+        if user is None:
+            raise ApiResourceNotFoundException(f"Not found: member uuid {user_uuid} is invalid")
+
+        user.joined_group_uuid = new_group_uuid
+        # delete all user applications
+        GroupApplication.query.filter_by(applicant_uuid=user.uuid).delete()
+        # Notify user
+        db.session.add(Notification(
+            uuid=uuid.uuid4().bytes,
+            user_uuid=user.uuid,
+            title="New group",
+            content=f"You have been assigned to group {name}",
+            creation_time=int(time.time())
+        ))
+
+    db.session.commit()
+    return MyResponse().build()

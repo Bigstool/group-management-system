@@ -123,8 +123,6 @@ def create_user(args):
                         password_hash=password_hash,
                         creation_time=int(time.time()))
         db.session.add(new_user)
-        db.session.commit()
-
         ret.append({
             "uuid": str(new_uuid),
             "email": user["email"],
@@ -132,6 +130,7 @@ def create_user(args):
             "password": password
         })
 
+    db.session.commit()
     return MyResponse(data=ret).build()
 
 

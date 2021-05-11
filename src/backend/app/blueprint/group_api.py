@@ -120,7 +120,6 @@ def create_group():
                       owner_uuid=uuid.UUID(token_info['uuid']).bytes)
 
     db.session.add(new_group)
-    db.session.commit()
 
     # delete all user applications
     for application in GroupApplication.query.filter_by(applicant_uuid=user.uuid).all():
@@ -592,7 +591,6 @@ def delete_group(group_uuid):
                                         content=f"Group {group.name} has been dismissed",
                                         creation_time=int(time.time()))
         db.session.add(new_notification)
-        db.session.commit()
 
     db.session.delete(group)
     db.session.commit()
@@ -651,7 +649,6 @@ def remove_member(group_uuid, user_uuid):
         raise ApiPermissionException("Permission denied: Must be the member or group owner")
 
     user.joined_group_uuid = None
-    db.session.commit()
     # Notification for group owner
     if (token_info["uuid"] == user_uuid):
         new_notification = Notification(uuid=uuid.uuid4().bytes,
@@ -660,7 +657,7 @@ def remove_member(group_uuid, user_uuid):
                                         content=f"Group member {user.alias} has left the group",
                                         creation_time=int(time.time()))
         db.session.add(new_notification)
-        db.session.commit()
+
     # Notification for group member
     if (token_info["uuid"] == str(uuid.UUID(bytes=group.owner_uuid))):
         new_notification = Notification(uuid=uuid.uuid4().bytes,

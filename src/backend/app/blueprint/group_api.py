@@ -546,6 +546,88 @@ def update_group_info(group_uuid):
     return MyResponse().build()
 
 
+@group_api.route("/group/<group_uuid>/owner", methods=["PATCH"])
+def transfer_group_ownership(group_uuid):
+    """
+    Transfer ownership of the group
+    ---
+    tags:
+      - group
+
+    description: |
+      ## Constrains
+      * operator must be group owner / admin
+      * new owner must be one of the group member
+
+    parameters:
+      - name: group_uuid
+        in: path
+        required: true
+        description: group uuid
+        schema:
+          type: string
+          example: 16fc2db7-cac0-46c2-a0e3-2da6cec54abb
+
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              owner_uuid:
+                type: string
+                description: uuid of the new group owner
+                example: 16fc2db7-cac0-46c2-a0e3-2da6cec54abb
+
+    responses:
+      '200':
+        description: query success
+        content:
+          application/json:
+            schema:
+              type: object
+    """
+    args_path = parser.parse({
+        "group_uuid": fields.Str(required=True, validate=MyValidator.Uuid())}, request, location="path")
+    args_json = parser.parse({
+        "owner_uuid": fields.Str(required=True, validate=MyValidator.Uuid())
+    }, request, location="json")
+    group_uuid: str = args_path["group_uuid"]
+    new_owner_uuid: str = args_json["owner_uuid"]
+
+    token_info = Auth.get_payload(request)
+
+    group = Group.query.get(uuid.UUID(group_uuid).bytes)
+
+    if group is None:
+        raise ApiResourceNotFoundException("Not found: invalid group uuid")
+
+    if token_info["role"] != "ADMIN" and token_info["uuid"] != str(uuid.UUID(bytes=group.owner_uuid)):
+        raise ApiPermissionException("Permission denied: must log in as group owner")
+
+    new_owner = next((member for member in group.member if member.uuid == uuid.UUID(new_owner_uuid).bytes), None)
+    if not new_owner:
+        raise ApiInvalidInputException("Invalid input: new owner must be member of group")
+
+    # Transfer owner
+    old_owner: User = User.query.get(group.owner_uuid)
+    old_owner.joined_group_uuid = group.uuid
+    group.owner_uuid = new_owner.uuid
+
+    # Notify members
+    for receiver in group.member:
+        db.session.add(Notification(uuid=uuid.uuid4().bytes,
+                                    user_uuid=receiver.uuid,
+                                    title="Group Owner Changed",
+                                    content=f"{new_owner.alias} has become the owner of group {group.name}",
+                                    creation_time=int(time.time())))
+
+    db.session.commit()
+
+    return MyResponse().build()
+
+
 @group_api.route("/group/<group_uuid>", methods=["DELETE"])
 def delete_group(group_uuid):
     """Delete a group

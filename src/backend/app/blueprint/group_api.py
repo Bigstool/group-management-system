@@ -82,11 +82,6 @@ def create_group():
             schema:
               type: object
     """
-    # check grouping ddl
-    system_config = Semester.query.filter_by(name="CURRENT").first().config
-    if system_config["system_state"]["grouping_ddl"] < time.time():
-        raise ApiPermissionException("Permission denied: Grouping is finished, you cannot create a new group!")
-
     args_json = parser.parse({
         "name": fields.Str(required=True, validate=validate.Length(min=1, max=256)),
         "title": fields.Str(required=True, validate=validate.Length(min=1, max=256)),
@@ -99,6 +94,11 @@ def create_group():
     proposal: str = args_json["proposal"]
 
     token_info = Auth.get_payload(request)
+
+    # check grouping ddl
+    system_config = Semester.query.filter_by(name="CURRENT").first().config
+    if system_config["system_state"]["grouping_ddl"] < time.time():
+        raise ApiPermissionException("Permission denied: Grouping is finished, you cannot create a new group!")
 
     # check operator role
     if token_info["role"] == "ADMIN":

@@ -131,4 +131,4 @@ def patch_sys_config():
     flag_modified(record, "config")
     db.session.commit()
 
-    return MyResponse(data=None, msg='query success').build()
+    return MyResponse().build()

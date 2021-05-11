@@ -88,4 +88,4 @@ def get_user_notification(user_uuid):
             "creation_time": notification.creation_time,
             "uuid": str(uuid.UUID(bytes=notification.uuid))
         })
-    return MyResponse(data=ret, msg='query success').build()
+    return MyResponse(data=ret).build()

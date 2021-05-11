@@ -1,3 +1,4 @@
+import time
 from logging import Logger
 from pprint import pformat
 import base64
@@ -441,3 +442,76 @@ def test_get_notification(test_user_sign_in, test_accept_application, test_rejec
                          })
         log_res(r)
         assert r.status_code == 200
+
+
+# Test System API
+
+def test_modify_sysconfig(test_admin_sign_in):
+    r = requests.patch(f"{api}/sysconfig",
+                       headers={
+                           "Authorization": f"Bearer {test_admin_sign_in['token_access']}"
+                       },
+                       json={
+                           "group_member_number": [7, 9],
+                           "system_state": {
+                               "proposal_ddl": int(time.time())
+                           }
+                       })
+    log_res(r)
+    assert r.status_code == 200
+
+
+def test_get_sysconfig(test_user_sign_in):
+    r = requests.get(f"{api}/sysconfig",
+                     headers={
+                         "Authorization": f"Bearer {test_user_sign_in[0]['token_access']}"
+                     })
+    log_res(r)
+    assert r.status_code == 200
+
+
+# Test Semester API
+
+@pytest.fixture(scope="package")
+def test_archive_semester(test_admin_sign_in):
+    r = requests.post(f"{api}/semester/archived",
+                      headers={
+                          "Authorization": f"Bearer {test_admin_sign_in['token_access']}"
+                      },
+                      json={
+                          "name": "test_archived"
+                      })
+    log_res(r)
+    assert r.status_code == 200
+
+
+@pytest.fixture(scope="package")
+def test_get_semester_list(test_archive_semester, test_user_sign_in):
+    r = requests.get(f"{api}/semester",
+                      headers={
+                          "Authorization": f"Bearer {test_user_sign_in[0]['token_access']}"
+                      })
+    log_res(r)
+    assert r.status_code == 200
+    return r.json()["data"]
+
+
+def test_rename_semester(test_admin_sign_in, test_get_semester_list):
+    r = requests.patch(f"{api}/semester/{test_get_semester_list[0]['uuid']}",
+                      headers={
+                          "Authorization": f"Bearer {test_admin_sign_in['token_access']}"
+                      },
+                      json={
+                          "name": "archive_renamed"
+                      })
+    log_res(r)
+    assert r.status_code == 200
+
+
+def test_delete_semester(test_admin_sign_in, test_get_semester_list):
+    r = requests.delete(f"{api}/semester/{test_get_semester_list[0]['uuid']}",
+                      headers={
+                          "Authorization": f"Bearer {test_admin_sign_in['token_access']}"
+                      })
+    log_res(r)
+    assert r.status_code == 200

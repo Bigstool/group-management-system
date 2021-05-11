@@ -351,6 +351,25 @@ def test_transfer_group_owner(test_user_sign_in, test_get_group_list, test_accep
     assert r.status_code == 200
 
 
+def test_assign_group(test_admin_sign_in, test_user_sign_in, test_delete_application):
+    # Admin assign User5(owner) User6(member) to new GroupE
+    r = requests.post(f"{api}/group/assigned",
+                      headers={
+                          "Authorization": f"Bearer {test_admin_sign_in['token_access']}"
+                      },
+                      json={
+                          "name": "GroupE",
+                          "title": "ProjectE",
+                          "description": "assigned groupE",
+                          "owner_uuid": test_user_sign_in[4]["user_uuid"],
+                          "member_uuid": [
+                              test_user_sign_in[5]["user_uuid"]
+                          ]
+                      })
+    log_res(r)
+    assert r.status_code == 200
+
+
 # Test Application
 
 @pytest.fixture(scope="package")
@@ -476,6 +495,7 @@ def test_reject_application(test_user_sign_in, test_get_group_application_list):
     assert r.status_code == 200
 
 
+@pytest.fixture(scope="package")
 def test_delete_application(test_get_user_application_list, test_user_sign_in):
     # User6 delete Application 6>A
     r = requests.delete(f"{api}/application/{test_get_user_application_list[0]['uuid']}",

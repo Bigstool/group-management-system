@@ -112,7 +112,7 @@ def create_application(group_uuid):
                                        creation_time=int(time.time()))
     db.session.add(new_application)
     db.session.commit()
-    return MyResponse(data=None, msg="query success").build()
+    return MyResponse().build()
 
 
 @application_api.route("/group/<group_uuid>/application", methods=["GET"])
@@ -199,7 +199,7 @@ def get_group_application_list(group_uuid):
             "comment": application.comment,
             "creation_time": application.creation_time
         })
-    return MyResponse(data=ret, msg='query success').build()
+    return MyResponse(data=ret).build()
 
 
 @application_api.route("/user/<user_uuid>/application", methods=["GET"])
@@ -285,7 +285,7 @@ def get_user_application_list(user_uuid):
             "comment": application.comment,
             "creation_time": application.creation_time
         })
-    return MyResponse(data=ret, msg='query success').build()
+    return MyResponse(data=ret).build()
 
 
 @application_api.route("/application/accepted", methods=["POST"])
@@ -355,7 +355,7 @@ def accept_application():
                                     creation_time=int(time.time()))
     db.session.add(new_notification)
     db.session.commit()
-    return MyResponse(data=None, msg='query success').build()
+    return MyResponse().build()
 
 
 @application_api.route("/application/rejected", methods=["POST"])
@@ -415,7 +415,7 @@ def reject_application():
                                     creation_time=int(time.time()))
     db.session.add(new_notification)
     db.session.commit()
-    return MyResponse(data=None, msg='query success').build()
+    return MyResponse().build()
 
 
 @application_api.route("/application/<application_uuid>", methods=["DELETE"])
@@ -460,4 +460,4 @@ def delete_application(application_uuid):
         raise ApiPermissionException("Permission denied: must logged in as applicant")
     db.session.delete(application)
     db.session.commit()
-    return MyResponse(data=None, msg='query success').build()
+    return MyResponse().build()

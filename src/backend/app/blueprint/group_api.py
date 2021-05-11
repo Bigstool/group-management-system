@@ -127,7 +127,7 @@ def create_group():
         db.session.delete(application)
     db.session.commit()
 
-    return MyResponse(data=None).build()
+    return MyResponse().build()
 
 
 @group_api.route("/group", methods=["GET"])
@@ -535,7 +535,7 @@ def update_group_info(group_uuid):
         group.application_enabled = new_application_enabled
 
     db.session.commit()
-    return MyResponse(data=None, msg='query success').build()
+    return MyResponse().build()
 
 
 @group_api.route("/group/<group_uuid>", methods=["DELETE"])
@@ -597,7 +597,7 @@ def delete_group(group_uuid):
     db.session.delete(group)
     db.session.commit()
 
-    return MyResponse(data=None).build()
+    return MyResponse().build()
 
 
 @group_api.route("/group/<group_uuid>/member/<user_uuid>", methods=["DELETE"])
@@ -670,7 +670,7 @@ def remove_member(group_uuid, user_uuid):
                                         creation_time=int(time.time()))
         db.session.add(new_notification)
         db.session.commit()
-    return MyResponse(data=None, msg='query success').build()
+    return MyResponse().build()
 
 
 @group_api.route("/group/merged", methods=["POST"])
@@ -753,7 +753,7 @@ def favorite_group(group_uuid):
         db.session.add(new_favorite)
         db.session.commit()
 
-    return MyResponse(data=None).build()
+    return MyResponse().build()
 
 
 @group_api.route("/group/<group_uuid>/favorite", methods=["DELETE"])
@@ -794,7 +794,7 @@ def undo_favorite_group(group_uuid):
         db.session.delete(favorite)
         db.session.commit()
 
-    return MyResponse(data=None).build()
+    return MyResponse().build()
 
 
 @group_api.route("/group/<group_uuid>/comment", methods=["POST"])
@@ -861,4 +861,4 @@ def add_comment(group_uuid):
     db.session.add(new_comment)
     db.session.commit()
 
-    return MyResponse(data=None).build()
+    return MyResponse().build()

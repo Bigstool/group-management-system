@@ -331,4 +331,4 @@ def update_user_profile(user_uuid):
 
     db.session.commit()
 
-    return MyResponse(data=None, msg='query success').build()
+    return MyResponse().build()

@@ -294,6 +294,10 @@ def get_group_info(group_uuid):
                     email:
                       type: string
                       example: Ming.Li@example.com
+                    role:
+                      type: string
+                      example: "ADMIN"
+                      enum: ["ADMIN", "USER"]
                 proposal:
                   type: string
                   description: group proposal
@@ -406,7 +410,8 @@ def get_group_info(group_uuid):
             "author": {
                 "uuid": str(uuid.UUID(bytes=comment.author.uuid)),
                 "alias": comment.author.alias,
-                "email": comment.author.email
+                "email": comment.author.email,
+                "role": comment.author.role
             },
             "creation_time": comment.creation_time
         } for comment in group.comment],

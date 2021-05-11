@@ -127,8 +127,8 @@ with app.app_context():
             start_time=int(time.time()),
             config={
                 "system_state": {
-                    "grouping_ddl": datetime(2021, 5, 15, 17).timestamp(),
-                    "proposal_ddl": datetime(2021, 8, 15, 12).timestamp()
+                    "grouping_ddl": int(datetime(2021, 5, 15, 17).timestamp()),
+                    "proposal_ddl": int(datetime(2021, 8, 15, 12).timestamp())
                 },
                 "group_member_number": [7, 9]
             }

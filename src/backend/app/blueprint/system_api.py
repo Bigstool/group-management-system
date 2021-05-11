@@ -122,9 +122,9 @@ def patch_sys_config():
     record = Semester.query.filter_by(name="CURRENT").first()
 
     if new_system_state is not None and new_system_state["grouping_ddl"] is not None:
-        record.config['system_state']['grouping_ddl'] = new_system_state["grouping_ddl"]
+        record.config['system_state']['grouping_ddl'] = int(new_system_state["grouping_ddl"])
     if new_system_state is not None and new_system_state["proposal_ddl"] is not None:
-        record.config['system_state']['proposal_ddl'] = new_system_state["proposal_ddl"]
+        record.config['system_state']['proposal_ddl'] = int(new_system_state["proposal_ddl"])
     if new_group_member_number is not None:
         record.config['group_member_number'] = new_group_member_number
 

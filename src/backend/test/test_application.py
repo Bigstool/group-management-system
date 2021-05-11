@@ -5,7 +5,7 @@ import requests
 
 from test.shared import log_res
 from test.test_user import test_user_sign_in, test_create_user, test_admin_sign_in
-from test.test_group import test_get_group_list, test_create_group
+from test.test_group import test_get_group_list, test_create_group, test_delete_group
 
 logger = logging.getLogger(__name__)
 logger.propagate = True
@@ -13,7 +13,8 @@ logger.propagate = True
 api = "http://localhost:8080"
 
 
-def test_create_application(test_user_sign_in, test_get_group_list):
+@pytest.fixture(scope="package")
+def test_create_application(test_user_sign_in, test_get_group_list, test_delete_group):
     # User2 apply GroupA
     r = requests.post(f"{api}/group/{test_get_group_list[0]['uuid']}/application",
                       headers={
@@ -67,7 +68,7 @@ def test_create_application(test_user_sign_in, test_get_group_list):
 
 
 @pytest.fixture(scope="package")
-def test_get_group_application_list(test_get_group_list, test_user_sign_in):
+def test_get_group_application_list(test_get_group_list, test_user_sign_in, test_create_application):
     ret = {}
     # User1 get GroupA
     r = requests.get(f"{api}/group/{test_get_group_list[0]['uuid']}/application",
@@ -89,7 +90,7 @@ def test_get_group_application_list(test_get_group_list, test_user_sign_in):
 
 
 @pytest.fixture(scope="package")
-def test_get_user_application_list(test_user_sign_in):
+def test_get_user_application_list(test_user_sign_in, test_create_application):
     # User6
     r = requests.get(f"{api}/user/{test_user_sign_in[5]['user_uuid']}/application",
                      headers={
@@ -104,7 +105,7 @@ def test_accept_application(test_user_sign_in, test_get_group_application_list):
     # User1 accept Application 2>A
     r = requests.post(f"{api}/application/accepted",
                       headers={
-                          "Authorization": f"Bearer {test_user_sign_in[2]['token_access']}"
+                          "Authorization": f"Bearer {test_user_sign_in[0]['token_access']}"
                       }, json={
             "uuid": test_get_group_application_list["GroupA"][0]["uuid"]
         })
@@ -125,7 +126,7 @@ def test_reject_application(test_user_sign_in, test_get_group_application_list):
     # User1 reject Application 5>A
     r = requests.post(f"{api}/application/rejected",
                       headers={
-                          "Authorization": f"Bearer {test_user_sign_in[1]['token_access']}"
+                          "Authorization": f"Bearer {test_user_sign_in[0]['token_access']}"
                       }, json={
             "uuid": test_get_group_application_list["GroupA"][1]["uuid"]
         })

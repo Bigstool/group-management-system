@@ -453,6 +453,11 @@ def get_user_list():
               items:
                 type: object
                 properties:
+                  role:
+                    type: string
+                    description: user role
+                    example: "USER"
+                    enum: ["USER", "ADMIN"]
                   uuid:
                     type: string
                     description: group uuid
@@ -469,6 +474,10 @@ def get_user_list():
                     type: string
                     description: group description
                     example: Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                  orphan:
+                    type: boolean
+                    description: if user has no created group or joined group
+                    example: false
     """
     args_query = parser.parse({
         "semester": fields.Str(missing="CURRENT")
@@ -487,7 +496,9 @@ def get_user_list():
 
     return MyResponse(data=[{
         "uuid": str(uuid.UUID(bytes=user.uuid)),
+        "role": user.role,
         "alias": user.alias,
         "email": user.email,
-        "bio": user.bio
+        "bio": user.bio,
+        "orphan": not bool(user.joined_group or user.owned_group) if user.role == "USER" else None
     } for user in user_list]).build()

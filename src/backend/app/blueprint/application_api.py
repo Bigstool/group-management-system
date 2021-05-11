@@ -84,6 +84,9 @@ def create_application(group_uuid):
     group_uuid: str = args_path["group_uuid"]
     comment: str = args_json["comment"]
 
+    if token_info["role"] == "ADMIN":
+        raise ApiPermissionException("Permission denied: must logged in as user")
+
     group = Group.query.get(uuid.UUID(group_uuid).bytes)
     if group is None:
         raise ApiResourceNotFoundException("Not found: invalid group")

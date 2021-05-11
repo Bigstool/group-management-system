@@ -502,7 +502,7 @@ def update_group_info(group_uuid):
     if token_info["role"] != "ADMIN" and token_info["uuid"] != str(uuid.UUID(bytes=group.owner_uuid)):
         raise ApiPermissionException("Permission denied: Not logged in as group owner")
 
-    if token_info["uuid"] == str(uuid.UUID(bytes=group.owner_uuid)):
+    if token_info["role"] != "ADMIN":
         # Constrains for the group owner
         if time.time() > semester.config["system_state"]['proposal_ddl']:
             raise ApiPermissionException("Permission denied: Proposal ddl reached")
@@ -645,7 +645,9 @@ def remove_member(group_uuid, user_uuid):
     user = User.query.get(uuid.UUID(user_uuid).bytes)
 
     # Check Identity
-    if token_info["uuid"] != str(uuid.UUID(bytes=group.owner_uuid)) and token_info["uuid"] != user_uuid:
+    if token_info["role"] != "ADMIN" and \
+            token_info["uuid"] != str(uuid.UUID(bytes=group.owner_uuid)) and \
+            token_info["uuid"] != user_uuid:
         raise ApiPermissionException("Permission denied: Must be the member or group owner")
 
     user.joined_group_uuid = None
@@ -741,7 +743,8 @@ def favorite_group(group_uuid):
 
     token_info = Auth.get_payload(request)
 
-    favorite = GroupFavorite.query.filter_by(user_uuid=uuid.UUID(token_info["uuid"]).bytes, group_uuid=uuid.UUID(group_uuid).bytes)
+    favorite = GroupFavorite.query.filter_by(user_uuid=uuid.UUID(token_info["uuid"]).bytes,
+                                             group_uuid=uuid.UUID(group_uuid).bytes)
 
     if favorite is None:
         new_favorite = GroupFavorite(uuid=uuid.uuid4().bytes,
@@ -786,7 +789,8 @@ def undo_favorite_group(group_uuid):
 
     token_info = Auth.get_payload(request)
 
-    favorite = GroupFavorite.query.filter_by(user_uuid=uuid.UUID(token_info["uuid"]).bytes, group_uuid=uuid.UUID(group_uuid).bytes).first()
+    favorite = GroupFavorite.query.filter_by(user_uuid=uuid.UUID(token_info["uuid"]).bytes,
+                                             group_uuid=uuid.UUID(group_uuid).bytes).first()
     if favorite is not None:
         db.session.delete(favorite)
         db.session.commit()
@@ -848,7 +852,8 @@ def add_comment(group_uuid):
 
     if token_info["role"] != "ADMIN" and \
             uuid.UUID(token_info["uuid"]).bytes not in [group.owner_uuid] + [member.uuid for member in group.member]:
-        raise ApiPermissionException("Permission denied: you must be admin, group owner or group member to make a comment")
+        raise ApiPermissionException(
+            "Permission denied: you must be admin, group owner or group member to make a comment")
 
     new_comment = GroupComment(uuid=uuid.uuid4().bytes,
                                creation_time=int(time.time()),

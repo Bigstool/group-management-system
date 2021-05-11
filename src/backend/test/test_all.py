@@ -338,6 +338,19 @@ def test_delete_group(test_user_sign_in, test_admin_sign_in, test_get_group_list
     assert r.status_code == 200
 
 
+def test_transfer_group_owner(test_user_sign_in, test_get_group_list, test_accept_application, test_reject_application):
+    # User1 transfer GroupA ownership to User2
+    r = requests.patch(f"{api}/group/{test_get_group_list[0]['uuid']}/owner",
+                       headers={
+                           "Authorization": f"Bearer {test_user_sign_in[0]['token_access']}"
+                       },
+                       json={
+                           "owner_uuid": test_user_sign_in[1]['user_uuid']
+                       })
+    log_res(r)
+    assert r.status_code == 200
+
+
 # Test Application
 
 @pytest.fixture(scope="package")

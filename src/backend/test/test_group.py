@@ -132,7 +132,7 @@ def test_add_group_comment(test_user_sign_in, test_admin_sign_in, test_get_group
     log_res(logger, r)
     assert r.status_code == 200
 
-
+@pytest.fixture(scope="package")
 def test_delete_group(test_user_sign_in, test_admin_sign_in, test_get_group_list):
     # User5 delete GroupC
     r = requests.delete(f"{api}/group/{test_get_group_list[2]['uuid']}", headers={

@@ -122,8 +122,8 @@ def create_group():
     db.session.add(new_group)
 
     # delete all user applications
-    for application in GroupApplication.query.filter_by(applicant_uuid=user.uuid).all():
-        db.session.delete(application)
+    GroupApplication.query.filter_by(applicant_uuid=user.uuid).delete()
+
     db.session.commit()
 
     return MyResponse().build()

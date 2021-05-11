@@ -154,6 +154,39 @@ def test_get_user_profile(test_user_sign_in):
     assert r.json()["data"]["bio"] == "Lorem ipsum"
 
 
+def test_change_password(test_create_user, test_user_sign_in, test_admin_sign_in):
+    # User1 change password
+    r = requests.patch(f"{api}/user/{test_user_sign_in[0]['user_uuid']}/password",
+                       headers={
+                           "Authorization": f"Bearer {test_user_sign_in[0]['token_access']}"
+                       },
+                       json={
+                           "old_password": sha1(test_create_user["generated_user"][0]["password"].encode()).hexdigest(),
+                           "new_password": sha1("password".encode()).hexdigest()
+                       })
+    log_res(r)
+    assert r.status_code == 200
+    # verify result
+    r = login(user_list[0]["email"], "password")
+    log_res(r)
+    assert r.status_code == 200
+
+    # Admin change User2 password
+    r = requests.patch(f"{api}/user/{test_user_sign_in[1]['user_uuid']}/password",
+                       headers={
+                           "Authorization": f"Bearer {test_admin_sign_in['token_access']}"
+                       },
+                       json={
+                           "new_password": sha1("password".encode()).hexdigest()
+                       })
+    log_res(r)
+    assert r.status_code == 200
+    # verify result
+    r = login(user_list[1]["email"], "password")
+    log_res(r)
+    assert r.status_code == 200
+
+
 # Test Group
 
 group_list = [
@@ -488,9 +521,9 @@ def test_archive_semester(test_admin_sign_in):
 @pytest.fixture(scope="package")
 def test_get_semester_list(test_archive_semester, test_user_sign_in):
     r = requests.get(f"{api}/semester",
-                      headers={
-                          "Authorization": f"Bearer {test_user_sign_in[0]['token_access']}"
-                      })
+                     headers={
+                         "Authorization": f"Bearer {test_user_sign_in[0]['token_access']}"
+                     })
     log_res(r)
     assert r.status_code == 200
     return r.json()["data"]
@@ -498,20 +531,20 @@ def test_get_semester_list(test_archive_semester, test_user_sign_in):
 
 def test_rename_semester(test_admin_sign_in, test_get_semester_list):
     r = requests.patch(f"{api}/semester/{test_get_semester_list[0]['uuid']}",
-                      headers={
-                          "Authorization": f"Bearer {test_admin_sign_in['token_access']}"
-                      },
-                      json={
-                          "name": "archive_renamed"
-                      })
+                       headers={
+                           "Authorization": f"Bearer {test_admin_sign_in['token_access']}"
+                       },
+                       json={
+                           "name": "archive_renamed"
+                       })
     log_res(r)
     assert r.status_code == 200
 
 
 def test_delete_semester(test_admin_sign_in, test_get_semester_list):
     r = requests.delete(f"{api}/semester/{test_get_semester_list[0]['uuid']}",
-                      headers={
-                          "Authorization": f"Bearer {test_admin_sign_in['token_access']}"
-                      })
+                        headers={
+                            "Authorization": f"Bearer {test_admin_sign_in['token_access']}"
+                        })
     log_res(r)
     assert r.status_code == 200

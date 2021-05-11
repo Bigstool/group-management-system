@@ -100,7 +100,7 @@ def create_user(args):
 
     # check duplicate email
     for user in args:
-        # TODO check input dup
+        # TODO check input dup, support same email across semester
         old_user = User.query.filter_by(email=user["email"]).first()
         if old_user is not None:
             raise ApiDuplicateResourceException(f"Conflict: a user with the email already exists")
@@ -312,7 +312,7 @@ def update_user_profile(user_uuid):
     if (user_uuid != token_info["uuid"] and token_info["role"] != "ADMIN"):
         raise ApiPermissionException('Permission denied: you cannot update other user\'s profile!')
 
-    user = User.query.get(uuid.UUID(token_info["uuid"]).bytes)
+    user = User.query.get(uuid.UUID(user_uuid).bytes)
 
     if user is None:
         logger.debug(f"Update fail: no such user")
@@ -327,6 +327,94 @@ def update_user_profile(user_uuid):
         user.alias = new_alias
     if new_bio is not None:
         user.bio = new_bio
+
+    db.session.commit()
+
+    return MyResponse().build()
+
+
+@user_api.route("/user/<user_uuid>/password", methods=["PATCH"])
+def reset_user_password(user_uuid):
+    """
+    Change password of the user
+    ---
+    tags:
+      - user
+
+    description: |
+      ## Constrains
+      * if not admin, old_password must be present
+      * if not admin, operator must be the user
+
+    parameters:
+      - name: user_uuid
+        in: path
+        required: true
+        description: user uuid
+        schema:
+          type: string
+          example: 16fc2db7-cac0-46c2-a0e3-2da6cec54abb
+
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              old_password:
+                type: string
+                description: sha1(old_password)
+                example: 5F4DCC3B5AA765D61D8327DEB882CF99
+              new_password:
+                type: string
+                description: sha1(new_password)
+                example: 5F4DCC3B5AA765D61D8327DEB882CF99
+            required:
+              - new_password
+
+    responses:
+      '200':
+        description: query success
+        content:
+          application/json:
+            schema:
+              type: object
+    """
+    args_path = parser.parse({
+        "user_uuid": fields.Str(required=True, validate=MyValidator.Uuid())
+    }, request, location="path")
+
+    args_json = parser.parse({
+        "old_password": fields.Str(missing=None, validate=MyValidator.Sha1()),
+        "new_password": fields.Str(required=True, validate=MyValidator.Sha1())
+    }, request, location="json")
+
+    user_uuid: str = args_path["user_uuid"]
+    old_password: str = args_json["old_password"]
+    new_password: str = args_json["new_password"]
+
+    token_info = Auth.get_payload(request)
+    if (user_uuid != token_info["uuid"] and token_info["role"] != "ADMIN"):
+        raise ApiPermissionException("Permission denied: Not logged in as ADMIN or the user to be operated")
+    if (token_info["role"] != "ADMIN" and old_password is None):
+        raise ApiPermissionException("Permission denied: argument old_password is mandatory")
+
+    user = User.query.get(uuid.UUID(user_uuid).bytes)
+
+    # check old password
+    if (token_info["role"] != "ADMIN"):
+        password_hash = hmac.new(user.password_salt, bytes.fromhex(old_password), "sha1").digest()
+        if password_hash != user.password_hash:
+            raise ApiPermissionException("Permission denied: invalid old_password")
+
+    # set new password
+    new_password_salt = secrets.token_bytes(16)
+    new_password_hash = hmac.new(new_password_salt, bytes.fromhex(new_password), "sha1").digest()
+    user.password_salt = new_password_salt
+    user.password_hash = new_password_hash
+
+    # TODO revoke old JWT
 
     db.session.commit()
 

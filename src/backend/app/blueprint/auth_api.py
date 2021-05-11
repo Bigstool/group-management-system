@@ -115,7 +115,6 @@ def sign_in():
     # check password
     password_hash = hmac.new(user.password_salt, bytes.fromhex(password), "sha1").digest()
     if password_hash != user.password_hash:
-        logger.debug(f"Login fail: password mismatch")
         raise ApiPermissionException("Permission denied: invalid credential")
 
     user_uuid = str(uuid.UUID(bytes=user.uuid))

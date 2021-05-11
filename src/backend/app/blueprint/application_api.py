@@ -333,6 +333,8 @@ def accept_application():
     token_info = Auth.get_payload(request)
 
     application = GroupApplication.query.filter_by(uuid=uuid.UUID(application_uuid).bytes).first()
+    if application is None:
+        raise ApiResourceNotFoundException(f"Not found: no such application")
 
     group = Group.query.filter_by(uuid=application.group_uuid).first()
 

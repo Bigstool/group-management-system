@@ -17,16 +17,19 @@ class Group(db.Model):
     application_enabled: bool = db.Column(db.Boolean(), default=True)
 
     # rel
-    owner_uuid: bytes = db.Column(db.BINARY(16), db.ForeignKey("user.uuid", ondelete="CASCADE", onupdate="CASCADE", use_alter=True), nullable=False)   # FK
-    owner: 'User' = db.relationship("User", uselist=False, back_populates="owned_group", foreign_keys=[owner_uuid])
+    owner_uuid: bytes = db.Column(db.BINARY(16),
+                                  db.ForeignKey("user.uuid", ondelete="CASCADE", onupdate="CASCADE", use_alter=True),
+                                  nullable=False)  # FK
+    owner: 'User' = db.relationship("User", back_populates="owned_group", uselist=False, foreign_keys=[owner_uuid])
 
-    member: list['User'] = db.relationship("User", back_populates="joined_group", foreign_keys="User.joined_group_uuid")
+    member: list['User'] = db.relationship("User", back_populates="joined_group", uselist=True,
+                                           foreign_keys="User.joined_group_uuid")
 
-    application = db.relationship("GroupApplication", uselist=False, back_populates="group")
+    application = db.relationship("GroupApplication", back_populates="group", uselist=True)
 
-    comment: list['GroupComment'] = db.relationship("GroupComment", uselist=False, back_populates="group")
+    comment: list['GroupComment'] = db.relationship("GroupComment", back_populates="group", uselist=True)
 
-    favorite = db.relationship("GroupFavorite", uselist=False, back_populates="group")
+    favorite = db.relationship("GroupFavorite", back_populates="group", uselist=True)
 
     def __repr__(self):
         return f"<Group {self.uuid.hex()}: {self.name}>"

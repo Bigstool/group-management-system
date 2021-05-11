@@ -14,4 +14,4 @@ class GroupComment(db.Model):
     author: 'User' = db.relationship("User")
 
     group_uuid: bytes = db.Column(db.BINARY(16), db.ForeignKey("group.uuid", ondelete="CASCADE", onupdate="CASCADE"))  # FK
-    group: 'Group' = db.relationship("Group", back_populates="comment")
+    group: 'Group' = db.relationship("Group", back_populates="comment", uselist=False)

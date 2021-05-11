@@ -105,6 +105,8 @@ def create_group():
         raise ApiPermissionException("Permission denied: must logged in as USER")
 
     user = User.query.filter_by(uuid=uuid.UUID(token_info['uuid']).bytes).first()
+    print(user.owned_group)
+    print(user.joined_group)
     if user.owned_group is not None or user.joined_group is not None:
         raise ApiPermissionException(f'Permission denied: you belong to one group, you cannot create a new group!')
 
@@ -397,7 +399,7 @@ def get_group_info(group_uuid):
             "uuid": str(uuid.UUID(bytes=member.uuid)),
             "alias": member.alias,
             "email": member.email
-        } for member in (group.member or [])],
+        } for member in group.member],
         "application_enabled": group.application_enabled,
         "comment": [{
             "content": comment.content,
@@ -407,7 +409,7 @@ def get_group_info(group_uuid):
                 "email": comment.author.email
             },
             "creation_time": comment.creation_time
-        } for comment in (group.comment or [])],
+        } for comment in group.comment],
         "creation_time": group.creation_time
     }).build()
 

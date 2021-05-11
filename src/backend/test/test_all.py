@@ -258,7 +258,7 @@ def test_get_group_list(test_create_group, test_user_sign_in):
     return sorted(r.json()["data"], key=lambda i: i["name"])
 
 
-def test_get_group_info(test_user_sign_in, test_get_group_list):
+def test_get_group_info(test_user_sign_in, test_get_group_list, test_add_group_comment):
     # User1 get GroupA
     r = requests.get(f"{api}/group/{test_get_group_list[0]['uuid']}", headers={
         "Authorization": f"Bearer {test_user_sign_in[0]['token_access']}"
@@ -303,6 +303,7 @@ def test_undo_favorite_group(test_user_sign_in, test_get_group_list):
     assert r.status_code == 200
 
 
+@pytest.fixture(scope="package")
 def test_add_group_comment(test_user_sign_in, test_admin_sign_in, test_get_group_list):
     # User1 comment GroupA
     r = requests.post(f"{api}/group/{test_get_group_list[0]['uuid']}/comment", headers={

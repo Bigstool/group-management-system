@@ -233,7 +233,7 @@ def get_user_profile(user_uuid):
             "title": user.owned_group.title,
             "description": user.owned_group.description
         },
-        "joined_group": user.owned_group and {
+        "joined_group": user.joined_group and {
             "uuid": str(uuid.UUID(bytes=user.joined_group.uuid)),
             "name": user.joined_group.name,
             "title": user.joined_group.title,

@@ -138,6 +138,15 @@ def get_group_list():
 
     description: |
 
+    parameters:
+      - name: semester
+        in: query
+        default: "CURRENT"
+        description: semester filter
+        schema:
+          type: string
+          example: "2021-S2"
+
     responses:
       200:
         description: query success

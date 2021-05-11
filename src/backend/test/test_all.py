@@ -187,6 +187,14 @@ def test_change_password(test_create_user, test_user_sign_in, test_admin_sign_in
     assert r.status_code == 200
 
 
+def test_get_user_list(test_create_user, test_admin_sign_in):
+    r = requests.get(f"{api}/user", headers={
+        "Authorization": f"Bearer {test_admin_sign_in['token_access']}"
+    })
+    log_res(r)
+    assert r.status_code == 200
+
+
 # Test Group
 
 group_list = [

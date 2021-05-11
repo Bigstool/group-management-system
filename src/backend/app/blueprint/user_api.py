@@ -11,6 +11,7 @@ from marshmallow import Schema
 from webargs import fields, validate
 from webargs.flaskparser import parser, use_args
 
+from model.Semester import Semester
 from model.User import User
 from shared import get_logger, db
 from utility import MyValidator
@@ -419,3 +420,74 @@ def reset_user_password(user_uuid):
     db.session.commit()
 
     return MyResponse().build()
+
+
+@user_api.route("/user", methods=["GET"])
+def get_user_list():
+    """
+    Get list of user
+    ---
+    tags:
+      - user
+
+    description: |
+      ## Constrains
+      * Operator must be admin
+
+    parameters:
+      - name: semester
+        in: query
+        default: "CURRENT"
+        description: semester filter
+        schema:
+          type: string
+          example: "2021-S2"
+
+    responses:
+      200:
+        description: query success
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                properties:
+                  uuid:
+                    type: string
+                    description: group uuid
+                    example: b86a6406-14ca-4459-80ea-c0190fc43bd3
+                  alias:
+                    type: string
+                    description: group name
+                    example: Jaxzefalk
+                  email:
+                    type: string
+                    description: group project title
+                    example: Group Management System
+                  bio:
+                    type: string
+                    description: group description
+                    example: Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+    """
+    args_query = parser.parse({
+        "semester": fields.Str(missing="CURRENT")
+    }, request, location="query")
+    semester_filter: str = args_query["semester"]
+
+    token_info = Auth.get_payload(request)
+
+    if token_info["role"] != "ADMIN":
+        raise ApiPermissionException("Permission denied: must log in as admin")
+
+    semester = Semester.query.filter_by(name=semester_filter).first()
+
+    user_list = User.query.filter(
+        User.creation_time.between(semester.start_time, semester.end_time or time.time())).all()
+
+    return MyResponse(data=[{
+        "uuid": str(uuid.UUID(bytes=user.uuid)),
+        "alias": user.alias,
+        "email": user.email,
+        "bio": user.bio
+    } for user in user_list]).build()

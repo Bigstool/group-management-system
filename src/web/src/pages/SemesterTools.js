@@ -1,5 +1,5 @@
 import React from "react";
-import {Space, Button, InputNumber, DatePicker} from 'antd';
+import {Space, Button, InputNumber, DatePicker, Input} from 'antd';
 import {LoadingOutlined} from '@ant-design/icons';
 import {boundMethod} from "autobind-decorator";
 import AppBar from "../components/AppBar";
@@ -8,6 +8,7 @@ import {AuthContext} from "../utilities/AuthProvider";
 import {Redirect} from "react-router-dom";
 import ErrorMessage from "../components/ErrorMessage";
 import moment from 'moment';
+import SHA1 from "crypto-js/sha1";
 
 /* Bigstool's class notations
 *  #T: Top-level component
@@ -38,46 +39,71 @@ export default class SemesterTools extends React.Component {
       newSizeUpper: 0,
       newGroupingDDL: 0,
       newProposalDDL: 0,
+      // Archive related
+      archiveName: '',
+      archiveNameLimit: 50,
       // Component related
       loading: true,
       error: false,
       redirect: false,
       push: false,
       // Event related
+      importing: false,
+      downloading: false,
       adjustingSize: false,
       adjustingGrouping: false,
       adjustingProposal: false,
+      adjustingArchive: false,
+      savingSize: false,
+      savingGrouping: false,
+      savingProposal: false,
+      savingArchive: false,
+      duplicateArchive: false,
     }
   }
 
   async componentDidMount() {
+    await this.checkImport();
     await this.checkSystem();
     console.debug(this.state);
     this.setState({loading: false});
   }
 
   @boundMethod
+  async checkImport() {
+    // TODO: use sysConfig instead (wait for backend implementation)
+    try {
+      let res = await this.context.request({
+        path: `/user`,
+        method: 'get',
+      });
+
+      let userList = res.data['data'];
+      if (userList.length === 0) this.setstate({isImported: false,});
+      else this.setState({isImported: true});
+    } catch (error) {
+      this.setState({error: true,});
+    }
+  }
+
+  @boundMethod
   async checkSystem() {
-    let sizeLower = 5;
-    let sizeUpper = 7;
-    let groupingDDL = 1621098000;
-    let proposalDDL = 1629028800;
-    let afterGroupingDDL = groupingDDL ? (Date.now() / 1000) > groupingDDL : false;
-    let afterProposalDDL = proposalDDL ? (Date.now() / 1000) > proposalDDL: false;
-    let newSizeLower = sizeLower, newSizeUpper = sizeUpper;
-    let newGroupingDDL = groupingDDL ? groupingDDL : this.momentToTimestamp(moment().add(10, 'days'));
-    let newProposalDDL = proposalDDL ? proposalDDL : this.momentToTimestamp(moment().add(20, 'days'));
+    let sysConfig = await this.context.getSysConfig(false);
+    let groupingDDL = sysConfig['system_state']['grouping_ddl'];
+    let proposalDDL = sysConfig['system_state']['proposal_ddl'];
     this.setState({
-      sizeLower: sizeLower,
-      sizeUpper: sizeUpper,
+      sizeLower: sysConfig['group_member_number'][0],
+      sizeUpper: sysConfig['group_member_number'][1],
+      newSizeLower: this.state.newSizeLower ? this.state.newSizeLower : sysConfig['group_member_number'][0],
+      newSizeUpper: this.state.newSizeUpper ? this.state.newSizeUpper : sysConfig['group_member_number'][1],
       groupingDDL: groupingDDL,
       proposalDDL: proposalDDL,
-      afterGroupingDDL: afterGroupingDDL,
-      afterProposalDDL: afterProposalDDL,
-      newSizeLower: newSizeLower,
-      newSizeUpper: newSizeUpper,
-      newGroupingDDL: newGroupingDDL,
-      newProposalDDL: newProposalDDL,
+      afterGroupingDDL: groupingDDL ? (Date.now() / 1000) > groupingDDL : false,
+      afterProposalDDL: proposalDDL ? (Date.now() / 1000) > proposalDDL: false,
+      newGroupingDDL: this.state.newGroupingDDL ? this.state.newGroupingDDL :
+        (groupingDDL ? groupingDDL : this.momentToTimestamp(moment().add(10, 'days'))),
+      newProposalDDL: this.state.newProposalDDL ? this.state.newProposalDDL :
+        (proposalDDL ? proposalDDL : this.momentToTimestamp(moment().add(20, 'days'))),
     });
   }
 
@@ -117,8 +143,19 @@ export default class SemesterTools extends React.Component {
   }
 
   @boundMethod
-  onSaveSize() {
-    // TODO
+  async onSaveSize() {
+    this.setState({savingSize: true});
+    try {
+      await this.context.request({
+        path: `/sysconfig`,
+        method: 'patch',
+        data: {
+          group_member_number: [this.state.newSizeLower, this.state.newSizeUpper],
+        },
+      });
+    } catch (error) {}
+    await this.checkSystem();
+    this.setState({savingSize: false});
   }
 
   @boundMethod
@@ -132,8 +169,22 @@ export default class SemesterTools extends React.Component {
   }
 
   @boundMethod
-  onSaveGrouping() {
-    // TODO
+  async onSaveGrouping() {
+    this.setState({savingGrouping: true});
+    try {
+      await this.context.request({
+        path: `/sysconfig`,
+        method: 'patch',
+        data: {
+          system_state: {
+            grouping_ddl: this.state.newGroupingDDL,
+            proposal_ddl: this.state.proposalDDL,
+          }
+        },
+      });
+    } catch (error) {}
+    await this.checkSystem();
+    this.setState({savingGrouping: false});
   }
 
   @boundMethod
@@ -147,8 +198,54 @@ export default class SemesterTools extends React.Component {
   }
 
   @boundMethod
-  onSaveProposal() {
-    // TODO
+  async onSaveProposal() {
+    this.setState({savingProposal: true});
+    try {
+      await this.context.request({
+        path: `/sysconfig`,
+        method: 'patch',
+        data: {
+          system_state: {
+            grouping_ddl: this.state.groupingDDL,
+            proposal_ddl: this.state.newProposalDDL,
+          }
+        },
+      });
+    } catch (error) {}
+    await this.checkSystem();
+    this.setState({savingProposal: false});
+  }
+
+  @boundMethod
+  onArchive() {
+    this.setState({adjustingArchive: !this.state.adjustingArchive});
+  }
+
+  @boundMethod
+  onArchiveChange(event) {
+    this.setState({
+      duplicateArchive: false,
+      archiveName: event.target.value,
+    });
+  }
+
+  @boundMethod
+  async onSaveArchive() {
+    this.setState({savingArchive: true});
+    try {
+      await this.context.request({
+        path: `/semester/archived`,
+        method: 'post',
+        data: {
+          name: this.state.archiveName,
+        },
+      });
+      // TODO: to archives
+      window.history.back();
+    } catch (error) {
+      if (error.response.status === 409) this.setState({duplicateArchive: true});
+    }
+    this.setState({savingArchive: false});
   }
 
   render() {
@@ -223,7 +320,7 @@ export default class SemesterTools extends React.Component {
         <p>-</p>
         <InputNumber min={this.state.newSizeLower} value={this.state.newSizeUpper}
                      onChange={this.onUpperChange}/>
-        <Button type={'primary'} onClick={this.onSaveSize} className={styles.Save}
+        <Button type={'primary'} onClick={this.onSaveSize} className={styles.Save} loading={this.state.savingSize}
                 disabled={(this.state.sizeLower === this.state.newSizeLower &&
                   this.state.sizeUpper === this.state.newSizeUpper) ||
                 (this.state.newSizeLower < 1) || (this.state.newSizeLower > this.state.newSizeUpper)}>
@@ -254,7 +351,7 @@ export default class SemesterTools extends React.Component {
         <DatePicker showTime showNow={false} format={'YYYY-MM-DD HH:mm'}
                     value={this.timestampToMoment(this.state.newGroupingDDL)}
                     onOk={this.onGroupingChange} allowClear={false}/>
-        <Button type={'primary'} onClick={this.onSaveGrouping}
+        <Button type={'primary'} onClick={this.onSaveGrouping} loading={this.state.savingGrouping}
                 disabled={(this.state.groupingDDL === this.state.newGroupingDDL) ||
                 groupingCheckAfterNow || groupingCheckBeforeProposal}>
           Save
@@ -294,7 +391,7 @@ export default class SemesterTools extends React.Component {
         <DatePicker showTime showNow={false} format={'YYYY-MM-DD HH:mm'}
                     value={this.timestampToMoment(this.state.newProposalDDL)}
                     onOk={this.onProposalChange} allowClear={false}/>
-        <Button type={'primary'} onClick={this.onSaveProposal}
+        <Button type={'primary'} onClick={this.onSaveProposal} loading={this.state.savingProposal}
                 disabled={(this.state.proposalDDL === this.state.newProposalDDL) ||
                 proposalCheckAfterGrouping}>
           Save
@@ -305,7 +402,7 @@ export default class SemesterTools extends React.Component {
     if (proposalCheckAfterGrouping) {
       proposalWarning = <p className={styles.Warning}>
         The Proposal DDL must be after the Grouping DDL
-      </p>
+      </p>;
     }
     let proposal;
     if (!this.state.adjustingProposal) {
@@ -315,7 +412,7 @@ export default class SemesterTools extends React.Component {
         {proposalButton}
         {adjustProposal}
         {proposalWarning}
-      </div>
+      </div>;
     }
 
     // Group Allocation (After Grouping DDL and Before Proposal DDL)
@@ -326,10 +423,35 @@ export default class SemesterTools extends React.Component {
     </Button>;
 
     // Archive Semester (After Import)
-    let archive = <Button danger block size={'large'} className={styles.ToolItem}
-                          onClick={null}>
+    let archiveButton = <Button danger block size={'large'} onClick={this.onArchive}>
       Archive Semester
-    </Button>
+    </Button>;
+    let adjustArchive = <div className={styles.Adjust}>
+      <Space>
+        <Input onChange={this.onArchiveChange} value={this.state.archiveName}
+               maxLength={this.state.archiveNameLimit} placeholder={'Archive Name'}/>
+        <Button type={'primary'} onClick={this.onSaveArchive}
+                disabled={!this.state.archiveName} loading={this.state.savingArchive}>
+          Save
+        </Button>
+      </Space>
+    </div>;
+    let archiveWarning = null;
+    if (this.state.duplicateArchive) {
+      archiveWarning = <p className={styles.Warning}>
+        Duplicate archive name
+      </p>;
+    }
+    let archive;
+    if (!this.state.adjustingArchive) {
+      archive = <div className={styles.ToolItem}>{archiveButton}</div>;
+    } else {
+      archive = <div className={styles.ToolItem}>
+        {archiveButton}
+        {adjustArchive}
+        {archiveWarning}
+      </div>;
+    }
 
     return (
       <React.Fragment>

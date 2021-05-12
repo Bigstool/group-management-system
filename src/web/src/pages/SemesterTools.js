@@ -54,6 +54,9 @@ export default class SemesterTools extends React.Component {
       adjustingGrouping: false,
       adjustingProposal: false,
       adjustingArchive: false,
+      savingSize: false,
+      savingGrouping: false,
+      savingProposal: false,
       savingArchive: false,
       duplicateArchive: false,
     }
@@ -85,20 +88,22 @@ export default class SemesterTools extends React.Component {
 
   @boundMethod
   async checkSystem() {
-    let sysConfig = await this.context.getSysConfig();
+    let sysConfig = await this.context.getSysConfig(false);
     let groupingDDL = sysConfig['system_state']['grouping_ddl'];
     let proposalDDL = sysConfig['system_state']['proposal_ddl'];
     this.setState({
       sizeLower: sysConfig['group_member_number'][0],
       sizeUpper: sysConfig['group_member_number'][1],
-      newSizeLower: sysConfig['group_member_number'][0],
-      newSizeUpper: sysConfig['group_member_number'][1],
+      newSizeLower: this.state.newSizeLower ? this.state.newSizeLower : sysConfig['group_member_number'][0],
+      newSizeUpper: this.state.newSizeUpper ? this.state.newSizeUpper : sysConfig['group_member_number'][1],
       groupingDDL: groupingDDL,
       proposalDDL: proposalDDL,
       afterGroupingDDL: groupingDDL ? (Date.now() / 1000) > groupingDDL : false,
       afterProposalDDL: proposalDDL ? (Date.now() / 1000) > proposalDDL: false,
-      newGroupingDDL: groupingDDL ? groupingDDL : this.momentToTimestamp(moment().add(10, 'days')),
-      newProposalDDL: proposalDDL ? proposalDDL : this.momentToTimestamp(moment().add(20, 'days')),
+      newGroupingDDL: this.state.newGroupingDDL ? this.state.newGroupingDDL :
+        (groupingDDL ? groupingDDL : this.momentToTimestamp(moment().add(10, 'days'))),
+      newProposalDDL: this.state.newProposalDDL ? this.state.newProposalDDL :
+        (proposalDDL ? proposalDDL : this.momentToTimestamp(moment().add(20, 'days'))),
     });
   }
 
@@ -138,8 +143,19 @@ export default class SemesterTools extends React.Component {
   }
 
   @boundMethod
-  onSaveSize() {
-    // TODO
+  async onSaveSize() {
+    this.setState({savingSize: true});
+    try {
+      await this.context.request({
+        path: `/sysconfig`,
+        method: 'patch',
+        data: {
+          group_member_number: [this.state.newSizeLower, this.state.newSizeUpper],
+        },
+      });
+    } catch (error) {}
+    await this.checkSystem();
+    this.setState({savingSize: false});
   }
 
   @boundMethod
@@ -153,8 +169,22 @@ export default class SemesterTools extends React.Component {
   }
 
   @boundMethod
-  onSaveGrouping() {
-    // TODO
+  async onSaveGrouping() {
+    this.setState({savingGrouping: true});
+    try {
+      await this.context.request({
+        path: `/sysconfig`,
+        method: 'patch',
+        data: {
+          system_state: {
+            grouping_ddl: this.state.newGroupingDDL,
+            proposal_ddl: this.state.proposalDDL,
+          }
+        },
+      });
+    } catch (error) {}
+    await this.checkSystem();
+    this.setState({savingGrouping: false});
   }
 
   @boundMethod
@@ -168,8 +198,22 @@ export default class SemesterTools extends React.Component {
   }
 
   @boundMethod
-  onSaveProposal() {
-    // TODO
+  async onSaveProposal() {
+    this.setState({savingProposal: true});
+    try {
+      await this.context.request({
+        path: `/sysconfig`,
+        method: 'patch',
+        data: {
+          system_state: {
+            grouping_ddl: this.state.groupingDDL,
+            proposal_ddl: this.state.newProposalDDL,
+          }
+        },
+      });
+    } catch (error) {}
+    await this.checkSystem();
+    this.setState({savingProposal: false});
   }
 
   @boundMethod
@@ -276,7 +320,7 @@ export default class SemesterTools extends React.Component {
         <p>-</p>
         <InputNumber min={this.state.newSizeLower} value={this.state.newSizeUpper}
                      onChange={this.onUpperChange}/>
-        <Button type={'primary'} onClick={this.onSaveSize} className={styles.Save}
+        <Button type={'primary'} onClick={this.onSaveSize} className={styles.Save} loading={this.state.savingSize}
                 disabled={(this.state.sizeLower === this.state.newSizeLower &&
                   this.state.sizeUpper === this.state.newSizeUpper) ||
                 (this.state.newSizeLower < 1) || (this.state.newSizeLower > this.state.newSizeUpper)}>
@@ -307,7 +351,7 @@ export default class SemesterTools extends React.Component {
         <DatePicker showTime showNow={false} format={'YYYY-MM-DD HH:mm'}
                     value={this.timestampToMoment(this.state.newGroupingDDL)}
                     onOk={this.onGroupingChange} allowClear={false}/>
-        <Button type={'primary'} onClick={this.onSaveGrouping}
+        <Button type={'primary'} onClick={this.onSaveGrouping} loading={this.state.savingGrouping}
                 disabled={(this.state.groupingDDL === this.state.newGroupingDDL) ||
                 groupingCheckAfterNow || groupingCheckBeforeProposal}>
           Save
@@ -347,7 +391,7 @@ export default class SemesterTools extends React.Component {
         <DatePicker showTime showNow={false} format={'YYYY-MM-DD HH:mm'}
                     value={this.timestampToMoment(this.state.newProposalDDL)}
                     onOk={this.onProposalChange} allowClear={false}/>
-        <Button type={'primary'} onClick={this.onSaveProposal}
+        <Button type={'primary'} onClick={this.onSaveProposal} loading={this.state.savingProposal}
                 disabled={(this.state.proposalDDL === this.state.newProposalDDL) ||
                 proposalCheckAfterGrouping}>
           Save

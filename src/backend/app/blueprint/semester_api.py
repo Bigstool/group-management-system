@@ -205,6 +205,9 @@ def rename_semester(semester_uuid):
     if semester.name == 'CURRENT':
         raise ApiPermissionException('Permission denied: Current semester cannot be renamed')
     if new_name is not None:
+        old_semester = Semester.query.filter_by(name=new_name).first()
+        if old_semester is not None:
+            raise ApiDuplicateResourceException("Resource conflict: name already used")
         semester.name = new_name
     db.session.commit()
     return MyResponse().build()

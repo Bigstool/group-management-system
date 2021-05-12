@@ -7,6 +7,7 @@ import styles from './ResetPassword.scss';
 import {AuthContext} from "../utilities/AuthProvider";
 import ErrorMessage from "../components/ErrorMessage";
 import {Redirect} from "react-router-dom";
+import SHA1 from "crypto-js/sha1";
 
 /* Bigstool's class notations
 *  #T: Top-level component
@@ -24,6 +25,7 @@ export default class ResetPassword extends React.Component {
     this.state = {
       // User related
       userRole: this.context.getUser()['role'],
+      userList: [],
       studentEmail: '',
       newPassword: '',
       // Component related
@@ -33,29 +35,91 @@ export default class ResetPassword extends React.Component {
       push: false,
       // Event related
       resetting: false,
-      wrongEmail: false,  //TODO: when saved: set to false
-      success: false,  // TODO: when saving: set to false
+      wrongEmail: false,
     };
   }
 
   async componentDidMount() {
+    // Check permission
     if (this.state.userRole !== 'ADMIN') {
       this.setState({
         redirect: '/',
         push: false,
       })
     }
+    // Get user list
+    try {
+      let res = await this.context.request({
+        path: `/user`,
+        method: 'get'
+      });
+
+      this.setState({
+        userList: res.data['data'],
+      });
+    } catch (error) {
+      this.setState({
+        'error': true
+      });
+    }
+    // Set loading to false
     this.setState({loading: false});
+  }
+
+  generatePassword() {
+    const length = 8;
+    const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let generated = '';
+    for (let i = 0; i < length; i++) {
+      generated += charset.charAt(Math.floor(Math.random() * charset.length));
+    }
+    console.debug(generated);
+    return generated;
   }
 
   @boundMethod
   onEmailChange(event) {
-    this.setState({studentEmail: event.target.value});
+    this.setState({
+      studentEmail: event.target.value,
+      wrongEmail: false,
+    });
   }
 
   @boundMethod
-  onReset() {
-    // TODO
+  async onReset() {
+    this.setState({
+      resetting: true,
+      newPassword: '',
+    });
+    // Check the UUID of the user
+    let uuid = '';
+    for (let i = 0; i < this.state.userList.length; i++) {
+      if (this.state.userList[i]['email'] === this.state.studentEmail) {
+        uuid = this.state.userList[i]['uuid'];
+        break;
+      }
+    }
+    // If uuid is empty, the email is wrong, show warning
+    if (!uuid) this.setState({wrongEmail: true});
+    // Else, request to reset password
+    else {
+      let newPassword = this.generatePassword();
+      try {
+        await this.context.request({
+          path: `/user/${uuid}/password`,
+          method: 'patch',
+          data: {
+            new_password: SHA1(newPassword).toString(),
+          },
+        });
+        this.setState({newPassword: newPassword});
+      } catch (error) {
+        this.setState({
+          'error': true
+        });
+      }
+    }
+    this.setState({resetting: false});
   }
 
   onCancel() {
@@ -100,13 +164,13 @@ export default class ResetPassword extends React.Component {
     // Warning
     let warning = <p className={styles.Warning}>
       Email not found, please try again
-    </p>
+    </p>;
 
     // Info
     let info = <p className={styles.Info}>
       Password reset successful<br/>
-      {`The student's new password is: ${this.state.newPassword}`}
-    </p>
+      {`The user's new password is: ${this.state.newPassword}`}
+    </p>;
 
     // Email
     let email = <div className={styles.EditItem}>
@@ -114,7 +178,7 @@ export default class ResetPassword extends React.Component {
       <Input className={styles.Content} placeholder={'Student Email'}
              onChange={this.onEmailChange} value={this.state.studentEmail}/>
       {this.state.wrongEmail ? warning : null}
-      {this.state.success ? info : null}
+      {this.state.newPassword ? info : null}
     </div>;
 
     // Reset
@@ -122,7 +186,8 @@ export default class ResetPassword extends React.Component {
       <div className={styles.Gap}/>
       <div className={styles.Button}>
         <Button type={'primary'} block size={'large'}
-                onClick={this.onReset} loading={this.state.resetting}>
+                onClick={this.onReset} loading={this.state.resetting}
+                disabled={!this.state.studentEmail}>
           Reset
         </Button>
       </div>

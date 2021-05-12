@@ -408,6 +408,8 @@ def reject_application():
     token_info = Auth.get_payload(request)
 
     application = GroupApplication.query.filter_by(uuid=uuid.UUID(application_uuid).bytes).first()
+    if application is None:
+        raise ApiResourceNotFoundException("Not found: no such application")
 
     group = Group.query.filter_by(uuid=application.group_uuid).first()
 
@@ -461,6 +463,8 @@ def delete_application(application_uuid):
     application_uuid: str = args_path["application_uuid"]
 
     application = GroupApplication.query.get(uuid.UUID(application_uuid).bytes)
+    if application is None:
+        raise ApiResourceNotFoundException("Not found: no such application")
 
     # Check Identity
     token_info = Auth.get_payload(request)

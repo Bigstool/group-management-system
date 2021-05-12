@@ -739,7 +739,13 @@ def remove_member(group_uuid, user_uuid):
     token_info = Auth.get_payload(request)
 
     group = Group.query.get(uuid.UUID(group_uuid).bytes)
+    if group is None:
+        raise ApiResourceNotFoundException("Not found: no such group")
     user = User.query.get(uuid.UUID(user_uuid).bytes)
+    if user is None:
+        raise ApiResourceNotFoundException("Not found: no such user")
+    if user.uuid not in [member.uuid for member in group.member]:
+        raise ApiResourceNotFoundException("Not found: user not a group member")
 
     # Check Identity
     if token_info["role"] != "ADMIN" and \

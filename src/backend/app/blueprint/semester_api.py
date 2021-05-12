@@ -2,6 +2,7 @@ import time
 import uuid
 
 from flask import Blueprint, request
+from sqlalchemy import and_
 from webargs import fields, validate
 from webargs.flaskparser import parser
 
@@ -121,6 +122,10 @@ def get_semester_list():
                     type: string
                     description: semester name
                     example: 2020-2021
+                  user_count:
+                    type: int
+                    description: number of USER in the semester
+                    example: 203
                   start_time:
                     type: number
                     description: unix timestamp of semester creation time
@@ -138,6 +143,7 @@ def get_semester_list():
     return MyResponse(data=[{
         "uuid": str(uuid.UUID(bytes=semester.uuid)),
         "name": semester.name,
+        "user_count": User.query.filter(and_(User.creation_time.between(semester.start_time, semester.end_time), User.role == "USER")).count(),
         "start_time": semester.start_time,
         "end_time": semester.end_time
     } for semester in semesters]).build()

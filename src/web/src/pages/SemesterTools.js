@@ -1,5 +1,5 @@
 import React from "react";
-import {Space, Button, InputNumber, DatePicker} from 'antd';
+import {Space, Button, InputNumber, DatePicker, Input} from 'antd';
 import {LoadingOutlined} from '@ant-design/icons';
 import {boundMethod} from "autobind-decorator";
 import AppBar from "../components/AppBar";
@@ -38,15 +38,23 @@ export default class SemesterTools extends React.Component {
       newSizeUpper: 0,
       newGroupingDDL: 0,
       newProposalDDL: 0,
+      // Archive related
+      archiveName: '',
+      archiveNameLimit: 50,
       // Component related
       loading: true,
       error: false,
       redirect: false,
       push: false,
       // Event related
+      importing: false,
+      downloading: false,
       adjustingSize: false,
       adjustingGrouping: false,
       adjustingProposal: false,
+      adjustingArchive: false,
+      archiving: false,
+      archiveDuplicate: false,
     }
   }
 
@@ -148,6 +156,21 @@ export default class SemesterTools extends React.Component {
 
   @boundMethod
   onSaveProposal() {
+    // TODO
+  }
+
+  @boundMethod
+  onArchive() {
+    this.setState({adjustingArchive: !this.state.adjustingArchive});
+  }
+
+  @boundMethod
+  onArchiveChange(event) {
+    this.setState({archiveName: event.target.value});
+  }
+
+  @boundMethod
+  onSaveArchive() {
     // TODO
   }
 
@@ -305,7 +328,7 @@ export default class SemesterTools extends React.Component {
     if (proposalCheckAfterGrouping) {
       proposalWarning = <p className={styles.Warning}>
         The Proposal DDL must be after the Grouping DDL
-      </p>
+      </p>;
     }
     let proposal;
     if (!this.state.adjustingProposal) {
@@ -315,7 +338,7 @@ export default class SemesterTools extends React.Component {
         {proposalButton}
         {adjustProposal}
         {proposalWarning}
-      </div>
+      </div>;
     }
 
     // Group Allocation (After Grouping DDL and Before Proposal DDL)
@@ -326,10 +349,36 @@ export default class SemesterTools extends React.Component {
     </Button>;
 
     // Archive Semester (After Import)
-    let archive = <Button danger block size={'large'} className={styles.ToolItem}
-                          onClick={null}>
+    let archiveButton = <Button danger block size={'large'}
+                          onClick={this.onArchive} loading={this.state.archiving}>
       Archive Semester
-    </Button>
+    </Button>;
+    let adjustArchive = <div className={styles.Adjust}>
+      <Space>
+        <Input onChange={this.onArchiveChange} value={this.state.archiveName}
+               maxLength={this.state.archiveNameLimit} placeholder={'Archive Name'}/>
+        <Button type={'primary'} onClick={this.onSaveArchive}
+                disabled={!this.state.archiveName}>
+          Save
+        </Button>
+      </Space>
+    </div>;
+    let archiveWarning = null;
+    if (this.state.archiveDuplicate) {
+      archiveWarning = <p className={styles.Warning}>
+        Duplicate archive name
+      </p>;
+    }
+    let archive;
+    if (!this.state.adjustingArchive) {
+      archive = <div className={styles.ToolItem}>{archiveButton}</div>;
+    } else {
+      archive = <div className={styles.ToolItem}>
+        {archiveButton}
+        {adjustArchive}
+        {archiveWarning}
+      </div>;
+    }
 
     return (
       <React.Fragment>

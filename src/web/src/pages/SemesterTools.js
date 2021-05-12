@@ -79,7 +79,7 @@ export default class SemesterTools extends React.Component {
       });
 
       let userList = res.data['data'];
-      if (userList.length === 0) this.setstate({isImported: false,});
+      if (userList.length === 0) this.setState({isImported: false,});
       else this.setState({isImported: true});
     } catch (error) {
       this.setState({error: true,});

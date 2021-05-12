@@ -38,6 +38,10 @@ export default class EditGroupProfile extends React.Component {
       title: '',
       description: '',
       proposal: '',
+      newName: '',
+      newTitle: '',
+      newDescription: '',
+      newProposal: '',
       nameLimit: 20,
       titleLimit: 80,
       descriptionLimit: 150,
@@ -96,6 +100,10 @@ export default class EditGroupProfile extends React.Component {
         title: groupInfo['title'],
         description: groupInfo['description'],
         proposal: groupInfo['proposal'],
+        newName: groupInfo['name'],
+        newTitle: groupInfo['title'],
+        newDescription: groupInfo['description'],
+        newProposal: groupInfo['proposal'],
       })
 
       // update isOwner
@@ -115,37 +123,38 @@ export default class EditGroupProfile extends React.Component {
 
   @boundMethod
   onNameChange(event) {
-    this.setState({name: event.target.value});
+    this.setState({newName: event.target.value});
   }
 
   @boundMethod
   onTitleChange(event) {
-    this.setState({title: event.target.value});
+    this.setState({newTitle: event.target.value});
   }
 
   @boundMethod
   onDescriptionChange(event) {
-    this.setState({description: event.target.value});
+    this.setState({newDescription: event.target.value});
   }
 
   @boundMethod
   onProposalChange(event) {
-    this.setState({proposal: event.target.value});
+    this.setState({newProposal: event.target.value});
   }
 
   @boundMethod
   async onSave() {
     this.setState({saving: true});
+    let data = {};
+    if (!(this.state.isOwner && this.state.afterGroupingDDL) && this.state.name !== this.state.newName)
+      data['name'] = this.state.newName;
+    if (this.state.title !== this.state.newTitle) data['title'] = this.state.newTitle;
+    if (this.state.description !== this.state.newDescription) data['description'] = this.state.newDescription;
+    if (this.state.proposal !== this.state.newProposal) data['proposal'] = this.state.newProposal;
     try {
       await this.context.request({
         path: `/group/${this.state.groupUuid}`,
         method: "patch",
-        data: {
-          name: this.state.name,
-          title: this.state.title,
-          description: this.state.description,
-          proposal: this.state.proposal,
-        }
+        data: data,
       });
       // If success, redirect to Group Details (Wait for app bar support)
       this.setState({
@@ -199,12 +208,16 @@ export default class EditGroupProfile extends React.Component {
     return (
       <React.Fragment>
         {appBar}
-        <GroupProfileForm name={this.state.name} title={this.state.title}
-                          description={this.state.description} proposal={this.state.proposal}
+        <GroupProfileForm name={this.state.newName} title={this.state.newTitle}
+                          description={this.state.newDescription} proposal={this.state.newProposal}
                           onNameChange={this.onNameChange} onTitleChange={this.onTitleChange}
                           onDescriptionChange={this.onDescriptionChange} onProposalChange={this.onProposalChange}
                           onSave={this.onSave} onCancel={this.onCancel}
                           saving={this.state.saving}
+                          disableSave={this.state.name === this.state.newName &&
+                          this.state.title === this.state.newTitle &&
+                          this.state.description === this.state.newDescription &&
+                          this.state.proposal === this.state.newProposal}
                           disableName={this.state.isOwner && this.state.afterGroupingDDL}/>
       </React.Fragment>
     );

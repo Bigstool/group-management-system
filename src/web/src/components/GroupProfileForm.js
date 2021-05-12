@@ -28,10 +28,12 @@ export default class GroupProfileForm extends React.Component {
     // Event
     saving: PropTypes.bool.isRequired,
     // Option
+    disableSave: PropTypes.bool,
     disableName: PropTypes.bool,
   };
 
   static defaultProps = {
+    disableSave: false,
     disableName: false,
   };
 
@@ -86,7 +88,7 @@ export default class GroupProfileForm extends React.Component {
       <div className={styles.Gap} />
       <div className={styles.Gap} />
       <Button type={'primary'} block size={'large'} onClick={this.props.onSave} loading={this.props.saving}
-              disabled={!this.props.name || !this.props.title || !this.props.description}>
+              disabled={!this.props.name || !this.props.title || !this.props.description || this.props.disableSave}>
         Save
       </Button>
     </React.Fragment>;

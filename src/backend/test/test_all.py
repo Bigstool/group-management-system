@@ -288,19 +288,33 @@ def test_update_group_info(test_user_sign_in, test_get_group_list):
 def test_favorite_group(test_user_sign_in, test_get_group_list):
     # User2 favorite GroupA
     r = requests.post(f"{api}/group/{test_get_group_list[0]['uuid']}/favorite", headers={
-        "Authorization": f"Bearer {test_user_sign_in[0]['token_access']}"
+        "Authorization": f"Bearer {test_user_sign_in[1]['token_access']}"
     })
     log_res(r)
     assert r.status_code == 200
+    # verify
+    r = requests.get(f"{api}/group/{test_get_group_list[0]['uuid']}", headers={
+        "Authorization": f"Bearer {test_user_sign_in[1]['token_access']}"
+    })
+    log_res(r)
+    assert r.status_code == 200
+    assert r.json()["data"]["favorite"] == True
 
 
 def test_undo_favorite_group(test_user_sign_in, test_get_group_list):
     # User2 undo favorite GroupA
     r = requests.delete(f"{api}/group/{test_get_group_list[0]['uuid']}/favorite", headers={
-        "Authorization": f"Bearer {test_user_sign_in[0]['token_access']}"
+        "Authorization": f"Bearer {test_user_sign_in[1]['token_access']}"
     })
     log_res(r)
     assert r.status_code == 200
+    # verify
+    r = requests.get(f"{api}/group/{test_get_group_list[0]['uuid']}", headers={
+        "Authorization": f"Bearer {test_user_sign_in[1]['token_access']}"
+    })
+    log_res(r)
+    assert r.status_code == 200
+    assert r.json()["data"]["favorite"] == False
 
 
 @pytest.fixture(scope="package")

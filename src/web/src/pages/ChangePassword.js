@@ -82,16 +82,15 @@ export default class ChangePassword extends React.Component {
         path: `/user/${this.state.userUuid}/password`,
         method: 'patch',
         data: {
-          new_password:SHA1(this.state.newPassword).toString(),
+          new_password: SHA1(this.state.newPassword).toString(),
           old_password: SHA1(this.state.currentPassword).toString(),
         },
       });
       window.history.back();
     } catch (error) {
       if (error.response.status === 403) this.setState({wrongPassword: true});
-      else this.setState({'error': true});
-      this.setState({changing: false});
     }
+    this.setState({changing: false});
   }
 
   onCancel() {

@@ -113,11 +113,7 @@ export default class ResetPassword extends React.Component {
           },
         });
         this.setState({newPassword: newPassword});
-      } catch (error) {
-        this.setState({
-          'error': true
-        });
-      }
+      } catch (error) {}
     }
     this.setState({resetting: false});
   }

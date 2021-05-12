@@ -78,7 +78,7 @@ def create_user(args):
           application/json:
             schema:
               type: array
-              item:
+              items:
                 type: object
                 properties:
                   uuid:

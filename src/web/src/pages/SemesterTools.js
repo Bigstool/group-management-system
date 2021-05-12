@@ -60,33 +60,45 @@ export default class SemesterTools extends React.Component {
   }
 
   async componentDidMount() {
+    await this.checkImport();
     await this.checkSystem();
     console.debug(this.state);
     this.setState({loading: false});
   }
 
   @boundMethod
+  async checkImport() {
+    // TODO: use sysConfig instead (wait for backend implementation)
+    try {
+      let res = await this.context.request({
+        path: `/user`,
+        method: 'get',
+      });
+
+      let userList = res.data['data'];
+      if (userList.length === 0) this.setstate({isImported: false,});
+      else this.setState({isImported: true});
+    } catch (error) {
+      this.setState({error: true,});
+    }
+  }
+
+  @boundMethod
   async checkSystem() {
-    let sizeLower = 5;
-    let sizeUpper = 7;
-    let groupingDDL = 1621098000;
-    let proposalDDL = 1629028800;
-    let afterGroupingDDL = groupingDDL ? (Date.now() / 1000) > groupingDDL : false;
-    let afterProposalDDL = proposalDDL ? (Date.now() / 1000) > proposalDDL: false;
-    let newSizeLower = sizeLower, newSizeUpper = sizeUpper;
-    let newGroupingDDL = groupingDDL ? groupingDDL : this.momentToTimestamp(moment().add(10, 'days'));
-    let newProposalDDL = proposalDDL ? proposalDDL : this.momentToTimestamp(moment().add(20, 'days'));
+    let sysConfig = await this.context.getSysConfig();
+    let groupingDDL = sysConfig['system_state']['grouping_ddl'];
+    let proposalDDL = sysConfig['system_state']['proposal_ddl'];
     this.setState({
-      sizeLower: sizeLower,
-      sizeUpper: sizeUpper,
+      sizeLower: sysConfig['group_member_number'][0],
+      sizeUpper: sysConfig['group_member_number'][1],
+      newSizeLower: sysConfig['group_member_number'][0],
+      newSizeUpper: sysConfig['group_member_number'][1],
       groupingDDL: groupingDDL,
       proposalDDL: proposalDDL,
-      afterGroupingDDL: afterGroupingDDL,
-      afterProposalDDL: afterProposalDDL,
-      newSizeLower: newSizeLower,
-      newSizeUpper: newSizeUpper,
-      newGroupingDDL: newGroupingDDL,
-      newProposalDDL: newProposalDDL,
+      afterGroupingDDL: groupingDDL ? (Date.now() / 1000) > groupingDDL : false,
+      afterProposalDDL: proposalDDL ? (Date.now() / 1000) > proposalDDL: false,
+      newGroupingDDL: groupingDDL ? groupingDDL : this.momentToTimestamp(moment().add(10, 'days')),
+      newProposalDDL: proposalDDL ? proposalDDL : this.momentToTimestamp(moment().add(20, 'days')),
     });
   }
 

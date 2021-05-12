@@ -226,7 +226,7 @@ export default class AccountPanel extends React.Component {
       resetPassword = <React.Fragment>
         <div className={styles.Gap} />
         <Button block size={'large'} onClick={this.onResetPassword}>
-          Reset Password For A Student
+          Reset Password For A User
         </Button>
       </React.Fragment>;
       semesterTools = <React.Fragment>

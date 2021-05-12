@@ -282,7 +282,7 @@ def get_user_application_list(user_uuid):
             "group": {
                 "uuid": str(uuid.UUID(bytes=application.group.uuid)),
                 "name": application.group.name,
-                "tile": application.group.title,
+                "title": application.group.title,
                 "description": application.group.description,
             },
             "comment": application.comment,

@@ -8,6 +8,7 @@ import {AuthContext} from "../utilities/AuthProvider";
 import {Redirect} from "react-router-dom";
 import ErrorMessage from "../components/ErrorMessage";
 import moment from 'moment';
+import SHA1 from "crypto-js/sha1";
 
 /* Bigstool's class notations
 *  #T: Top-level component
@@ -53,8 +54,8 @@ export default class SemesterTools extends React.Component {
       adjustingGrouping: false,
       adjustingProposal: false,
       adjustingArchive: false,
-      archiving: false,
-      archiveDuplicate: false,
+      savingArchive: false,
+      duplicateArchive: false,
     }
   }
 
@@ -166,12 +167,29 @@ export default class SemesterTools extends React.Component {
 
   @boundMethod
   onArchiveChange(event) {
-    this.setState({archiveName: event.target.value});
+    this.setState({
+      duplicateArchive: false,
+      archiveName: event.target.value,
+    });
   }
 
   @boundMethod
-  onSaveArchive() {
-    // TODO
+  async onSaveArchive() {
+    this.setState({savingArchive: true});
+    try {
+      await this.context.request({
+        path: `/semester/archived`,
+        method: 'post',
+        data: {
+          name: this.state.archiveName,
+        },
+      });
+      // TODO: to archives
+      window.history.back();
+    } catch (error) {
+      if (error.response.status === 409) this.setState({duplicateArchive: true});
+    }
+    this.setState({savingArchive: false});
   }
 
   render() {
@@ -349,8 +367,7 @@ export default class SemesterTools extends React.Component {
     </Button>;
 
     // Archive Semester (After Import)
-    let archiveButton = <Button danger block size={'large'}
-                          onClick={this.onArchive} loading={this.state.archiving}>
+    let archiveButton = <Button danger block size={'large'} onClick={this.onArchive}>
       Archive Semester
     </Button>;
     let adjustArchive = <div className={styles.Adjust}>
@@ -358,13 +375,13 @@ export default class SemesterTools extends React.Component {
         <Input onChange={this.onArchiveChange} value={this.state.archiveName}
                maxLength={this.state.archiveNameLimit} placeholder={'Archive Name'}/>
         <Button type={'primary'} onClick={this.onSaveArchive}
-                disabled={!this.state.archiveName}>
+                disabled={!this.state.archiveName} loading={this.state.savingArchive}>
           Save
         </Button>
       </Space>
     </div>;
     let archiveWarning = null;
-    if (this.state.archiveDuplicate) {
+    if (this.state.duplicateArchive) {
       archiveWarning = <p className={styles.Warning}>
         Duplicate archive name
       </p>;

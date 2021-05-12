@@ -2,6 +2,7 @@ import time
 import uuid
 
 from flask import Blueprint, request
+from sqlalchemy import and_
 from webargs import fields, validate
 from webargs.flaskparser import parser
 
@@ -105,8 +106,6 @@ def create_group():
         raise ApiPermissionException("Permission denied: must logged in as USER")
 
     user = User.query.filter_by(uuid=uuid.UUID(token_info['uuid']).bytes).first()
-    print(user.owned_group)
-    print(user.joined_group)
     if user.owned_group is not None or user.joined_group is not None:
         raise ApiPermissionException(f'Permission denied: you belong to one group, you cannot create a new group!')
 
@@ -849,13 +848,12 @@ def favorite_group(group_uuid):
     token_info = Auth.get_payload(request)
 
     favorite = GroupFavorite.query.filter_by(user_uuid=uuid.UUID(token_info["uuid"]).bytes,
-                                             group_uuid=uuid.UUID(group_uuid).bytes)
+                                             group_uuid=uuid.UUID(group_uuid).bytes).first()
 
     if favorite is None:
-        new_favorite = GroupFavorite(uuid=uuid.uuid4().bytes,
+        db.session.add(GroupFavorite(uuid=uuid.uuid4().bytes,
                                      user_uuid=uuid.UUID(token_info["uuid"]).bytes,
-                                     group_uuid=uuid.UUID(group_uuid).bytes)
-        db.session.add(new_favorite)
+                                     group_uuid=uuid.UUID(group_uuid).bytes))
         db.session.commit()
 
     return MyResponse().build()
@@ -1058,12 +1056,12 @@ def assign_group():
 
     new_group_uuid = uuid.uuid4().bytes
     db.session.add(Group(uuid=new_group_uuid,
-                      name=name,
-                      title=title,
-                      description=description,
-                      proposal_state='PENDING',
-                      creation_time=int(time.time()),
-                      owner_uuid=owner.uuid))
+                         name=name,
+                         title=title,
+                         description=description,
+                         proposal_state='PENDING',
+                         creation_time=int(time.time()),
+                         owner_uuid=owner.uuid))
     # Notify user
     db.session.add(Notification(
         uuid=uuid.uuid4().bytes,

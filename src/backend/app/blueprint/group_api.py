@@ -751,9 +751,9 @@ def remove_member(group_uuid, user_uuid):
 
     if (token_info["uuid"] == user_uuid):
         # Notify the group owner and other member
-        for receiver in [group.owner_uuid] + [member.uuid for member in group.member if member.uuid != user.uuid]:
+        for receiver_uuid in [group.owner_uuid] + [member.uuid for member in group.member if member.uuid != user.uuid]:
             db.session.add(Notification(uuid=uuid.uuid4().bytes,
-                                        user_uuid=receiver.uuid,
+                                        user_uuid=receiver_uuid,
                                         title="Member Left",
                                         content=f"Group member {user.alias} has left the group {group.name}",
                                         creation_time=int(time.time())))
@@ -765,9 +765,9 @@ def remove_member(group_uuid, user_uuid):
                                     content=f"You have been removed from the group {group.name}",
                                     creation_time=int(time.time())))
         # Notify other member
-        for receiver in [member.uuid for member in group.member if member.uuid != user.uuid]:
+        for receiver_uuid in [member.uuid for member in group.member if member.uuid != user.uuid]:
             db.session.add(Notification(uuid=uuid.uuid4().bytes,
-                                        user_uuid=receiver.uuid,
+                                        user_uuid=receiver_uuid,
                                         title="Member Removed",
                                         content=f"{user.alias} has been removed from the group {group.name}",
                                         creation_time=int(time.time())))

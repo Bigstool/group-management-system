@@ -339,7 +339,7 @@ export default class GroupConfig extends React.Component {
     }
 
     // App Bar
-    let appBar = <AppBar/>;
+    let appBar = <AppBar backTo={`/group/${this.state.groupUuid}`}/>;
 
     if (this.state.error) {
       return (

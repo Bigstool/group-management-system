@@ -136,6 +136,18 @@ export default class SemesterTools extends React.Component {
   }
 
   @boundMethod
+  async onStudent() {
+    // Imported, go to student list
+    if (this.state.isImported) {
+      this.setState({
+        redirect: `/semester/students`,
+        push: true,
+      })
+    }
+    // TODO: Not imported, import
+  }
+
+  @boundMethod
   onSize() {
     this.setState({adjustingSize: !this.state.adjustingSize});
   }
@@ -271,7 +283,7 @@ export default class SemesterTools extends React.Component {
     }
 
     // App Bar
-    let appBar = <AppBar/>;
+    let appBar = <AppBar backTo={`/user`}/>;
 
     if (this.state.error) {
       return (
@@ -295,7 +307,7 @@ export default class SemesterTools extends React.Component {
     let studentsCheckDDL = !this.state.groupingDDL || !this.state.proposalDDL;
     let studentsButton = <Button type={'primary'} block size={'large'}
                                  disabled={studentsCheckDDL}
-                                 onClick={null}>
+                                 onClick={this.onStudent}>
       {this.state.isImported ? 'View Students' : 'Import Students'}
     </Button>;
     let studentsWarning = null;

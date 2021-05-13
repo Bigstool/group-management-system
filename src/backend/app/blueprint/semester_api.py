@@ -69,6 +69,11 @@ def archive_semester():
     if not token_info['role'] == 'ADMIN':
         raise ApiPermissionException('Permission denied: Not logged in as admin')
 
+    # check dup name
+    dup_semester = Semester.query.filter_by(name=name).first()
+    if dup_semester is not None:
+        raise ApiDuplicateResourceException("Resource conflict: name already used")
+
     # remove all applications
     GroupApplication.query.delete()
     # rename current semester and set end time

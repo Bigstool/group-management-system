@@ -28,6 +28,7 @@ import SemesterTools from './pages/SemesterTools';
 import ChangePassword from "./pages/ChangePassword";
 import ResetPassword from "./pages/ResetPassword";
 import TransferGroupOwner from "./pages/TransferGroupOwner";
+import StudentList from "./pages/StudentList";
 
 const app = document.createElement("div");
 app.id = styles.ReactApp;
@@ -54,6 +55,7 @@ ReactDOM.render((
                   <PrivateRoute exact path={"/group/:uuid"} component={GroupDetails}/>
                   <PrivateRoute exact path={"/create/group"} component={CreateGroup}/>
                   <PrivateRoute exact path={"/semester/tools"} component={SemesterTools}/>
+                  <PrivateRoute exact path={"/semester/students"} component={StudentList}/>
                   <PrivateRoute exact path={"/admin/reset"} component={ResetPassword}/>
                   <Route path={"*"} component={NotFound}/>
               </Switch>

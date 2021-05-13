@@ -135,6 +135,14 @@ export default class AccountPanel extends React.Component {
     });
   }
 
+  @boundMethod
+  onReports() {
+    this.setState({
+      'redirect': `/semester/reports`,
+      'push': true,
+    });
+  }
+
   render() {
     // Check if redirect is needed
     if (this.state.redirect) {
@@ -238,7 +246,10 @@ export default class AccountPanel extends React.Component {
       </React.Fragment>;
       reports = <React.Fragment>
         <div className={styles.Gap} />
-        <Button block size={'large'}>Reports</Button>
+        <Button block size={'large'}
+                onClick={this.onReports}>
+          Reports
+        </Button>
       </React.Fragment>;
       archives = <React.Fragment>
         <div className={styles.Gap} />

@@ -873,3 +873,97 @@ def add_comment(group_uuid):
     db.session.commit()
 
     return MyResponse(data=None).build()
+
+@group_api.route("/group/<user_uuid>", methods=["POST"])
+def admin_create_group(user_uuid):
+    """Admin create a new group
+    ---
+    tags:
+      - group
+
+    description: |
+      ## Constrains
+      * operator must be admin
+      * user_uuid must be one have no created group or joined group
+      * must after grouping ddl
+      * application made by user is deleted after group creation
+
+
+    parameters:
+      - name: user_uuid
+        in: path
+        required: true
+        description: user uuid
+        schema:
+          type: string
+          example: 16fc2db7-cac0-46c2-a0e3-2da6cec54abb
+
+
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                description: group name
+                example: Jaxzefalk
+                max: 256
+              required:
+              - name
+
+    responses:
+      '200':
+        description: query success
+        content:
+          application/json:
+            schema:
+              type: object
+    """
+    # constrain
+    system_config = Semester.query.filter_by(name="CURRENT").first().config
+    if system_config["system_state"]["grouping_ddl"] > time.time():
+        raise ApiPermissionException("Permission denied: Grouping is not finished, you cannot create a new group!")
+
+
+    args_query = parser.parse({
+        "user_uuid": fields.Str(required=True, validate=MyValidator.Uuid())}, request, location="path")
+    user_uuid: str = args_query["user_uuid"]
+    
+
+    args_json = parser.parse({
+        "name": fields.Str(required=True, validate=validate.Length(min=1, max=256))
+    }, request, location="json")
+
+    name: str = args_json["name"]
+
+    token_info = Auth.get_payload(request)
+
+    if token_info["role"] != "ADMIN":
+        raise ApiPermissionException(
+            f"Permission denied: must logged in as ADMIN"
+        )
+
+    user = User.query.filter_by(uuid=uuid.UUID(user_uuid).bytes).first()
+    if user.group_id is not None:
+        raise ApiPermissionException(
+            f'Permission denied: this user has been assigned to a group!')
+
+    # create a new group
+    new_group = Group(uuid=uuid.uuid4().bytes,
+                      name=name,
+                      proposal_state='APPROVED',
+                      creation_time=int(time.time()),
+                      owner_uuid=uuid.UUID(user_uuid).bytes)
+    # update User db
+    user.group_id = new_group.uuid
+
+    db.session.add(new_group)
+    # delete applications
+    for application in GroupApplication.query.filter_by(applicant_uuid=user.uuid).all():
+        db.session.delete(application)
+    db.session.commit()
+
+    return MyResponse(data=None).build()

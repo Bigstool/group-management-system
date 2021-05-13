@@ -617,8 +617,6 @@ def transfer_group_ownership(group_uuid):
         raise ApiInvalidInputException("Invalid input: new owner must be member of group")
 
     # Transfer owner
-    old_owner: User = User.query.get(group.owner_uuid)
-    old_owner.joined_group_uuid = group.uuid
     group.owner_uuid = new_owner.uuid
 
     # Notify members

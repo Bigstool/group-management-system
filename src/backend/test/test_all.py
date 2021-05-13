@@ -572,6 +572,16 @@ def test_archive_semester(test_admin_sign_in):
                       })
     log_res(r)
     assert r.status_code == 200
+    # test dup name
+    r = requests.post(f"{api}/semester/archived",
+                      headers={
+                          "Authorization": f"Bearer {test_admin_sign_in['token_access']}"
+                      },
+                      json={
+                          "name": "test_archived"
+                      })
+    log_res(r)
+    assert r.status_code == 409
 
 
 @pytest.fixture(scope="package")

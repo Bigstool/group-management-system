@@ -26,7 +26,7 @@ export default class TransferGroupOwner extends React.Component {
       userUuid: this.context.getUser()['uuid'],
       userRole: this.context.getUser()['role'],
       // Group related
-      groupUuid: '389d2a4e-c4a4-4e4d-9254-5990c5169a8c',  // TODO: this.props.match.params["uuid"],
+      groupUuid: this.props.match.params["uuid"],
       ownerUuid: '',
       members: null,
       // Component related
@@ -94,8 +94,25 @@ export default class TransferGroupOwner extends React.Component {
    * @param userObject {Object} the user object
    */
   @boundMethod
-  onClick(userObject) {
-    // TODO
+  async onClick(userObject) {
+    this.setState({transferring: true});
+    try {
+      await this.context.request({
+        path: `/group/${this.state.groupUuid}/owner`,
+        method: 'patch',
+        data: {
+          owner_uuid: userObject['uuid'],
+        }
+      });
+      this.setState({
+        redirect: `/group/${this.state.groupUuid}`,
+        push: false,
+      })
+    } catch (error) {
+      this.setState({
+        transferring: false,
+      });
+    }
   }
 
   render() {

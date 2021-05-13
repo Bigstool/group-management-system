@@ -299,3 +299,53 @@ def update_user_profile(user_uuid):
     db.session.commit()
 
     return MyResponse(data=None, msg='query success').build()
+
+
+@user_api.route("/user/<user_uuid>", methods=["PATCH"])
+def change_user_password(user_uuid):
+    """Change password of the user
+    ---
+    tags:
+      - user
+
+    description: |
+      ## Constrains
+      * operator must be the user whose password to be modified
+
+    parameters:
+      - name: user_uuid
+        in: path
+        required: true
+        description: user uuid
+        schema:
+          type: string
+          example: 16fc2db7-cac0-46c2-a0e3-2da6cec54abb
+
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              current_password:
+                type: string
+                description: sha1(password)
+                example: 5F4DCC3B5AA765D61D8327DEB882CF99
+              new_password:
+                type: string
+                description: sha1(password)
+                example: 5F4DCC3B5AA765D61D8327DEB882CF99
+              repeat_password:
+                type: string
+                description: sha1(password)
+                example: 5F4DCC3B5AA765D61D8327DEB882CF99
+
+    responses:
+      '200':
+        description: query success
+        content:
+          application/json:
+            schema:
+              type: object
+    """

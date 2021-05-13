@@ -4,11 +4,13 @@ import time
 import uuid
 
 from flask import Blueprint, request
+from sqlalchemy import and_
 from sqlalchemy.orm.attributes import flag_modified
 from webargs import fields, validate
 from webargs.flaskparser import parser
 
 from model.Semester import Semester
+from model.User import User
 from shared import get_logger, db
 from utility import MyValidator
 from utility.ApiException import *
@@ -42,6 +44,10 @@ def get_sys_config():
             schema:
               type: object
               properties:
+                student_count:
+                  type" integer
+                  description: number of USER in current semester
+                  example: 223
                 system_state:
                   type: object
                   description: important time of current system
@@ -59,8 +65,10 @@ def get_sys_config():
                   description: range of group member
                   example: [7, 9]
     """
-    record = Semester.query.filter_by(name="CURRENT").first()
-    return MyResponse(data=record.config).build()
+    semester = Semester.query.filter_by(name="CURRENT").first()
+    semester.config["student_count"] = User.query.filter(and_(User.creation_time.between(semester.start_time, semester.end_time), User.role == "USER")).count(),
+
+    return MyResponse(data=semester.config).build()
 
 
 @system_api.route("/sysconfig", methods=["PATCH"])

@@ -407,8 +407,8 @@ export default class GroupConfig extends React.Component {
     // Caution Zone
     let cautionZone = [];
     cautionZone.push(
-      <div className={styles.CautionZone}>
-        <Divider orientation="center" plain key={'divider'}>
+      <div className={styles.CautionZone} key={'divider'}>
+        <Divider orientation="center" plain>
           Caution Zone
         </Divider>
       </div>

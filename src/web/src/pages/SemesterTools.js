@@ -261,7 +261,10 @@ export default class SemesterTools extends React.Component {
         },
       });
       // TODO: to archives
-      window.history.back();
+      this.setState({
+        redirect: `/user`,
+        push: false,
+      });
     } catch (error) {
       if (error.response.status === 409) this.setState({duplicateArchive: true});
     }

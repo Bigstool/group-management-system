@@ -305,6 +305,15 @@ export default class GroupConfig extends React.Component {
     }
   }
 
+  // On Transfer button clicked
+  @boundMethod
+  onTransfer() {
+    this.setState({
+      redirect: `/group/${this.state.groupUuid}/transfer`,
+      push: true,
+    });
+  }
+
   // On Dismiss button clicked
   @boundMethod
   async onDismiss() {
@@ -461,7 +470,8 @@ export default class GroupConfig extends React.Component {
     }
     // Transfer Ownership (Group Owner or Admin) (All stages)
     if (this.state.isOwner || this.state.isAdmin) {
-      cautionZone.push(<Button danger block size={'large'} key={'transfer-ownership'}>
+      cautionZone.push(<Button danger block size={'large'} key={'transfer-ownership'}
+                               onClick={this.onTransfer}>
         Transfer Group Owner
       </Button>);
     }

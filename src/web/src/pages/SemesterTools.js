@@ -63,9 +63,17 @@ export default class SemesterTools extends React.Component {
   }
 
   async componentDidMount() {
+    // Check permission
+    if (this.state.userRole !== 'ADMIN') {
+      this.setState({
+        redirect: '/',
+        push: false,
+      });
+    }
+    // Retrieve Info
     await this.checkImport();
     await this.checkSystem();
-    console.debug(this.state);
+    // Complete loading
     this.setState({loading: false});
   }
 

@@ -128,6 +128,14 @@ export default class AccountPanel extends React.Component {
   }
 
   @boundMethod
+  onArchives() {
+    this.setState({
+      'redirect': `/semester/archives`,
+      'push': true,
+    });
+  }
+
+  @boundMethod
   onSemesterTools() {
     this.setState({
       'redirect': `/semester/tools`,
@@ -253,7 +261,7 @@ export default class AccountPanel extends React.Component {
       </React.Fragment>;
       archives = <React.Fragment>
         <div className={styles.Gap} />
-        <Button block size={'large'}>Archives</Button>
+        <Button block size={'large'} onClick={this.onArchives}>Archives</Button>
       </React.Fragment>;
     }
 

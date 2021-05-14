@@ -212,7 +212,7 @@ def get_group_list():
 
                       unit: second
                     example: 7485
-                  application_enable:
+                  application_enabled:
                     type: boolean
                     description: whether this group accept new application
                     example: true

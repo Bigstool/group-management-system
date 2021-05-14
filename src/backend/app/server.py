@@ -7,6 +7,8 @@ import uuid
 from datetime import datetime
 from hashlib import sha1
 
+from apscheduler.triggers.date import DateTrigger
+from flask_apscheduler import APScheduler
 from flasgger import Swagger
 from flask import Flask, request, g
 from sqlalchemy.orm.attributes import flag_modified
@@ -14,7 +16,7 @@ from werkzeug.exceptions import HTTPException
 
 from blueprint.application_api import application_api
 from blueprint.auth_api import auth_api
-from blueprint.group_api import group_api
+from blueprint.group_api import group_api, post_grouping_ddl_job
 from blueprint.notification_api import notification_api
 from blueprint.semester_api import semester_api
 from blueprint.system_api import system_api
@@ -281,6 +283,24 @@ with app.app_context():
             )
             db.session.add(comment1)
             db.session.commit()
+
+# Flask APSchedulers
+# initialize scheduler
+scheduler = APScheduler()
+# you can set options here:
+# scheduler.api_enabled = True
+scheduler.init_app(app)
+# scheduled task for ddl
+with app.app_context():
+    semester = Semester.query.filter_by(name="CURRENT").first()
+    if semester.config["system_state"]["grouping_ddl"]:
+        run_time = datetime.fromtimestamp(semester.config["system_state"]["grouping_ddl"])
+        logger.info(f"Grouping DDL set, post grouping DDL job scheduled at {run_time}")
+        scheduler.add_job(func=post_grouping_ddl_job,
+                          id="POST_GROUPING_DDL",
+                          replace_existing=True,
+                          trigger=DateTrigger(run_date=run_time))
+scheduler.start()
 
 # Swagger docs
 swagger_config = {

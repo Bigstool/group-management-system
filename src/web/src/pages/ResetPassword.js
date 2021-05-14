@@ -26,7 +26,7 @@ export default class ResetPassword extends React.Component {
       // User related
       userRole: this.context.getUser()['role'],
       userList: [],
-      studentEmail: '',
+      email: '',
       newPassword: '',
       // Component related
       loading: true,
@@ -80,7 +80,7 @@ export default class ResetPassword extends React.Component {
   @boundMethod
   onEmailChange(event) {
     this.setState({
-      studentEmail: event.target.value,
+      email: event.target.value,
       wrongEmail: false,
     });
   }
@@ -94,7 +94,7 @@ export default class ResetPassword extends React.Component {
     // Check the UUID of the user
     let uuid = '';
     for (let i = 0; i < this.state.userList.length; i++) {
-      if (this.state.userList[i]['email'] === this.state.studentEmail) {
+      if (this.state.userList[i]['email'] === this.state.email) {
         uuid = this.state.userList[i]['uuid'];
         break;
       }
@@ -170,9 +170,9 @@ export default class ResetPassword extends React.Component {
 
     // Email
     let email = <div className={styles.EditItem}>
-      <h1 className={styles.Title}>Reset password for a student</h1>
-      <Input className={styles.Content} placeholder={'Student Email'}
-             onChange={this.onEmailChange} value={this.state.studentEmail}/>
+      <h1 className={styles.Title}>Reset password for a user</h1>
+      <Input className={styles.Content} placeholder={'Email'}
+             onChange={this.onEmailChange} value={this.state.email}/>
       {this.state.wrongEmail ? warning : null}
       {this.state.newPassword ? info : null}
     </div>;
@@ -183,7 +183,7 @@ export default class ResetPassword extends React.Component {
       <div className={styles.Button}>
         <Button type={'primary'} block size={'large'}
                 onClick={this.onReset} loading={this.state.resetting}
-                disabled={!this.state.studentEmail}>
+                disabled={!this.state.email}>
           Reset
         </Button>
       </div>

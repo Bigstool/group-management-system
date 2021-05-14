@@ -32,6 +32,7 @@ import StudentList from "./pages/StudentList";
 import Reports from "./pages/Reports";
 import GroupAllocation from "./pages/GroupAllocation";
 import ArchiveList from "./pages/ArchiveList";
+import ArchiveDetails from "./pages/ArchiveDetails";
 
 const app = document.createElement("div");
 app.id = styles.ReactApp;
@@ -58,6 +59,7 @@ ReactDOM.render((
                   <PrivateRoute exact path={"/group/:uuid"} component={GroupDetails}/>
                   <PrivateRoute exact path={"/create/group"} component={CreateGroup}/>
                   <PrivateRoute exact path={"/semester/archives"} component={ArchiveList}/>
+                  <PrivateRoute exact path={"/semester/archive/:uuid"} component={ArchiveDetails}/>
                   <PrivateRoute exact path={"/semester/tools"} component={SemesterTools}/>
                   <PrivateRoute exact path={"/semester/students"} component={StudentList}/>
                   <PrivateRoute exact path={"/semester/reports"} component={Reports}/>

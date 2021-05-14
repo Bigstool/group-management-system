@@ -34,6 +34,8 @@ export default class EditGroupProfile extends React.Component {
       isAdmin: false,
       // Group related
       groupUuid: this.props.match.params["uuid"],
+      isSubmitted: false,
+      isApproved: false,
       name: '',
       title: '',
       description: '',
@@ -63,7 +65,8 @@ export default class EditGroupProfile extends React.Component {
     await this.checkSysConfig();
     await this.checkGroupInfo();
     // Check whether user has permission to access this page
-    if (!this.state.isOwner && !this.state.isAdmin) {
+    if ((!this.state.isOwner && !this.state.isAdmin) ||
+      (this.state.isOwner && (this.state.isApproved || this.state.isSubmitted))) {
       this.setState({
         'redirect': '/',
         'push': false,
@@ -96,6 +99,8 @@ export default class EditGroupProfile extends React.Component {
 
       // update name, title, description, proposal
       this.setState({
+        isSubmitted: groupInfo['proposal_state'] === 'SUBMITTED',
+        isApproved: groupInfo['proposal_state'] === 'APPROVED',
         name: groupInfo['name'],
         title: groupInfo['title'],
         description: groupInfo['description'],

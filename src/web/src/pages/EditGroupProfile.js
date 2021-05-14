@@ -1,10 +1,7 @@
 import React from "react";
-import PropTypes from "prop-types";
-import {Button, Input} from 'antd';
 import {LoadingOutlined} from '@ant-design/icons';
 import {boundMethod} from "autobind-decorator";
 import AppBar from "../components/AppBar";
-import styles from './EditGroupProfile.scss';
 import {AuthContext} from "../utilities/AuthProvider";
 import {Redirect} from "react-router-dom";
 import GroupProfileForm from "../components/GroupProfileForm";

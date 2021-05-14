@@ -45,7 +45,7 @@ def get_sys_config():
               type: object
               properties:
                 student_count:
-                  type" integer
+                  type: integer
                   description: number of USER in current semester
                   example: 223
                 system_state:

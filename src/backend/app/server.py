@@ -176,7 +176,7 @@ with app.app_context():
                           password_hash=password_hash,
                           role="USER",
                           bio="During my own Google interview, I was asked the implications if P=NP were true. I said, \"P = 0 or N = 1\". Then, before the interviewer had even finished laughing, I examined Google's public certificate and wrote the private key on the whiteboard.",
-                          )
+                          initial_password="password")
             db.session.add(user_1)
             user_2 = User(uuid=user2_uuid,
                           creation_time=time.time(),
@@ -185,7 +185,8 @@ with app.app_context():
                           password_salt=password_salt,
                           password_hash=password_hash,
                           role="USER",
-                          bio="Compilers don't warn me. I warn compilers."
+                          bio="Compilers don't warn me. I warn compilers.",
+                          initial_password="password"
                           )
             db.session.add(user_2)
             user_3 = User(uuid=user3_uuid,
@@ -195,8 +196,8 @@ with app.app_context():
                           password_salt=password_salt,
                           password_hash=password_hash,
                           role="USER",
-                          bio="The rate at which I produce code jumped by a factor of 40 in late 2000 when I upgraded my keyboard to USB 2.0."
-                          )
+                          bio="The rate at which I produce code jumped by a factor of 40 in late 2000 when I upgraded my keyboard to USB 2.0.",
+                          initial_password="password")
             db.session.add(user_3)
             user_4 = User(uuid=user4_uuid,
                           creation_time=time.time(),
@@ -205,8 +206,8 @@ with app.app_context():
                           password_salt=password_salt,
                           password_hash=password_hash,
                           role="USER",
-                          bio="I build my code before committing it, but only to check for compiler and linker bugs."
-                          )
+                          bio="I build my code before committing it, but only to check for compiler and linker bugs.",
+                          initial_password="password")
             db.session.add(user_4)
             user_5 = User(uuid=user5_uuid,
                           creation_time=time.time(),
@@ -216,7 +217,7 @@ with app.app_context():
                           password_hash=password_hash,
                           role="USER",
                           bio="When I has an ergonomic evaluation, it is for the protection of his keyboard.",
-                          )
+                          initial_password="password")
             db.session.add(user_5)
             user_6 = User(uuid=user6_uuid,
                           creation_time=time.time(),
@@ -225,8 +226,8 @@ with app.app_context():
                           password_salt=password_salt,
                           password_hash=password_hash,
                           role="USER",
-                          bio="gcc -O4 emails your code to me for a rewrite."
-                          )
+                          bio="gcc -O4 emails your code to me for a rewrite.",
+                          initial_password="password")
             db.session.add(user_6)
             db.session.commit()
 

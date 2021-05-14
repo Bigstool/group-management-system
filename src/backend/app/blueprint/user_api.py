@@ -391,3 +391,48 @@ def change_user_password(user_uuid):
 
     return MyResponse(data=None, msg='query success').build()
 
+@user_api.route("/user/<user_uuid>", methods=["PATCH"])
+def admin_change_user_password_(user_uuid):
+    """Administrator Changes password of the user
+    ---
+    tags:
+      - user
+
+    description: |
+      ## Constrains
+      * operator must be the admin
+      * new password can not be the current one
+
+    parameters:
+      - name: user_uuid
+        in: path
+        required: true
+        description: user uuid
+        schema:
+          type: string
+          example: 16fc2db7-cac0-46c2-a0e3-2da6cec54abb
+
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              new_password:
+                type: string
+                description: sha1(password)
+                example: 5F4DCC3B5AA765D61D8327DEB882CF99
+              repeat_password:
+                type: string
+                description: sha1(password)
+                example: 5F4DCC3B5AA765D61D8327DEB882CF99
+
+    responses:
+      '200':
+        description: query success
+        content:
+          application/json:
+            schema:
+              type: object
+    """

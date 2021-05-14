@@ -9,6 +9,7 @@ from hashlib import sha1
 
 from flasgger import Swagger
 from flask import Flask, request, g
+from sqlalchemy.orm.attributes import flag_modified
 from werkzeug.exceptions import HTTPException
 
 from blueprint.application_api import application_api
@@ -128,8 +129,8 @@ with app.app_context():
             start_time=int(time.time()),
             config={
                 "system_state": {
-                    "grouping_ddl": int(datetime(2021, 5, 15, 17).timestamp()),
-                    "proposal_ddl": int(datetime(2021, 8, 15, 12).timestamp())
+                    "grouping_ddl": None,
+                    "proposal_ddl": None
                 },
                 "group_member_number": [7, 9]
             }
@@ -151,6 +152,18 @@ with app.app_context():
             # - User 4: a member of group B
             # - User 5: a student that does not belong to any group
             # - User 6: a student that does not belong to any group
+
+            semester = Semester.query.filter_by(name="CURRENT").first()
+            semester.config = {
+                "system_state": {
+                    "grouping_ddl": int(datetime(2021, 5, 15, 17).timestamp()),
+                    # "grouping_ddl": int(time.time() + 5),
+                    "proposal_ddl": int(datetime(2021, 8, 15, 12).timestamp())
+                },
+                "group_member_number": [7, 9]
+            }
+            flag_modified(semester, "config")
+            db.session.commit()
 
             groupA_uuid = uuid.uuid4().bytes
             groupB_uuid = uuid.uuid4().bytes

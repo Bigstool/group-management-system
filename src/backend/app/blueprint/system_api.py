@@ -66,7 +66,8 @@ def get_sys_config():
                   example: [7, 9]
     """
     semester = Semester.query.filter_by(name="CURRENT").first()
-    semester.config["student_count"] = User.query.filter(and_(User.creation_time.between(semester.start_time, semester.end_time), User.role == "USER")).count(),
+    semester.config["student_count"] = User.query.filter(
+        and_(User.creation_time >= semester.start_time, User.role == "USER")).count()
 
     return MyResponse(data=semester.config).build()
 

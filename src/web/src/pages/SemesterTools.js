@@ -71,27 +71,9 @@ export default class SemesterTools extends React.Component {
       });
     }
     // Retrieve Info
-    await this.checkImport();
     await this.checkSystem();
     // Complete loading
     this.setState({loading: false});
-  }
-
-  @boundMethod
-  async checkImport() {
-    // TODO: use sysConfig instead (wait for backend implementation)
-    try {
-      let res = await this.context.request({
-        path: `/user`,
-        method: 'get',
-      });
-
-      let userList = res.data['data'];
-      if (userList.length === 0) this.setState({isImported: false,});
-      else this.setState({isImported: true});
-    } catch (error) {
-      this.setState({error: true,});
-    }
   }
 
   @boundMethod
@@ -100,6 +82,7 @@ export default class SemesterTools extends React.Component {
     let groupingDDL = sysConfig['system_state']['grouping_ddl'];
     let proposalDDL = sysConfig['system_state']['proposal_ddl'];
     this.setState({
+      isImported: sysConfig['student_count'] > 0,
       sizeLower: sysConfig['group_member_number'][0],
       sizeUpper: sysConfig['group_member_number'][1],
       newSizeLower: this.state.newSizeLower ? this.state.newSizeLower : sysConfig['group_member_number'][0],

@@ -25,9 +25,9 @@ export default class ArchiveDetails extends React.Component {
       // User related
       userRole: this.context.getUser()['role'],
       // Archive related
-      archiveUuid: '',  // TODO: this.props.match.params["uuid"],
-      archiveName: '2021-2022',
-      archiveNewName: '2021-2022',
+      archiveUuid: this.props.match.params["uuid"],
+      archiveName: '',
+      archiveNewName: '',
       archiveLimit: 50,
       // Component related
       loading: true,
@@ -42,7 +42,6 @@ export default class ArchiveDetails extends React.Component {
   }
 
   async componentDidMount() {
-    /* TODO: uncomment
     // Check Permission
     if (this.state.userRole !== 'ADMIN') {
       this.setState({
@@ -52,7 +51,6 @@ export default class ArchiveDetails extends React.Component {
     }
     // Check Archive
     await this.checkArchive();
-    */
     // Stop loading
     this.setState({loading: false,});
   }
@@ -85,12 +83,23 @@ export default class ArchiveDetails extends React.Component {
   }
 
   @boundMethod
-  onRename() {
+  async onRename() {
     if (!this.state.adjustingName) {
       this.setState({adjustingName: true,});
     } else {
       this.setState({renaming: true});
-
+      try {
+        await this.context.request({
+          path: `/semester/${this.state.archiveUuid}`,
+          method: 'patch',
+          data: {
+            name: this.state.archiveNewName,
+          },
+        });
+      } catch (error) {
+        if (error.response.status === 409) this.setState({warning: true});
+      }
+      await this.checkArchive();
       this.setState({
         renaming: false,
         adjustingName: false,
@@ -158,7 +167,7 @@ export default class ArchiveDetails extends React.Component {
         {this.state.adjustingName ?
           <Input value={this.state.archiveNewName} onChange={this.onRenameChange}
                  size={'large'} maxLength={this.state.archiveLimit}/> :
-          <p>2021-2022</p>}
+          <p>{this.state.archiveName}</p>}
       </Space>
     </div>;
 

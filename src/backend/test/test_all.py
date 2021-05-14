@@ -88,7 +88,7 @@ def test_admin_sign_in():
 
 
 @pytest.fixture(scope="package")
-def test_create_user(test_admin_sign_in):
+def test_create_user(test_admin_sign_in, test_patch_sys_config):
     r = requests.post(f"{api}/user", headers={
         "Authorization": f"Bearer {test_admin_sign_in['token_access']}"
     }, json=user_list)
@@ -161,7 +161,8 @@ def test_change_password(test_create_user, test_user_sign_in, test_admin_sign_in
                            "Authorization": f"Bearer {test_user_sign_in[0]['token_access']}"
                        },
                        json={
-                           "old_password": sha1(test_create_user["generated_user"][0]["initial_password"].encode()).hexdigest(),
+                           "old_password": sha1(
+                               test_create_user["generated_user"][0]["initial_password"].encode()).hexdigest(),
                            "new_password": sha1("password".encode()).hexdigest()
                        })
     log_res(r)
@@ -534,16 +535,16 @@ def test_get_notification(test_user_sign_in, test_accept_application, test_rejec
 
 
 # Test System API
-
-def test_modify_sysconfig(test_admin_sign_in):
+@pytest.fixture(scope="package")
+def test_patch_sys_config(test_admin_sign_in):
     r = requests.patch(f"{api}/sysconfig",
                        headers={
                            "Authorization": f"Bearer {test_admin_sign_in['token_access']}"
                        },
                        json={
-                           "group_member_number": [7, 9],
                            "system_state": {
-                               "proposal_ddl": int(time.time())
+                               "grouping_ddl": int(time.time() + 100),
+                               "proposal_ddl": int(time.time() + 200)
                            }
                        })
     log_res(r)

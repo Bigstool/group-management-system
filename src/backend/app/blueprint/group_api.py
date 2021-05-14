@@ -527,13 +527,10 @@ def update_group_info(group_uuid):
 
     semester = Semester.query.filter_by(name="CURRENT").first()
 
-    if token_info["role"] != "ADMIN" and token_info["uuid"] != str(uuid.UUID(bytes=group.owner_uuid)):
-        raise ApiPermissionException("Permission denied: Not logged in as group owner")
-
     if token_info["role"] != "ADMIN":
+        if token_info["uuid"] != str(uuid.UUID(bytes=group.owner_uuid)):
+            raise ApiPermissionException("Permission denied: Not logged in as group owner")
         # Constrains for the group owner
-        if time.time() > semester.config["system_state"]['proposal_ddl']:
-            raise ApiPermissionException("Permission denied: Proposal ddl reached")
         if group.proposal_state == "APPROVED":
             raise ApiPermissionException("Permission denied: Proposal is APPROVED")
         if new_proposal_state == 'APPROVED':

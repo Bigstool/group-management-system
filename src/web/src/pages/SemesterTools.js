@@ -131,6 +131,38 @@ export default class SemesterTools extends React.Component {
   }
 
   @boundMethod
+  async onDownload() {
+    this.setState({downloading: true,});
+    // Get user list
+    let userList;
+    try {
+      let res = await this.context.request({
+        path: `/user`,
+        method: 'get'
+      });
+      userList = res.data['data'];
+    } catch (error) {
+      this.setState({error: true,});
+    }
+    let text = `"Name","Email","Initial Password",\n`;
+    for (let i = 0; i < userList.length; i++) {
+      if (userList[i]['role'] === 'USER') {
+        text += `"${userList[i]['alias']}","${userList[i]['email']}","${userList[i]['initial_password']}",\n`;
+      }
+    }
+    const fileType = 'text/csv';
+    const fileName = 'Student Credentials.csv';
+    let blob = new Blob([text], {type : fileType});
+    let a = document.createElement('a');
+    a.download = fileName;
+    a.href = URL.createObjectURL(blob);
+    a.dataset.downloadurl = [fileType, a.download, a.href].join(':');
+    a.click();
+    setTimeout(function() { URL.revokeObjectURL(a.href); }, 1000);
+    this.setState({downloading: false,});
+  }
+
+  @boundMethod
   onSize() {
     this.setState({adjustingSize: !this.state.adjustingSize});
   }
@@ -309,7 +341,7 @@ export default class SemesterTools extends React.Component {
 
     // Download Students List (After Import)
     let download = <Button block size={'large'} className={styles.ToolItem}
-                           disabled={!this.state.isImported} onClick={null}>
+                           disabled={!this.state.isImported} onClick={this.onDownload}>
       Download Student Credentials
     </Button>;
 

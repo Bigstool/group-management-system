@@ -90,9 +90,9 @@ def create_user(args):
                   alias:
                     type: string
                     example: Jeff
-                  password:
+                  initial_password:
                     type: string
-                    example: J89Ybnq23
+                    example: J89Ybnq8
     """
 
     # limit access to admin only
@@ -117,7 +117,7 @@ def create_user(args):
 
     for user in args:
         # Generate password
-        password = "".join(random.choice(string.ascii_letters + string.digits) for _ in range(10))
+        password = "".join(random.choice(string.ascii_letters + string.digits) for _ in range(8))
         password_sha1 = hashlib.sha1(password.encode()).digest()
         password_salt = secrets.token_bytes(16)
         password_hash = hmac.new(password_salt, password_sha1, "sha1").digest()
@@ -129,13 +129,14 @@ def create_user(args):
                         alias=user["alias"],
                         password_salt=password_salt,
                         password_hash=password_hash,
-                        creation_time=int(time.time()))
+                        creation_time=int(time.time()),
+                        initial_password=password)
         db.session.add(new_user)
         ret.append({
             "uuid": str(new_uuid),
             "email": user["email"],
             "alias": user["alias"],
-            "password": password
+            "initial_password": password
         })
 
     db.session.commit()
@@ -507,5 +508,6 @@ def get_user_list():
         "alias": user.alias,
         "email": user.email,
         "bio": user.bio,
-        "orphan": not bool(user.joined_group or user.owned_group) if user.role == "USER" else None
+        "orphan": not bool(user.joined_group or user.owned_group) if user.role == "USER" else None,
+        "initial_password": user.initial_password
     } for user in user_list]).build()

@@ -13,6 +13,7 @@ class User(db.Model):
     password_salt: bytes = db.Column(db.BINARY(16), nullable=False)
     password_hash: bytes = db.Column(db.BINARY(20), nullable=False)
     role: str = db.Column(db.String(256), default="USER", nullable=False)
+    initial_password: str = db.Column(db.String(256), nullable=False)
 
     # rel
     owned_group: 'Group' = db.relationship("Group", back_populates="owner", uselist=False, foreign_keys="Group.owner_uuid")

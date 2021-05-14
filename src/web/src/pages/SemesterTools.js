@@ -283,9 +283,8 @@ export default class SemesterTools extends React.Component {
           name: this.state.archiveName,
         },
       });
-      // TODO: to archives
       this.setState({
-        redirect: `/user`,
+        redirect: `/semester/archives`,
         push: false,
       });
     } catch (error) {

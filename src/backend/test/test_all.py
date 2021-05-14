@@ -104,7 +104,7 @@ def test_create_user(test_admin_sign_in):
 def test_user_sign_in(test_create_user):
     ret = []
     for user in test_create_user["generated_user"]:
-        r = login(user["email"], user["password"])
+        r = login(user["email"], user["initial_password"])
         log_res(r)
         assert r.status_code == 200
         user_token_access = r.json()["data"]["access_token"]
@@ -161,7 +161,7 @@ def test_change_password(test_create_user, test_user_sign_in, test_admin_sign_in
                            "Authorization": f"Bearer {test_user_sign_in[0]['token_access']}"
                        },
                        json={
-                           "old_password": sha1(test_create_user["generated_user"][0]["password"].encode()).hexdigest(),
+                           "old_password": sha1(test_create_user["generated_user"][0]["initial_password"].encode()).hexdigest(),
                            "new_password": sha1("password".encode()).hexdigest()
                        })
     log_res(r)

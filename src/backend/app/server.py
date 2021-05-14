@@ -117,7 +117,8 @@ with app.app_context():
                           password_salt=password_salt,
                           password_hash=password_hash,
                           creation_time=int(time.time()),
-                          role="ADMIN")
+                          role="ADMIN",
+                          initial_password=config["admin_password"])
         db.session.add(admin_user)
 
         # insert semester

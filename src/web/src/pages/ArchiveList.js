@@ -40,7 +40,7 @@ export default class ArchiveList extends React.PureComponent {
   render() {
     return (
       <>
-          <AppBar/>
+          <AppBar backTo={'/user'}/>
           {this.state.loading && <LoadingOutlined/>}
           {this.state.error !== null && <ErrorMessage/>}
           {this.state.loading || this.state.archiveList &&

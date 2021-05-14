@@ -1,0 +1,46 @@
+// 1rem === 16px
+
+.ArchiveDetails {
+  padding: 2.5rem 1.5rem;
+
+  .InfoPanel {
+    display: flex;
+
+    .IconContainer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 1rem;
+
+      .Icon {
+        font-size: 3rem;
+      }
+    }
+
+    .NameContainer {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      padding-left: 0;
+
+      p {
+        margin: 0;
+        font-size: 1.2rem;
+      }
+    }
+  }
+
+  .Warning {
+    color: red;
+    text-align: center;
+    margin: 0;
+  }
+
+  .Rename {
+    margin-top: 3rem;
+  }
+
+  .Cancel {
+    margin-top: 1rem;
+  }
+}

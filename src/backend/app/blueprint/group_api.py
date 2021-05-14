@@ -196,6 +196,22 @@ def get_group_list():
                     type: integer
                     description: count of joined members
                     example: 4
+                  proposal_state:
+                    type: string
+                    description: state of group submission
+                    enum: ["PENDING", "SUBMITTED", "APPROVED", "REJECT"]
+                    example: PENDING
+                  proposal_late:
+                    type: number
+                    description: |
+                      late submission duration in seconds
+
+                      timestamp(latest PENDING -> COMMIT operation) - timestamp(GROUPING DDL)
+
+                      negative number is possible because of submitted prior to the DDL
+
+                      unit: second
+                    example: 7485
                   application_enable:
                     type: boolean
                     description: whether this group accept new application
@@ -213,14 +229,11 @@ def get_group_list():
     group_list = Group.query.filter(
         Group.creation_time.between(semester.start_time, semester.end_time or time.time())).all()
 
-    ret = []
-    for group in group_list:
-        favorite = semester.name == "CURRENT" and bool(
-            GroupFavorite.query.filter_by(group_uuid=group.uuid, user_uuid=uuid.UUID(token_info["uuid"]).bytes).first())
 
-        ret.append({
+    return MyResponse(data=[{
             "uuid": str(uuid.UUID(bytes=group.uuid)),
-            "favorite": favorite,
+            "favorite": semester.name == "CURRENT" and bool(
+            GroupFavorite.query.filter_by(group_uuid=group.uuid, user_uuid=uuid.UUID(token_info["uuid"]).bytes).first()),
             "name": group.name,
             "title": group.title,
             "description": group.description,
@@ -230,11 +243,11 @@ def get_group_list():
                 "email": group.owner.email
             },
             "creation_time": group.creation_time,
+            "proposal_state": group.proposal_state,
+            "proposal_late": group.proposal_late,
             "member_count": len(group.member),
             "application_enabled": group.application_enabled
-        })
-
-    return MyResponse(data=ret).build()
+        } for group in group_list]).build()
 
 
 @group_api.route("/group/<group_uuid>", methods=["GET"])

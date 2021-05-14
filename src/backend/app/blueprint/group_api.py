@@ -229,25 +229,25 @@ def get_group_list():
     group_list = Group.query.filter(
         Group.creation_time.between(semester.start_time, semester.end_time or time.time())).all()
 
-
     return MyResponse(data=[{
-            "uuid": str(uuid.UUID(bytes=group.uuid)),
-            "favorite": semester.name == "CURRENT" and bool(
-            GroupFavorite.query.filter_by(group_uuid=group.uuid, user_uuid=uuid.UUID(token_info["uuid"]).bytes).first()),
-            "name": group.name,
-            "title": group.title,
-            "description": group.description,
-            "owner": {
-                "uuid": str(uuid.UUID(bytes=group.owner_uuid)),
-                "alias": group.owner.alias,
-                "email": group.owner.email
-            },
-            "creation_time": group.creation_time,
-            "proposal_state": group.proposal_state,
-            "proposal_late": group.proposal_late,
-            "member_count": len(group.member),
-            "application_enabled": group.application_enabled
-        } for group in group_list]).build()
+        "uuid": str(uuid.UUID(bytes=group.uuid)),
+        "favorite": semester.name == "CURRENT" and bool(
+            GroupFavorite.query.filter_by(group_uuid=group.uuid,
+                                          user_uuid=uuid.UUID(token_info["uuid"]).bytes).first()),
+        "name": group.name,
+        "title": group.title,
+        "description": group.description,
+        "owner": {
+            "uuid": str(uuid.UUID(bytes=group.owner_uuid)),
+            "alias": group.owner.alias,
+            "email": group.owner.email
+        },
+        "creation_time": group.creation_time,
+        "proposal_state": group.proposal_state,
+        "proposal_late": group.proposal_late,
+        "member_count": len(group.member),
+        "application_enabled": group.application_enabled
+    } for group in group_list]).build()
 
 
 @group_api.route("/group/<group_uuid>", methods=["GET"])
@@ -1110,3 +1110,20 @@ def assign_group():
 
     db.session.commit()
     return MyResponse().build()
+
+
+def post_grouping_ddl_job():
+    from server import scheduler
+    with scheduler.app.app_context():
+        logger.info("Running post grouping DDL job")
+        semester = Semester.query.filter_by(name="CURRENT").first()
+        # delete all group out of member count range
+        member_range: list = semester.config["group_member_number"]
+        group_of_semester = Group.query.filter(Group.creation_time >= semester.start_time).all()
+        for group in group_of_semester:
+            member_count = len(group.member)
+            if member_count < member_range[0] or member_count > member_range[1]:
+                db.session.delete(group)
+        # delete all applications
+        GroupApplication.query.delete()
+        db.session.commit()

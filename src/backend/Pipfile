@@ -11,6 +11,7 @@ durations = "*"
 bjoern = { version = "*", markers = "sys_platform == 'linux'" }
 flask = "*"
 flasgger = "*"
+Flask-APScheduler = "*"
 flask-cors = "*"
 Flask-SQLAlchemy = "*"
 mysql-connector-python = "*"

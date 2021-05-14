@@ -1,10 +1,7 @@
 import React from "react";
-import PropTypes from "prop-types";
-import {Button, Input} from 'antd';
 import {LoadingOutlined} from '@ant-design/icons';
 import {boundMethod} from "autobind-decorator";
 import AppBar from "../components/AppBar";
-import styles from './EditGroupProfile.scss';
 import {AuthContext} from "../utilities/AuthProvider";
 import {Redirect} from "react-router-dom";
 import GroupProfileForm from "../components/GroupProfileForm";
@@ -34,6 +31,8 @@ export default class EditGroupProfile extends React.Component {
       isAdmin: false,
       // Group related
       groupUuid: this.props.match.params["uuid"],
+      isSubmitted: false,
+      isApproved: false,
       name: '',
       title: '',
       description: '',
@@ -63,7 +62,8 @@ export default class EditGroupProfile extends React.Component {
     await this.checkSysConfig();
     await this.checkGroupInfo();
     // Check whether user has permission to access this page
-    if (!this.state.isOwner && !this.state.isAdmin) {
+    if ((!this.state.isOwner && !this.state.isAdmin) ||
+      (this.state.isOwner && (this.state.isApproved || this.state.isSubmitted))) {
       this.setState({
         'redirect': '/',
         'push': false,
@@ -96,6 +96,8 @@ export default class EditGroupProfile extends React.Component {
 
       // update name, title, description, proposal
       this.setState({
+        isSubmitted: groupInfo['proposal_state'] === 'SUBMITTED',
+        isApproved: groupInfo['proposal_state'] === 'APPROVED',
         name: groupInfo['name'],
         title: groupInfo['title'],
         description: groupInfo['description'],

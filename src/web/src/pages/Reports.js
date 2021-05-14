@@ -92,7 +92,7 @@ export default class Reports extends React.Component {
     } catch (error) {
       this.setState({error: true,});
     }
-    let text = `"Name","Proposal State","Late Days",\n`;
+    let text = `"Name","Proposal State","Late Days","Owner","Owner Email"\n`;
     for (let i = 0; i < groupList.length; i++) {
       let proposalState = '[ERROR]';
       if (groupList[i]['proposal_state'] === 'PENDING') proposalState = 'Not Submitted';
@@ -102,7 +102,7 @@ export default class Reports extends React.Component {
 
       let lateDays = groupList[i]['proposal_late'] ? (groupList[i]['proposal_late'] > 0 ?
         `${Math.ceil(groupList[i]['proposal_late'] / 86400)}` : '0') : '-';
-      text += `"${groupList[i]['name']}","${proposalState}","${lateDays}",\n`;
+      text += `"${groupList[i]['name']}","${proposalState}","${lateDays}","${groupList[i]['owner']['alias']}","${groupList[i]['owner']['email']}",\n`;
     }
     const fileType = 'text/csv';
     const fileName = 'Group Report.csv';

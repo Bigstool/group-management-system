@@ -48,11 +48,25 @@ export default class Reports extends React.Component {
   }
 
   @boundMethod
-  onStudent() {
+  async onStudent() {
     this.setState({reportingStudent: true,});
+    // Get user list
+    let userList;
+    try {
+      let res = await this.context.request({
+        path: `/user`,
+        method: 'get'
+      });
+      userList = res.data['data'];
+    } catch (error) {
+      this.setState({error: true,});
+    }
     let text = `"Name","Email","Grouped",\n`;
-    // TODO: get /user, extract text
-    text += `"Tom","tom@test.com","yes",\n"Bob","bob@test.com","no",\n`;
+    for (let i = 0; i < userList.length; i++) {
+      if (userList[i]['role'] === 'USER') {
+        text += `"${userList[i]['alias']}","${userList[i]['email']}","${userList[i]['orphan'] ? 'No' : 'Yes'}",\n`;
+      }
+    }
     const fileType = 'text/csv';
     const fileName = 'Student Report.csv';
     let blob = new Blob([text], {type : fileType});
@@ -66,11 +80,30 @@ export default class Reports extends React.Component {
   }
 
   @boundMethod
-  onGroup() {
+  async onGroup() {
     this.setState({reportingGroup: true,});
-    let text = `"Name","Proposal State",\n`;
-    // TODO: get /group, extract text
-    text += `"Team A","Not Submitted",\n"Team B","Submitted",\n"Team C","Approved",\n"Team D","Rejected",\n`;
+    let groupList;
+    try {
+      let res = await this.context.request({
+        path: `/group`,
+        method: 'get'
+      });
+      groupList = res.data['data'];
+    } catch (error) {
+      this.setState({error: true,});
+    }
+    let text = `"Name","Proposal State","Late Days",\n`;
+    for (let i = 0; i < groupList.length; i++) {
+      let proposalState = '[ERROR]';
+      if (groupList[i]['proposal_state'] === 'PENDING') proposalState = 'Not Submitted';
+      else if (groupList[i]['proposal_state'] === 'SUBMITTED') proposalState = 'Submitted';
+      else if (groupList[i]['proposal_state'] === 'APPROVED') proposalState = 'Approved';
+      else if (groupList[i]['proposal_state'] === 'REJECT') proposalState = 'Rejected';
+
+      let lateDays = groupList[i]['proposal_late'] ? (groupList[i]['proposal_late'] > 0 ?
+        `${Math.ceil(groupList[i]['proposal_late'] / 86400)}` : '0') : '-';
+      text += `"${groupList[i]['name']}","${proposalState}","${lateDays}",\n`;
+    }
     const fileType = 'text/csv';
     const fileName = 'Group Report.csv';
     let blob = new Blob([text], {type : fileType});

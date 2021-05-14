@@ -252,6 +252,14 @@ export default class SemesterTools extends React.Component {
   }
 
   @boundMethod
+  onAllocate() {
+    this.setState({
+      redirect: `/semester/allocate`,
+      push: true,
+    });
+  }
+
+  @boundMethod
   onArchive() {
     this.setState({adjustingArchive: !this.state.adjustingArchive});
   }
@@ -456,7 +464,7 @@ export default class SemesterTools extends React.Component {
     // Group Allocation (After Grouping DDL and Before Proposal DDL)
     let allocation = <Button block size={'large'} className={styles.ToolItem}
                              disabled={!this.state.afterGroupingDDL || this.state.afterProposalDDL}
-                             onClick={null}>
+                             onClick={this.onAllocate}>
       Group Allocation
     </Button>;
 

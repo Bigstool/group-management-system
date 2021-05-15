@@ -119,7 +119,8 @@ export default class SemesterTools extends React.Component {
   }
 
   @boundMethod
-  async onImport(file) {
+  async onImport({file, onSuccess}) {
+    onSuccess('ok');
     this.setState({importing: true,});
     // Read text from file
     let text = '';
@@ -164,7 +165,7 @@ export default class SemesterTools extends React.Component {
         email: rows[i][mail],
       });
     }
-    // Send request - 3
+    // Send request
     try {
       await this.context.request({
         path: `/user`,
@@ -175,9 +176,7 @@ export default class SemesterTools extends React.Component {
       message.error('Import unsuccessful, retry?');
     }
 
-    // TODO: POST http://localhost:8080/undefined ?
-
-    await this.checkSystem()
+    await this.checkSystem();
     this.setState({importing: false,});
   }
 
@@ -401,7 +400,7 @@ export default class SemesterTools extends React.Component {
     let importStudents = null;
     if (!this.state.isImported) {
       let permissionDenied = !this.state.groupingDDL || !this.state.proposalDDL;
-      let importButton = <Upload accept={'.csv'} showUploadList={false} action={this.onImport}
+      let importButton = <Upload accept={'.csv'} showUploadList={false} customRequest={this.onImport}
                                  disabled={permissionDenied || this.state.importing}>
         <Button type={'primary'} block size={'large'}
                 disabled={permissionDenied} loading={this.state.importing}>
@@ -437,7 +436,7 @@ export default class SemesterTools extends React.Component {
       Download Student Credentials
     </Button>;
 
-    // Group Size (?)
+    // Group Size (Before Grouping DDL)
     let sizeButton = <Button block size={'large'}
                              disabled={this.state.afterGroupingDDL}
                              onClick={this.onSize}>

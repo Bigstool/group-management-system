@@ -402,7 +402,7 @@ export default class GroupConfig extends React.Component {
     }
 
 
-    // DELAYED: Showcase (Group Owner) (After Proposal DDL)
+    // TODO: DELAYED: Showcase (Group Owner) (After Proposal DDL)
     let showcase = null;
     // if (this.state.isOwner && this.state.afterProposalDDL) {
     //   showcase = <React.Fragment>

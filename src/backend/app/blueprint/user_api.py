@@ -436,3 +436,34 @@ def admin_change_user_password_(user_uuid):
             schema:
               type: object
     """
+    args_path = parser.parse({
+        "user_uuid": fields.Str(required=True, validate=MyValidator.Uuid())}, request, location="path")
+    user_uuid: str = args_path["user_uuid"]
+    user = User.query.filter_by(uuid=uuid.UUID(user_uuid).bytes).first()
+
+    if user is None:
+        raise ApiResourceNotFoundException("No such user!")
+    token_info = Auth.get_payload(request)
+    if token_info["role"] != "ADMIN": raise ApiPermissionException("You have no permission to change the user password!")
+
+    args_json = parser.parse({
+        "new_password": fields.Str(required=True, validate=MyValidator.Sha1()),
+        "repeat_password": fields.Str(required=True, validate=MyValidator.Sha1())
+    }, request, location="json")
+    new_password: str = args_json["new_password"]
+    repeat_password: str = args_json["repeat_password"]
+    current_password_hash = user.password_hash
+    new_password_hash = hmac.new(user.password_salt, bytes.fromhex(new_password), "sha1").digest()
+
+    if current_password_hash == user.password_hash:
+        raise ApiInvalidInputException("This password already exists")
+
+    if new_password != repeat_password:
+        raise ApiInvalidInputException("Inconsistent new password input")
+
+    if new_password is not None and repeat_password == new_password:
+        user.password_hash = new_password_hash
+
+    db.session.commit()
+
+    return MyResponse(data=None, msg='query success').build()

@@ -404,13 +404,13 @@ export default class GroupConfig extends React.Component {
 
     // DELAYED: Showcase (Group Owner) (After Proposal DDL)
     let showcase = null;
-    if (this.state.isOwner && this.state.afterProposalDDL) {
-      showcase = <React.Fragment>
-        <Button block size={'large'}>Manage Showcase</Button>
-        <br/>
-        <br/>
-      </React.Fragment>;
-    }
+    // if (this.state.isOwner && this.state.afterProposalDDL) {
+    //   showcase = <React.Fragment>
+    //     <Button block size={'large'}>Manage Showcase</Button>
+    //     <br/>
+    //     <br/>
+    //   </React.Fragment>;
+    // }
 
     // Caution Zone
     let cautionZone = [];

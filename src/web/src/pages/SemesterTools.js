@@ -165,7 +165,7 @@ export default class SemesterTools extends React.Component {
         email: rows[i][mail],
       });
     }
-    // Send request - 3
+    // Send request
     try {
       await this.context.request({
         path: `/user`,
@@ -436,7 +436,7 @@ export default class SemesterTools extends React.Component {
       Download Student Credentials
     </Button>;
 
-    // Group Size (?)
+    // Group Size (Before Grouping DDL)
     let sizeButton = <Button block size={'large'}
                              disabled={this.state.afterGroupingDDL}
                              onClick={this.onSize}>

@@ -369,8 +369,7 @@ export default class GroupConfig extends React.Component {
     }
 
     // All Set (Member) (After Grouping DDL)
-    // TODO: remove !this.state.isOwner (Wait for Issue #55 to be fixed)
-    if (!this.state.isOwner && this.state.isMember && this.state.afterGroupingDDL) return (
+    if (this.state.isMember && this.state.afterGroupingDDL) return (
       <React.Fragment>
         {appBar}
         <h1>You're all set!</h1>
@@ -403,15 +402,15 @@ export default class GroupConfig extends React.Component {
     }
 
 
-    // DELAYED: Showcase (Group Owner) (After Proposal DDL)
+    // TODO: DELAYED: Showcase (Group Owner) (After Proposal DDL)
     let showcase = null;
-    if (this.state.isOwner && this.state.afterProposalDDL) {
-      showcase = <React.Fragment>
-        <Button block size={'large'}>Manage Showcase</Button>
-        <br/>
-        <br/>
-      </React.Fragment>;
-    }
+    // if (this.state.isOwner && this.state.afterProposalDDL) {
+    //   showcase = <React.Fragment>
+    //     <Button block size={'large'}>Manage Showcase</Button>
+    //     <br/>
+    //     <br/>
+    //   </React.Fragment>;
+    // }
 
     // Caution Zone
     let cautionZone = [];

@@ -38,6 +38,7 @@ export default class ArchiveDetails extends React.Component {
       adjustingName: false,
       renaming: false,
       warning: false,
+      deleting: false,
     }
   }
 
@@ -105,6 +106,22 @@ export default class ArchiveDetails extends React.Component {
         adjustingName: false,
       })
     }
+  }
+
+  @boundMethod
+  async onDelete() {
+    this.setState({deleting: true});
+    try {
+      await this.context.request({
+        path: `/semester/${this.state.archiveUuid}`,
+        method: 'delete',
+      });
+      this.setState({
+        redirect: '/semester/archives',
+        push: false,
+      });
+    } catch (error) {}
+    this.setState({deleting: false});
   }
 
   @boundMethod
@@ -180,17 +197,26 @@ export default class ArchiveDetails extends React.Component {
     }
 
     // Rename
-    let rename = <Button type={'primary'} block size={'large'} className={styles.Rename}
+    let rename = <Button type={'primary'} block size={'large'} className={`${styles.Button} ${styles.First}`}
                        onClick={this.onRename} loading={this.state.renaming}
                        disabled={this.state.adjustingName &&
                        (!this.state.archiveNewName || this.state.archiveNewName === this.state.archiveName)}>
       {this.state.adjustingName ? 'Save' : 'Rename'}
     </Button>;
 
+    // Delete
+    let del = null;
+    if (!this.state.adjustingName) {
+      del = <Button className={styles.Button} block size={'large'} danger
+                    onClick={this.onDelete} loading={this.state.deleting}>
+        Delete
+      </Button>;
+    }
+
     // Cancel
     let cancel = null;
     if (this.state.adjustingName) {
-      cancel = <Button className={styles.Cancel} block size={'large'}
+      cancel = <Button className={styles.Button} block size={'large'}
                        onClick={this.onCancel}>
         Cancel
       </Button>;
@@ -203,6 +229,7 @@ export default class ArchiveDetails extends React.Component {
           {info}
           {warning}
           {rename}
+          {del}
           {cancel}
         </div>
       </React.Fragment>

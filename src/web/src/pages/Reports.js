@@ -23,7 +23,7 @@ export default class Reports extends React.Component {
     super(props, context);
     this.state = {
       // User related
-      userRole: 'ADMIN', // TODO: this.context.getUser()['role'],
+      userRole: this.context.getUser()['role'],
       // Component related
       loading: true,
       error: false,

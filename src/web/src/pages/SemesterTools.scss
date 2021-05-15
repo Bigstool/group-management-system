@@ -6,6 +6,10 @@
   .ToolItem {
     width: 100%;
     margin-bottom: 1rem;
+
+    :global .ant-upload-select {
+      display: block;
+    }
   }
 
   .Adjust {

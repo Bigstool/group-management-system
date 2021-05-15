@@ -1,5 +1,5 @@
 import React from "react";
-import {Space, Button, InputNumber, DatePicker, Input} from 'antd';
+import {Space, Button, InputNumber, DatePicker, Input, Upload, message} from 'antd';
 import {LoadingOutlined} from '@ant-design/icons';
 import {boundMethod} from "autobind-decorator";
 import AppBar from "../components/AppBar";
@@ -116,6 +116,80 @@ export default class SemesterTools extends React.Component {
    */
   timestampToMoment(timestamp) {
     return moment.unix(timestamp);
+  }
+
+  @boundMethod
+  async onImport(file) {
+    this.setState({importing: true,});
+    // Read text from file
+    let text = '';
+    try {
+      text = await this.read(file);
+    } catch {
+      // Failed to read file
+      message.error('Failed to read file, re-upload?');
+      this.setState({importing: false,});
+      return;
+    }
+    // Process text
+    text = text.replaceAll('\r', '\n');
+    text = text.replaceAll('\n\n', '\n');
+    let title = text.slice(0, text.indexOf('\n')).split(',');
+    let body = text.slice(text.indexOf('\n') + 1).split('\n');
+    let rows = [];
+    for (let i = 0; i < body.length; i++) {
+      let row = body[i].split(',');
+      if (row.length < title.length) break;
+      rows.push(row);
+    }
+    // first sur mail
+    let first, sur, mail;
+    for (let i = 0; i < title.length; i++) {
+      if (title[i].toLowerCase().indexOf('first') !== -1) first = i;
+      else if (title[i].toLowerCase().indexOf('sur') !== -1) sur = i;
+      else if (title[i].toLowerCase().indexOf('mail') !== -1) mail = i;
+    }
+    // Check format
+    if (first === undefined || sur === undefined || mail === undefined) {
+      // Incorrect form format
+      message.error('Incorrect student format');
+      console.debug(`${first}, ${sur}, ${mail}`);
+      this.setState({importing: false,});
+      return;
+    }
+    // Make request data
+    let data = [];
+    for (let i = 0; i < rows.length; i++) {
+      data.push({
+        alias: `${rows[i][first]} ${rows[i][sur]}`,
+        email: rows[i][mail],
+      });
+    }
+    // Send request - 3
+    try {
+      await this.context.request({
+        path: `/user`,
+        method: 'post',
+        data: data,
+      });
+    } catch (error) {
+      message.error('Import unsuccessful, retry?');
+    }
+
+    // TODO: POST http://localhost:8080/undefined ?
+
+    await this.checkSystem()
+    this.setState({importing: false,});
+  }
+
+  async read(file) {
+    return new Promise((resolve, reject) => {
+      let reader = new FileReader();
+      reader.onload = function(event) {
+        resolve(event.target.result);
+      }
+      reader.readAsText(file);
+    });
   }
 
   @boundMethod
@@ -328,23 +402,39 @@ export default class SemesterTools extends React.Component {
       );
     }
 
-    // Import Students (Before Import)/View Students (After Import)
-    let studentsCheckDDL = !this.state.groupingDDL || !this.state.proposalDDL;
-    let studentsButton = <Button type={'primary'} block size={'large'}
-                                 disabled={studentsCheckDDL}
-                                 onClick={this.onStudent}>
-      {this.state.isImported ? 'View Students' : 'Import Students'}
-    </Button>;
-    let studentsWarning = null;
-    if (studentsCheckDDL) {
-      studentsWarning = <p className={styles.Warning}>
-        Please set the deadlines before importing<br/>You may change the deadlines later
-      </p>;
+    // Import Students (Before Import)
+    let importStudents = null;
+    if (!this.state.isImported) {
+      let permissionDenied = !this.state.groupingDDL || !this.state.proposalDDL;
+      let importButton = <Upload accept={'.csv'} showUploadList={false} action={this.onImport}
+                                 disabled={permissionDenied || this.state.importing}>
+        <Button type={'primary'} block size={'large'}
+                disabled={permissionDenied} loading={this.state.importing}>
+          Import Students
+        </Button>
+      </Upload>;
+
+      let importWarning = null;
+      if (permissionDenied) {
+        importWarning = <p className={styles.Warning}>
+          Please set the deadlines before importing<br/>You may change the deadlines later
+        </p>;
+      }
+      importStudents = <div className={styles.ToolItem}>
+        {importButton}
+        {importWarning}
+      </div>
     }
-    let students = <div className={styles.ToolItem}>
-      {studentsButton}
-      {studentsWarning}
-    </div>
+
+
+    // View Students (After Import)
+    let students = null;
+    if (this.state.isImported) {
+      students = <Button type={'primary'} block size={'large'}
+                         className={styles.ToolItem} onClick={this.onStudent}>
+          View Students
+        </Button>;
+    }
 
     // Download Students List (After Import)
     let download = <Button block size={'large'} className={styles.ToolItem}
@@ -502,6 +592,7 @@ export default class SemesterTools extends React.Component {
       <React.Fragment>
         {appBar}
         <div className={styles.SemesterTools}>
+          {importStudents}
           {students}
           {download}
           {size}

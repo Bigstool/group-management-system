@@ -153,7 +153,6 @@ export default class SemesterTools extends React.Component {
     if (first === undefined || sur === undefined || mail === undefined) {
       // Incorrect form format
       message.error('Incorrect student format');
-      console.debug(`${first}, ${sur}, ${mail}`);
       this.setState({importing: false,});
       return;
     }
@@ -194,14 +193,10 @@ export default class SemesterTools extends React.Component {
 
   @boundMethod
   async onStudent() {
-    // Imported, go to student list
-    if (this.state.isImported) {
-      this.setState({
-        redirect: `/semester/students`,
-        push: true,
-      })
-    }
-    // TODO: Not imported, import
+    this.setState({
+      redirect: `/semester/students`,
+      push: true,
+    });
   }
 
   @boundMethod

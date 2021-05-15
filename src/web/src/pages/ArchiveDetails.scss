@@ -36,11 +36,11 @@
     margin: 0;
   }
 
-  .Rename {
-    margin-top: 3rem;
-  }
-
-  .Cancel {
+  .Button {
     margin-top: 1rem;
+
+    .First {
+      margin-top: 3rem;
+    }
   }
 }

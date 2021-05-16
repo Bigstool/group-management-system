@@ -292,6 +292,10 @@ def get_group_info(group_uuid):
                   type: string
                   description: group description
                   example: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque a ultricies diam. Donec ultrices tortor non lobortis mattis. Mauris euismod tellus ipsum, et porta mi scelerisque ac.
+                is_archived:
+                  type: boolean
+                  description: is the gorup from current semester
+                  example: false
                 owner:
                   type: object
                   description: the user who created the group
@@ -396,12 +400,15 @@ def get_group_info(group_uuid):
     if group is None:
         raise ApiResourceNotFoundException('Not found: No such group!')
 
+    semester = Semester.query.filter_by(name="CURRENT").first()
+
     return MyResponse(data={
         "favorite": bool(GroupFavorite.query.filter_by(user_uuid=uuid.UUID(token_info["uuid"]).bytes,
                                                        group_uuid=group.uuid).first()),
         "name": group.name,
         "title": group.title,
         "description": group.description,
+        "is_archived": group.creation_time < semester.start_time,
         "proposal": group.proposal,
         "owner": {
             'uuid': str(uuid.UUID(bytes=group.owner_uuid)),

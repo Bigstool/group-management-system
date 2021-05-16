@@ -1128,7 +1128,7 @@ def post_grouping_ddl_job():
         member_range: list = semester.config["group_member_number"]
         group_of_semester = Group.query.filter(Group.creation_time >= semester.start_time).all()
         for group in group_of_semester:
-            member_count = len(group.member)
+            member_count = len(group.member) + 1
             if member_count < member_range[0] or member_count > member_range[1]:
                 db.session.delete(group)
         # delete all applications

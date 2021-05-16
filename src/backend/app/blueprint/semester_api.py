@@ -94,6 +94,8 @@ def archive_semester():
         }
     ))
     db.session.commit()
+    # logout all users
+    Auth.valid_after = time.time()
 
     return MyResponse().build()
 

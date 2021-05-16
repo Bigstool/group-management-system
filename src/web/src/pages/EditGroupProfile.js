@@ -1,10 +1,7 @@
 import React from "react";
-import PropTypes from "prop-types";
-import {Button, Input} from 'antd';
 import {LoadingOutlined} from '@ant-design/icons';
 import {boundMethod} from "autobind-decorator";
 import AppBar from "../components/AppBar";
-import styles from './EditGroupProfile.scss';
 import {AuthContext} from "../utilities/AuthProvider";
 import {Redirect} from "react-router-dom";
 import GroupProfileForm from "../components/GroupProfileForm";
@@ -34,10 +31,16 @@ export default class EditGroupProfile extends React.Component {
       isAdmin: false,
       // Group related
       groupUuid: this.props.match.params["uuid"],
+      isSubmitted: false,
+      isApproved: false,
       name: '',
       title: '',
       description: '',
       proposal: '',
+      newName: '',
+      newTitle: '',
+      newDescription: '',
+      newProposal: '',
       nameLimit: 20,
       titleLimit: 80,
       descriptionLimit: 150,
@@ -59,7 +62,8 @@ export default class EditGroupProfile extends React.Component {
     await this.checkSysConfig();
     await this.checkGroupInfo();
     // Check whether user has permission to access this page
-    if (!this.state.isOwner && !this.state.isAdmin) {
+    if ((!this.state.isOwner && !this.state.isAdmin) ||
+      (this.state.isOwner && (this.state.isApproved || this.state.isSubmitted))) {
       this.setState({
         'redirect': '/',
         'push': false,
@@ -92,10 +96,16 @@ export default class EditGroupProfile extends React.Component {
 
       // update name, title, description, proposal
       this.setState({
+        isSubmitted: groupInfo['proposal_state'] === 'SUBMITTED',
+        isApproved: groupInfo['proposal_state'] === 'APPROVED',
         name: groupInfo['name'],
         title: groupInfo['title'],
         description: groupInfo['description'],
         proposal: groupInfo['proposal'],
+        newName: groupInfo['name'],
+        newTitle: groupInfo['title'],
+        newDescription: groupInfo['description'],
+        newProposal: groupInfo['proposal'],
       })
 
       // update isOwner
@@ -115,37 +125,38 @@ export default class EditGroupProfile extends React.Component {
 
   @boundMethod
   onNameChange(event) {
-    this.setState({name: event.target.value});
+    this.setState({newName: event.target.value});
   }
 
   @boundMethod
   onTitleChange(event) {
-    this.setState({title: event.target.value});
+    this.setState({newTitle: event.target.value});
   }
 
   @boundMethod
   onDescriptionChange(event) {
-    this.setState({description: event.target.value});
+    this.setState({newDescription: event.target.value});
   }
 
   @boundMethod
   onProposalChange(event) {
-    this.setState({proposal: event.target.value});
+    this.setState({newProposal: event.target.value});
   }
 
   @boundMethod
   async onSave() {
     this.setState({saving: true});
+    let data = {};
+    if (!(this.state.isOwner && this.state.afterGroupingDDL) && this.state.name !== this.state.newName)
+      data['name'] = this.state.newName;
+    if (this.state.title !== this.state.newTitle) data['title'] = this.state.newTitle;
+    if (this.state.description !== this.state.newDescription) data['description'] = this.state.newDescription;
+    if (this.state.proposal !== this.state.newProposal) data['proposal'] = this.state.newProposal;
     try {
       await this.context.request({
         path: `/group/${this.state.groupUuid}`,
         method: "patch",
-        data: {
-          name: this.state.name,
-          title: this.state.title,
-          description: this.state.description,
-          proposal: this.state.proposal,
-        }
+        data: data,
       });
       // If success, redirect to Group Details (Wait for app bar support)
       this.setState({
@@ -176,7 +187,7 @@ export default class EditGroupProfile extends React.Component {
     }
 
     // App Bar
-    let appBar = <AppBar/>;
+    let appBar = <AppBar backTo={`/group/${this.state.groupUuid}/config`}/>;
 
     if (this.state.error) {
       return (
@@ -199,12 +210,16 @@ export default class EditGroupProfile extends React.Component {
     return (
       <React.Fragment>
         {appBar}
-        <GroupProfileForm name={this.state.name} title={this.state.title}
-                          description={this.state.description} proposal={this.state.proposal}
+        <GroupProfileForm name={this.state.newName} title={this.state.newTitle}
+                          description={this.state.newDescription} proposal={this.state.newProposal}
                           onNameChange={this.onNameChange} onTitleChange={this.onTitleChange}
                           onDescriptionChange={this.onDescriptionChange} onProposalChange={this.onProposalChange}
                           onSave={this.onSave} onCancel={this.onCancel}
                           saving={this.state.saving}
+                          disableSave={this.state.name === this.state.newName &&
+                          this.state.title === this.state.newTitle &&
+                          this.state.description === this.state.newDescription &&
+                          this.state.proposal === this.state.newProposal}
                           disableName={this.state.isOwner && this.state.afterGroupingDDL}/>
       </React.Fragment>
     );

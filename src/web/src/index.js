@@ -27,6 +27,12 @@ import ApplicationDetails from './pages/ApplicationDetails';
 import SemesterTools from './pages/SemesterTools';
 import ChangePassword from "./pages/ChangePassword";
 import ResetPassword from "./pages/ResetPassword";
+import TransferGroupOwner from "./pages/TransferGroupOwner";
+import StudentList from "./pages/StudentList";
+import Reports from "./pages/Reports";
+import GroupAllocation from "./pages/GroupAllocation";
+import ArchiveList from "./pages/ArchiveList";
+import ArchiveDetails from "./pages/ArchiveDetails";
 
 const app = document.createElement("div");
 app.id = styles.ReactApp;
@@ -47,11 +53,17 @@ ReactDOM.render((
                   <PrivateRoute exact path={"/group/:uuid/config"} component={GroupConfig}/>
                   <PrivateRoute exact path={'/group/:uuid/edit'} component={EditGroupProfile}/>
                   <PrivateRoute exact path={'/group/:uuid/manage'} component={ManageMember}/>
+                  <PrivateRoute exact path={'/group/:uuid/transfer'} component={TransferGroupOwner}/>
                   <PrivateRoute exact path={'/group/:uuid/applications'} component={ManageApplication}/>
                   <PrivateRoute exact path={'/group/:groupUuid/application/:applicationUuid'} component={ApplicationDetails}/>
                   <PrivateRoute exact path={"/group/:uuid"} component={GroupDetails}/>
                   <PrivateRoute exact path={"/create/group"} component={CreateGroup}/>
+                  <PrivateRoute exact path={"/semester/archives"} component={ArchiveList}/>
+                  <PrivateRoute exact path={"/semester/archive/:uuid"} component={ArchiveDetails}/>
                   <PrivateRoute exact path={"/semester/tools"} component={SemesterTools}/>
+                  <PrivateRoute exact path={"/semester/students"} component={StudentList}/>
+                  <PrivateRoute exact path={"/semester/reports"} component={Reports}/>
+                  <PrivateRoute exact path={"/semester/allocate"} component={GroupAllocation}/>
                   <PrivateRoute exact path={"/admin/reset"} component={ResetPassword}/>
                   <Route path={"*"} component={NotFound}/>
               </Switch>

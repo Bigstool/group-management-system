@@ -128,9 +128,25 @@ export default class AccountPanel extends React.Component {
   }
 
   @boundMethod
+  onArchives() {
+    this.setState({
+      'redirect': `/semester/archives`,
+      'push': true,
+    });
+  }
+
+  @boundMethod
   onSemesterTools() {
     this.setState({
       'redirect': `/semester/tools`,
+      'push': true,
+    });
+  }
+
+  @boundMethod
+  onReports() {
+    this.setState({
+      'redirect': `/semester/reports`,
       'push': true,
     });
   }
@@ -226,7 +242,7 @@ export default class AccountPanel extends React.Component {
       resetPassword = <React.Fragment>
         <div className={styles.Gap} />
         <Button block size={'large'} onClick={this.onResetPassword}>
-          Reset Password For A Student
+          Reset Password For A User
         </Button>
       </React.Fragment>;
       semesterTools = <React.Fragment>
@@ -238,11 +254,14 @@ export default class AccountPanel extends React.Component {
       </React.Fragment>;
       reports = <React.Fragment>
         <div className={styles.Gap} />
-        <Button block size={'large'}>Reports</Button>
+        <Button block size={'large'}
+                onClick={this.onReports}>
+          Reports
+        </Button>
       </React.Fragment>;
       archives = <React.Fragment>
         <div className={styles.Gap} />
-        <Button block size={'large'}>Archives</Button>
+        <Button block size={'large'} onClick={this.onArchives}>Archives</Button>
       </React.Fragment>;
     }
 

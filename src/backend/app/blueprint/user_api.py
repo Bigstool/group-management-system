@@ -299,3 +299,171 @@ def update_user_profile(user_uuid):
     db.session.commit()
 
     return MyResponse(data=None, msg='query success').build()
+
+
+@user_api.route("/user/<user_uuid>", methods=["PATCH"])
+def change_user_password(user_uuid):
+    """Change password of the user
+    ---
+    tags:
+      - user
+
+    description: |
+      ## Constrains
+      * operator must be the user whose password to be modified
+
+    parameters:
+      - name: user_uuid
+        in: path
+        required: true
+        description: user uuid
+        schema:
+          type: string
+          example: 16fc2db7-cac0-46c2-a0e3-2da6cec54abb
+
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              current_password:
+                type: string
+                description: sha1(password)
+                example: 5F4DCC3B5AA765D61D8327DEB882CF99
+              new_password:
+                type: string
+                description: sha1(password)
+                example: 5F4DCC3B5AA765D61D8327DEB882CF99
+              repeat_password:
+                type: string
+                description: sha1(password)
+                example: 5F4DCC3B5AA765D61D8327DEB882CF99
+
+    responses:
+      '200':
+        description: query success
+        content:
+          application/json:
+            schema:
+              type: object
+    """
+    args_path = parser.parse({
+        "user_uuid": fields.Str(required=True, validate=MyValidator.Uuid())}, request, location="path")
+
+    args_json = parser.parse({
+        "current_password": fields.Str(required=True, validate=MyValidator.Sha1()),
+        "new_password": fields.Str(required=True, validate=MyValidator.Sha1()),
+        "repeat_password": fields.Str(required=True, validate=MyValidator.Sha1())
+    }, request, location="json")
+
+    user_uuid: str = args_path["user_uuid"]
+    current_password: str = args_json["current_password"]
+    new_password: str = args_json["new_password"]
+    repeat_password: str = args_json["repeat_password"]
+
+    token_info = Auth.get_payload(request)
+    uuid_in_token = token_info['uuid']
+
+    if user_uuid != uuid_in_token:
+        raise ApiPermissionException('Permission denied: you cannot change other user\'s password!')
+
+    user = User.query.filter_by(uuid=uuid.UUID(uuid_in_token).bytes).first()
+
+    if user is None:
+        logger.debug(f"Change password fail: no such user")
+        raise ApiPermissionException("Permission denied: invalid credential")
+
+    current_password_hash = hmac.new(user.password_salt, bytes.fromhex(current_password), "sha1").digest()
+    new_password_hash = hmac.new(user.password_salt, bytes.fromhex(new_password), "sha1").digest()
+
+    if current_password_hash != user.password_hash:
+        raise ApiInvalidInputException("Current password is incorrect")
+
+    if new_password != repeat_password:
+        raise ApiInvalidInputException("Inconsistent new password input")
+
+    if new_password is not None and repeat_password == new_password:
+        user.password_hash = new_password_hash
+
+    db.session.commit()
+
+    return MyResponse(data=None, msg='query success').build()
+
+@user_api.route("/user/<user_uuid>", methods=["PATCH"])
+def admin_change_user_password_(user_uuid):
+    """Administrator Changes password of the user
+    ---
+    tags:
+      - user
+
+    description: |
+      ## Constrains
+      * operator must be the admin
+      * new password can not be the current one
+
+    parameters:
+      - name: user_uuid
+        in: path
+        required: true
+        description: user uuid
+        schema:
+          type: string
+          example: 16fc2db7-cac0-46c2-a0e3-2da6cec54abb
+
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              new_password:
+                type: string
+                description: sha1(password)
+                example: 5F4DCC3B5AA765D61D8327DEB882CF99
+              repeat_password:
+                type: string
+                description: sha1(password)
+                example: 5F4DCC3B5AA765D61D8327DEB882CF99
+
+    responses:
+      '200':
+        description: query success
+        content:
+          application/json:
+            schema:
+              type: object
+    """
+    args_path = parser.parse({
+        "user_uuid": fields.Str(required=True, validate=MyValidator.Uuid())}, request, location="path")
+    user_uuid: str = args_path["user_uuid"]
+    user = User.query.filter_by(uuid=uuid.UUID(user_uuid).bytes).first()
+
+    if user is None:
+        raise ApiResourceNotFoundException("No such user!")
+    token_info = Auth.get_payload(request)
+    if token_info["role"] != "ADMIN": raise ApiPermissionException("You have no permission to change the user password!")
+
+    args_json = parser.parse({
+        "new_password": fields.Str(required=True, validate=MyValidator.Sha1()),
+        "repeat_password": fields.Str(required=True, validate=MyValidator.Sha1())
+    }, request, location="json")
+    new_password: str = args_json["new_password"]
+    repeat_password: str = args_json["repeat_password"]
+    current_password_hash = user.password_hash
+    new_password_hash = hmac.new(user.password_salt, bytes.fromhex(new_password), "sha1").digest()
+
+    if current_password_hash == user.password_hash:
+        raise ApiInvalidInputException("This password already exists")
+
+    if new_password != repeat_password:
+        raise ApiInvalidInputException("Inconsistent new password input")
+
+    if new_password is not None and repeat_password == new_password:
+        user.password_hash = new_password_hash
+
+    db.session.commit()
+
+    return MyResponse(data=None, msg='query success').build()

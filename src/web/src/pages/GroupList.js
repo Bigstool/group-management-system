@@ -2,7 +2,7 @@ import React from 'react';
 import styles from './GroupList.scss';
 import AppBar from "../components/AppBar";
 import TabNav from "../components/TabNav";
-import {Button, Result, Tabs} from "antd";
+import {Button, Empty, Result, Tabs} from "antd";
 import * as PropTypes from "prop-types";
 import {LoadingOutlined} from "@ant-design/icons";
 import GroupCard from "../components/GroupCard";
@@ -61,18 +61,21 @@ export default class GroupList extends React.PureComponent {
                 centered={true}>
             <Tabs.TabPane tab="Groups" key="1">
               {this.state.loading && <LoadingOutlined/>}
+              {this.state.loading || this.state.groupList.length === 0 && <Empty/>}
               {this.state.loading || this.state.groupList && this.state.topGroupUuid &&
               <GroupCard highlight={true}
                          groupItem={this.state.groupList.find(item => (item.uuid === this.state.topGroupUuid))}/>
               }
-              {this.state.loading || this.state.groupList && this.state.groupList
-                .filter(item => (item.favorite && item.uuid !== this.state.topGroupUuid))
+              {this.state.loading ||
+              this.state.groupList
+                ?.filter(item => (item.favorite && item.uuid !== this.state.topGroupUuid))
                 .map(item => (
                   <GroupCard key={item.uuid} groupItem={item}/>
                 ))
               }
-              {this.state.loading || this.state.groupList && this.state.groupList
-                .filter(item => (!item.favorite && item.uuid !== this.state.topGroupUuid))
+              {this.state.loading ||
+              this.state.groupList
+                ?.filter(item => (!item.favorite && item.uuid !== this.state.topGroupUuid))
                 .map(item => (
                   <GroupCard key={item.uuid} groupItem={item}/>
                 ))
@@ -81,10 +84,9 @@ export default class GroupList extends React.PureComponent {
             </Tabs.TabPane>
             {this.state.loading || this.state.topGroupUuid || this.context.getUser().role === "ADMIN" ||
             <Tabs.TabPane tab="Applied" key="2">
-              {this.state.applicationList && this.state.applicationList
-                .map(item => (
-                  <GroupCard key={item.uuid} groupItem={item.group}/>
-                ))
+              {this.state.applicationList?.map(item => (
+                <GroupCard key={item.uuid} groupItem={item.group}/>
+              ))
               }
               {this.state.error !== null && <ErrorMessage/>}
             </Tabs.TabPane>

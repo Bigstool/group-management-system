@@ -967,3 +967,50 @@ def admin_create_group(user_uuid):
     db.session.commit()
 
     return MyResponse(data=None).build()
+
+@group_api.route("/group/students", methods=["GET"])
+def get_students_list():
+    """Get list of residual students
+    ---
+    tags:
+      - student
+
+    description: |
+      ## Constrains
+        * operator must be admin
+
+    responses:
+      200:
+        description: query success
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                properties:
+                  uuid:
+                    type: string
+                    description: student name uuid
+                    example: b86a6406-14ca-4459-80ea-c0190fc43bd3
+                  name:
+                    type: string
+                    description: student name
+                    example: Bob
+                  email:
+                    type: string
+                    description: student email
+                    example: user@test.com
+    """
+    token_info = Auth.get_payload(request)
+    if token_info["role"] != "ADMIN":
+        raise ApiPermissionException("Permission denied: you are not the administrator!")
+    student_list = User.query.filter_by(group_id=None).all()
+    response_list = []
+    for student in student_list:
+        response_list.append({
+            "uuid": str(uuid.UUID(bytes=student.uuid)),
+            "name": student.alias,
+            "name": student.email,
+        })
+    return MyResponse(data=response_list, msg='query success').build()

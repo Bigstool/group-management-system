@@ -115,7 +115,7 @@ def create_group():
                       title=title,
                       description=description,
                       proposal=proposal,
-                      proposal_update_time=proposal and int(time.time()),
+                      proposal_update_time=int(time.time()) if proposal else None,
                       proposal_state='PENDING',
                       creation_time=int(time.time()),
                       owner_uuid=uuid.UUID(token_info['uuid']).bytes)

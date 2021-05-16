@@ -5,7 +5,7 @@ import {boundMethod} from "autobind-decorator";
 import AppBar from "../components/AppBar";
 import styles from './ChangePassword.scss';
 import {AuthContext} from "../utilities/AuthProvider";
-import Avatar from "react-avatar";
+import SHA1 from "crypto-js/sha1";
 import ErrorMessage from "../components/ErrorMessage";
 
 /* Bigstool's class notations
@@ -43,17 +43,54 @@ export default class ChangePassword extends React.Component {
 
   @boundMethod
   onCurrentChange(event) {
-    this.setState({currentPassword: event.target.value});
+    this.setState({
+      wrongPassword: false,
+      currentPassword: event.target.value,
+    });
   }
 
   @boundMethod
   onNewChange(event) {
-    this.setState({newPassword: event.target.value});
+    this.setState({
+      unmatchPassword: false,
+      newPassword: event.target.value,
+    });
   }
 
   @boundMethod
   onConfirmChange(event) {
-    this.setState({confirmPassword: event.target.value});
+    this.setState({
+      unmatchPassword: false,
+      confirmPassword: event.target.value,
+    });
+  }
+
+  @boundMethod
+  async onChange() {
+    this.setState({changing: true});
+    // Check if new password matches confirm password
+    if (this.state.newPassword !== this.state.confirmPassword) {
+      this.setState({
+        unmatchPassword: true,
+        changing: false,
+      });
+      return;
+    }
+    // Submit changes
+    try {
+      await this.context.request({
+        path: `/user/${this.state.userUuid}/password`,
+        method: 'patch',
+        data: {
+          new_password: SHA1(this.state.newPassword).toString(),
+          old_password: SHA1(this.state.currentPassword).toString(),
+        },
+      });
+      window.history.back();
+    } catch (error) {
+      if (error.response.status === 403) this.setState({wrongPassword: true});
+    }
+    this.setState({changing: false});
   }
 
   onCancel() {
@@ -116,8 +153,9 @@ export default class ChangePassword extends React.Component {
       <div className={styles.Gap}/>
       <div className={styles.Button}>
         <Button type={'primary'} block size={'large'}
-                onClick={this.onChange} loading={this.state.changing}>
-          Save
+                onClick={this.onChange} loading={this.state.changing}
+                disabled={!this.state.currentPassword || !this.state.newPassword || !this.state.confirmPassword}>
+          Change Password
         </Button>
       </div>
     </React.Fragment>;

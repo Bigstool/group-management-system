@@ -119,7 +119,7 @@ with app.app_context():
                           alias="Admin",
                           password_salt=password_salt,
                           password_hash=password_hash,
-                          creation_time=int(time.time()),
+                          creation_time=0,
                           role="ADMIN",
                           initial_password=config["admin_password"])
         db.session.add(admin_user)

@@ -264,8 +264,10 @@ def delete_semester(semester_uuid):
         raise ApiPermissionException('Permission denied: Current semester cannot be deleted')
 
     # delete all within semester
-    User.query.filter(User.creation_time.between(semester.start_time, semester.end_time)).delete(
-        synchronize_session=False)
+    User.query.filter(and_(
+        User.creation_time.between(semester.start_time, semester.end_time),
+        User.role != "ADMIN"
+    )).delete(synchronize_session=False)
 
     db.session.delete(semester)
     db.session.commit()

@@ -967,3 +967,70 @@ def admin_create_group(user_uuid):
     db.session.commit()
 
     return MyResponse(data=None).build()
+
+@group_api.route("/group/<group_uuid>/owner", methods=["PATCH"])
+def transfer_group_owner(group_uuid):
+    """Transfer group owner to other member
+    ---
+    tags:
+      - group
+
+    description: |
+      ## Constrains
+      * operator must be group owner / admin
+      * new group owner must be one of the existing group members
+
+    parameters:
+      - name: group_uuid
+        in: path
+        required: true
+        description: group uuid
+        schema:
+          type: string
+          example: 16fc2db7-cac0-46c2-a0e3-2da6cec54abb
+
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              new_owner_uuid:
+                type: string
+                description: the uuid of new group owner
+                example: 16fc2db7-cac0-46c2-a0e3-2da6cec54abb
+
+    responses:
+      200:
+        description: query success
+        content:
+          application/json:
+            schema:
+              type: object
+    """
+    args_query = parser.parse({
+        "group_uuid": fields.Str(required=True, validate=MyValidator.Uuid())}, request, location="path")
+    args_json = parser.parse({
+        "new_owner_uuid": fields.Str(required=True, validate=MyValidator.Uuid())}, request, location="json")
+
+    group_uuid: str = args_query["group_uuid"]
+    new_owner_uuid: str = args_json["new_owner_uuid"]
+
+    token_info = Auth.get_payload(request)
+    uuid_in_token = token_info['uuid']
+    user = User.query.filter_by(uuid=uuid.UUID(uuid_in_token).bytes).first()
+
+    group = Group.query.filter_by(uuid=uuid.UUID(group_uuid).bytes).first()
+
+    if user.group_id != uuid.UUID(group_uuid).bytes and token_info["role"] != "ADMIN":
+        raise ApiPermissionException(
+            "Permission denied: you must be admin, group owner or group member to make a comment")
+    new_owner = User.query.filter_by(uuid=uuid.UUID(new_owner_uuid).bytes).first()
+    if new_owner.group_id != group.uuid:
+        raise ApiPermissionException(
+            "You can not transfer group owner to someone not in the group.")
+
+    group.owner_uuid=uuid.UUID(new_owner_uuid).bytes
+    db.session.commit()
+    return MyResponse(data=None).build()

@@ -198,10 +198,13 @@ def get_group_list():
     token_info = Auth.get_payload(request)
     uuid_in_token = token_info['uuid']
 
-    data = Group.query.filter_by(semester_name=request.args.get('semester')).all()
-
-    if not data:
-        raise ApiResourceNotFoundException("No record of this semester!")
+    semester_condition = request.args.get('semester')
+    if semester_condition:
+        data = Group.query.filter_by(semester_name=semester_condition).all()
+        if not data:
+            raise ApiResourceNotFoundException("No record of this semester!")
+    else:
+        data = Group.query.all()
 
     group_list = []
     for group in data:
@@ -967,3 +970,75 @@ def admin_create_group(user_uuid):
     db.session.commit()
 
     return MyResponse(data=None).build()
+
+
+@group_api.route("/group/<group_uuid>/user/<user_uuid>", methods=["PATCH"])
+def allocate_students_to_group(group_uuid, user_uuid):
+    """Allocate students without a group to newly created groups
+    ---
+    tags:
+      - group
+
+    description: |
+      ## Constrains
+      * operate after grouping_ddl
+      * operator must be the admin
+      * cannot insert a student into a group already successfully created before grouping_ddl
+
+    parameters:
+      - name: group_uuid
+        in: path
+        required: true
+        description: group uuid
+        schema:
+          type: string
+          example: 16fc2db7-cac0-46c2-a0e3-2da6cec54abb
+      - name: user_uuid
+        in: path
+        required: true
+        description: user uuid
+        schema:
+          type: string
+          example: 16fc2db7-cac0-46c2-a0e3-2da6cec54abb
+
+    responses:
+      200:
+        description: query success
+        content:
+          application/json:
+            schema:
+              type: object
+    """
+    args_path = parser.parse({
+        "group_uuid": fields.Str(required=True, validate=MyValidator.Uuid()),
+        "user_uuid": fields.Str(required=True, validate=MyValidator.Uuid())}, request, location="path")
+    group_uuid: str = args_path["group_uuid"]
+    user_uuid: str = args_path["user_uuid"]
+
+    token_info = Auth.get_payload(request)
+    if token_info["role"] != "ADMIN":
+        raise ApiPermissionException(
+            f"Permission denied: Must logged in as Admin to allocate students to groups."
+        )
+
+    config = Semester.query.filter_by(name="CURRENT").first().config
+    grouping_ddl = config["system_state"]["grouping_ddl"]
+
+    allocate_group = Group.query.filter_by(uuid=uuid.UUID(group_uuid).bytes).first()
+    if allocate_group is None:
+        raise ApiResourceNotFoundException("No such group!")
+    if allocate_group.creation_time <= grouping_ddl:
+        raise ApiPermissionException("Permission denied: You cannot allocate a student to a grouped group!")
+
+    allocated_user = User.query.filter_by(uuid=uuid.UUID(user_uuid).bytes).first()
+    if allocated_user is None:
+        raise ApiResourceNotFoundException("No such user!")
+    if allocated_user.group_id:
+        raise ApiPermissionException("Permission denied: This user is already in a group.")
+
+    allocated_user.group_id = allocate_group.uuid
+    allocate_group.member_num = allocate_group.member_num + 1
+
+    db.session.commit()
+
+    return MyResponse(data=None, msg='query success').build()

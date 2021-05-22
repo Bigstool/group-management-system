@@ -971,7 +971,6 @@ def admin_create_group(user_uuid):
 
     return MyResponse(data=None).build()
 
-
 @group_api.route("/group/<group_uuid>/user/<user_uuid>", methods=["PATCH"])
 def allocate_students_to_group(group_uuid, user_uuid):
     """Allocate students without a group to newly created groups
@@ -999,15 +998,19 @@ def allocate_students_to_group(group_uuid, user_uuid):
         description: user uuid
         schema:
           type: string
-          example: 16fc2db7-cac0-46c2-a0e3-2da6cec54abb
+          example: 16fc2db7-cac0-46c2-a0e3-2da6cec54ab
 
-    responses:
-      200:
-        description: query success
-        content:
-          application/json:
-            schema:
-              type: object
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              new_owner_uuid:
+                type: string
+                description: the uuid of new group owner
+                example: 16fc2db7-cac0-46c2-a0e3-2da6cec54abb
     """
     args_path = parser.parse({
         "group_uuid": fields.Str(required=True, validate=MyValidator.Uuid()),

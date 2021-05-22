@@ -968,39 +968,45 @@ def admin_create_group(user_uuid):
 
     return MyResponse(data=None).build()
 
-@group_api.route("/group/students", methods=["GET"])
-def get_students_list():
-    """Get list of residual students
+@group_api.route("/group/<group_uuid>/owner", methods=["PATCH"])
+def transfer_group_owner(group_uuid):
+    """Transfer group owner to other member
     ---
     tags:
-      - student
+      - group
 
     description: |
       ## Constrains
-        * operator must be admin
+      * operator must be group owner / admin
+      * new group owner must be one of the existing group members
 
+    parameters:
+      - name: group_uuid
+        in: path
+        required: true
+        description: group uuid
+        schema:
+          type: string
+          example: 16fc2db7-cac0-46c2-a0e3-2da6cec54abb
+
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              new_owner_uuid:
+                type: string
+                description: the uuid of new group owner
+                example: 16fc2db7-cac0-46c2-a0e3-2da6cec54abb
     responses:
       200:
         description: query success
         content:
           application/json:
             schema:
-              type: array
-              items:
-                type: object
-                properties:
-                  uuid:
-                    type: string
-                    description: student name uuid
-                    example: b86a6406-14ca-4459-80ea-c0190fc43bd3
-                  name:
-                    type: string
-                    description: student name
-                    example: Bob
-                  email:
-                    type: string
-                    description: student email
-                    example: user@test.com
+
     """
     token_info = Auth.get_payload(request)
     if token_info["role"] != "ADMIN":

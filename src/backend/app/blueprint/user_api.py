@@ -301,7 +301,7 @@ def update_user_profile(user_uuid):
     return MyResponse(data=None, msg='query success').build()
 
 
-@user_api.route("/user/<user_uuid>", methods=["PATCH"])
+@user_api.route("/user/<user_uuid>/change_password", methods=["PATCH"])
 def change_user_password(user_uuid):
     """Change password of the user
     ---

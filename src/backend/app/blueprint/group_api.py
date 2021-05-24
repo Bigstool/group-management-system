@@ -540,8 +540,6 @@ def update_group_info(group_uuid):
         # Constrains for the group owner
         if group.proposal_state == "APPROVED":
             raise ApiPermissionException("Permission denied: Proposal is APPROVED")
-        if group.proposal_state == "SUBMITTED":
-            raise ApiPermissionException("Permission denied: Proposal is SUBMITTED")
         if new_proposal_state == 'APPROVED':
             raise ApiPermissionException("Permission denied: Not logged in as ADMIN")
 

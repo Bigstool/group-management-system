@@ -1,4 +1,6 @@
 .UserItem {
+  cursor: pointer;
+
   :global(.ant-list-item-meta) {
     align-items: center;
   }

@@ -1,5 +1,5 @@
 import React from "react";
-import {Space, Button, InputNumber, DatePicker} from 'antd';
+import {Space, Button, InputNumber, DatePicker, Input, Upload, message} from 'antd';
 import {LoadingOutlined} from '@ant-design/icons';
 import {boundMethod} from "autobind-decorator";
 import AppBar from "../components/AppBar";
@@ -8,6 +8,7 @@ import {AuthContext} from "../utilities/AuthProvider";
 import {Redirect} from "react-router-dom";
 import ErrorMessage from "../components/ErrorMessage";
 import moment from 'moment';
+import SHA1 from "crypto-js/sha1";
 
 /* Bigstool's class notations
 *  #T: Top-level component
@@ -38,46 +39,62 @@ export default class SemesterTools extends React.Component {
       newSizeUpper: 0,
       newGroupingDDL: 0,
       newProposalDDL: 0,
+      // Archive related
+      archiveName: '',
+      archiveNameLimit: 50,
       // Component related
       loading: true,
       error: false,
       redirect: false,
       push: false,
       // Event related
+      importing: false,
+      downloading: false,
       adjustingSize: false,
       adjustingGrouping: false,
       adjustingProposal: false,
+      adjustingArchive: false,
+      savingSize: false,
+      savingGrouping: false,
+      savingProposal: false,
+      savingArchive: false,
+      duplicateArchive: false,
     }
   }
 
   async componentDidMount() {
+    // Check permission
+    if (this.state.userRole !== 'ADMIN') {
+      this.setState({
+        redirect: '/',
+        push: false,
+      });
+    }
+    // Retrieve Info
     await this.checkSystem();
-    console.debug(this.state);
+    // Complete loading
     this.setState({loading: false});
   }
 
   @boundMethod
   async checkSystem() {
-    let sizeLower = 5;
-    let sizeUpper = 7;
-    let groupingDDL = 1621098000;
-    let proposalDDL = 1629028800;
-    let afterGroupingDDL = groupingDDL ? (Date.now() / 1000) > groupingDDL : false;
-    let afterProposalDDL = proposalDDL ? (Date.now() / 1000) > proposalDDL: false;
-    let newSizeLower = sizeLower, newSizeUpper = sizeUpper;
-    let newGroupingDDL = groupingDDL ? groupingDDL : this.momentToTimestamp(moment().add(10, 'days'));
-    let newProposalDDL = proposalDDL ? proposalDDL : this.momentToTimestamp(moment().add(20, 'days'));
+    let sysConfig = await this.context.getSysConfig(false);
+    let groupingDDL = sysConfig['system_state']['grouping_ddl'];
+    let proposalDDL = sysConfig['system_state']['proposal_ddl'];
     this.setState({
-      sizeLower: sizeLower,
-      sizeUpper: sizeUpper,
+      isImported: sysConfig['student_count'] > 0,
+      sizeLower: sysConfig['group_member_number'][0],
+      sizeUpper: sysConfig['group_member_number'][1],
+      newSizeLower: this.state.newSizeLower ? this.state.newSizeLower : sysConfig['group_member_number'][0],
+      newSizeUpper: this.state.newSizeUpper ? this.state.newSizeUpper : sysConfig['group_member_number'][1],
       groupingDDL: groupingDDL,
       proposalDDL: proposalDDL,
-      afterGroupingDDL: afterGroupingDDL,
-      afterProposalDDL: afterProposalDDL,
-      newSizeLower: newSizeLower,
-      newSizeUpper: newSizeUpper,
-      newGroupingDDL: newGroupingDDL,
-      newProposalDDL: newProposalDDL,
+      afterGroupingDDL: groupingDDL ? (Date.now() / 1000) > groupingDDL : false,
+      afterProposalDDL: proposalDDL ? (Date.now() / 1000) > proposalDDL: false,
+      newGroupingDDL: this.state.newGroupingDDL ? this.state.newGroupingDDL :
+        (groupingDDL ? groupingDDL : this.momentToTimestamp(moment().add(10, 'days'))),
+      newProposalDDL: this.state.newProposalDDL ? this.state.newProposalDDL :
+        (proposalDDL ? proposalDDL : this.momentToTimestamp(moment().add(20, 'days'))),
     });
   }
 
@@ -102,6 +119,118 @@ export default class SemesterTools extends React.Component {
   }
 
   @boundMethod
+  async onImport({file, onSuccess}) {
+    onSuccess('ok');
+    this.setState({importing: true,});
+    // Read text from file
+    let text = '';
+    try {
+      text = await this.read(file);
+    } catch {
+      // Failed to read file
+      message.error('Failed to read file, re-upload?');
+      this.setState({importing: false,});
+      return;
+    }
+    // Process text
+    text = text.replaceAll('\r', '\n');
+    text = text.replaceAll('\n\n', '\n');
+    let title = text.slice(0, text.indexOf('\n')).split(',');
+    let body = text.slice(text.indexOf('\n') + 1).split('\n');
+    let rows = [];
+    for (let i = 0; i < body.length; i++) {
+      let row = body[i].split(',');
+      if (row.length < title.length) break;
+      rows.push(row);
+    }
+    // first sur mail
+    let first, sur, mail;
+    for (let i = 0; i < title.length; i++) {
+      if (title[i].toLowerCase().indexOf('first') !== -1) first = i;
+      else if (title[i].toLowerCase().indexOf('sur') !== -1) sur = i;
+      else if (title[i].toLowerCase().indexOf('mail') !== -1) mail = i;
+    }
+    // Check format
+    if (first === undefined || sur === undefined || mail === undefined) {
+      // Incorrect form format
+      message.error('Incorrect student format');
+      this.setState({importing: false,});
+      return;
+    }
+    // Make request data
+    let data = [];
+    for (let i = 0; i < rows.length; i++) {
+      data.push({
+        alias: `${rows[i][first]} ${rows[i][sur]}`,
+        email: rows[i][mail],
+      });
+    }
+    // Send request
+    try {
+      await this.context.request({
+        path: `/user`,
+        method: 'post',
+        data: data,
+      });
+    } catch (error) {
+      message.error('Import unsuccessful, retry?');
+    }
+
+    await this.checkSystem();
+    this.setState({importing: false,});
+  }
+
+  async read(file) {
+    return new Promise((resolve, reject) => {
+      let reader = new FileReader();
+      reader.onload = function(event) {
+        resolve(event.target.result);
+      }
+      reader.readAsText(file);
+    });
+  }
+
+  @boundMethod
+  async onStudent() {
+    this.setState({
+      redirect: `/semester/students`,
+      push: true,
+    });
+  }
+
+  @boundMethod
+  async onDownload() {
+    this.setState({downloading: true,});
+    // Get user list
+    let userList;
+    try {
+      let res = await this.context.request({
+        path: `/user`,
+        method: 'get'
+      });
+      userList = res.data['data'];
+    } catch (error) {
+      this.setState({error: true,});
+    }
+    let text = `"Name","Email","Initial Password",\n`;
+    for (let i = 0; i < userList.length; i++) {
+      if (userList[i]['role'] === 'USER') {
+        text += `"${userList[i]['alias']}","${userList[i]['email']}","${userList[i]['initial_password']}",\n`;
+      }
+    }
+    const fileType = 'text/csv';
+    const fileName = 'Student Credentials.csv';
+    let blob = new Blob([text], {type : fileType});
+    let a = document.createElement('a');
+    a.download = fileName;
+    a.href = URL.createObjectURL(blob);
+    a.dataset.downloadurl = [fileType, a.download, a.href].join(':');
+    a.click();
+    setTimeout(function() { URL.revokeObjectURL(a.href); }, 1000);
+    this.setState({downloading: false,});
+  }
+
+  @boundMethod
   onSize() {
     this.setState({adjustingSize: !this.state.adjustingSize});
   }
@@ -117,8 +246,19 @@ export default class SemesterTools extends React.Component {
   }
 
   @boundMethod
-  onSaveSize() {
-    // TODO
+  async onSaveSize() {
+    this.setState({savingSize: true});
+    try {
+      await this.context.request({
+        path: `/sysconfig`,
+        method: 'patch',
+        data: {
+          group_member_number: [this.state.newSizeLower, this.state.newSizeUpper],
+        },
+      });
+    } catch (error) {}
+    await this.checkSystem();
+    this.setState({savingSize: false});
   }
 
   @boundMethod
@@ -132,8 +272,22 @@ export default class SemesterTools extends React.Component {
   }
 
   @boundMethod
-  onSaveGrouping() {
-    // TODO
+  async onSaveGrouping() {
+    this.setState({savingGrouping: true});
+    try {
+      await this.context.request({
+        path: `/sysconfig`,
+        method: 'patch',
+        data: {
+          system_state: {
+            grouping_ddl: this.state.newGroupingDDL,
+            proposal_ddl: this.state.proposalDDL,
+          }
+        },
+      });
+    } catch (error) {}
+    await this.checkSystem();
+    this.setState({savingGrouping: false});
   }
 
   @boundMethod
@@ -147,8 +301,64 @@ export default class SemesterTools extends React.Component {
   }
 
   @boundMethod
-  onSaveProposal() {
-    // TODO
+  async onSaveProposal() {
+    this.setState({savingProposal: true});
+    try {
+      await this.context.request({
+        path: `/sysconfig`,
+        method: 'patch',
+        data: {
+          system_state: {
+            grouping_ddl: this.state.groupingDDL,
+            proposal_ddl: this.state.newProposalDDL,
+          }
+        },
+      });
+    } catch (error) {}
+    await this.checkSystem();
+    this.setState({savingProposal: false});
+  }
+
+  @boundMethod
+  onAllocate() {
+    this.setState({
+      redirect: `/semester/allocate`,
+      push: true,
+    });
+  }
+
+  @boundMethod
+  onArchive() {
+    this.setState({adjustingArchive: !this.state.adjustingArchive});
+  }
+
+  @boundMethod
+  onArchiveChange(event) {
+    this.setState({
+      duplicateArchive: false,
+      archiveName: event.target.value,
+    });
+  }
+
+  @boundMethod
+  async onSaveArchive() {
+    this.setState({savingArchive: true});
+    try {
+      await this.context.request({
+        path: `/semester/archived`,
+        method: 'post',
+        data: {
+          name: this.state.archiveName,
+        },
+      });
+      this.setState({
+        redirect: `/semester/archives`,
+        push: false,
+      });
+    } catch (error) {
+      if (error.response.status === 409) this.setState({duplicateArchive: true});
+    }
+    this.setState({savingArchive: false});
   }
 
   render() {
@@ -166,7 +376,7 @@ export default class SemesterTools extends React.Component {
     }
 
     // App Bar
-    let appBar = <AppBar/>;
+    let appBar = <AppBar backTo={`/user`}/>;
 
     if (this.state.error) {
       return (
@@ -186,31 +396,47 @@ export default class SemesterTools extends React.Component {
       );
     }
 
-    // Import Students (Before Import)/View Students (After Import)
-    let studentsCheckDDL = !this.state.groupingDDL || !this.state.proposalDDL;
-    let studentsButton = <Button type={'primary'} block size={'large'}
-                                 disabled={studentsCheckDDL}
-                                 onClick={null}>
-      {this.state.isImported ? 'View Students' : 'Import Students'}
-    </Button>;
-    let studentsWarning = null;
-    if (studentsCheckDDL) {
-      studentsWarning = <p className={styles.Warning}>
-        Please set the deadlines before importing<br/>You may change the deadlines later
-      </p>;
+    // Import Students (Before Import)
+    let importStudents = null;
+    if (!this.state.isImported) {
+      let permissionDenied = !this.state.groupingDDL || !this.state.proposalDDL;
+      let importButton = <Upload accept={'.csv'} showUploadList={false} customRequest={this.onImport}
+                                 disabled={permissionDenied || this.state.importing}>
+        <Button type={'primary'} block size={'large'}
+                disabled={permissionDenied} loading={this.state.importing}>
+          Import Students
+        </Button>
+      </Upload>;
+
+      let importWarning = null;
+      if (permissionDenied) {
+        importWarning = <p className={styles.Warning}>
+          Please set the deadlines before importing<br/>You may change the deadlines later
+        </p>;
+      }
+      importStudents = <div className={styles.ToolItem}>
+        {importButton}
+        {importWarning}
+      </div>
     }
-    let students = <div className={styles.ToolItem}>
-      {studentsButton}
-      {studentsWarning}
-    </div>
+
+
+    // View Students (After Import)
+    let students = null;
+    if (this.state.isImported) {
+      students = <Button type={'primary'} block size={'large'}
+                         className={styles.ToolItem} onClick={this.onStudent}>
+          View Students
+        </Button>;
+    }
 
     // Download Students List (After Import)
     let download = <Button block size={'large'} className={styles.ToolItem}
-                           disabled={!this.state.isImported} onClick={null}>
+                           disabled={!this.state.isImported} onClick={this.onDownload}>
       Download Student Credentials
     </Button>;
 
-    // Group Size (?)
+    // Group Size (Before Grouping DDL)
     let sizeButton = <Button block size={'large'}
                              disabled={this.state.afterGroupingDDL}
                              onClick={this.onSize}>
@@ -223,7 +449,7 @@ export default class SemesterTools extends React.Component {
         <p>-</p>
         <InputNumber min={this.state.newSizeLower} value={this.state.newSizeUpper}
                      onChange={this.onUpperChange}/>
-        <Button type={'primary'} onClick={this.onSaveSize} className={styles.Save}
+        <Button type={'primary'} onClick={this.onSaveSize} className={styles.Save} loading={this.state.savingSize}
                 disabled={(this.state.sizeLower === this.state.newSizeLower &&
                   this.state.sizeUpper === this.state.newSizeUpper) ||
                 (this.state.newSizeLower < 1) || (this.state.newSizeLower > this.state.newSizeUpper)}>
@@ -254,7 +480,7 @@ export default class SemesterTools extends React.Component {
         <DatePicker showTime showNow={false} format={'YYYY-MM-DD HH:mm'}
                     value={this.timestampToMoment(this.state.newGroupingDDL)}
                     onOk={this.onGroupingChange} allowClear={false}/>
-        <Button type={'primary'} onClick={this.onSaveGrouping}
+        <Button type={'primary'} onClick={this.onSaveGrouping} loading={this.state.savingGrouping}
                 disabled={(this.state.groupingDDL === this.state.newGroupingDDL) ||
                 groupingCheckAfterNow || groupingCheckBeforeProposal}>
           Save
@@ -294,7 +520,7 @@ export default class SemesterTools extends React.Component {
         <DatePicker showTime showNow={false} format={'YYYY-MM-DD HH:mm'}
                     value={this.timestampToMoment(this.state.newProposalDDL)}
                     onOk={this.onProposalChange} allowClear={false}/>
-        <Button type={'primary'} onClick={this.onSaveProposal}
+        <Button type={'primary'} onClick={this.onSaveProposal} loading={this.state.savingProposal}
                 disabled={(this.state.proposalDDL === this.state.newProposalDDL) ||
                 proposalCheckAfterGrouping}>
           Save
@@ -305,7 +531,7 @@ export default class SemesterTools extends React.Component {
     if (proposalCheckAfterGrouping) {
       proposalWarning = <p className={styles.Warning}>
         The Proposal DDL must be after the Grouping DDL
-      </p>
+      </p>;
     }
     let proposal;
     if (!this.state.adjustingProposal) {
@@ -315,26 +541,52 @@ export default class SemesterTools extends React.Component {
         {proposalButton}
         {adjustProposal}
         {proposalWarning}
-      </div>
+      </div>;
     }
 
     // Group Allocation (After Grouping DDL and Before Proposal DDL)
     let allocation = <Button block size={'large'} className={styles.ToolItem}
                              disabled={!this.state.afterGroupingDDL || this.state.afterProposalDDL}
-                             onClick={null}>
+                             onClick={this.onAllocate}>
       Group Allocation
     </Button>;
 
     // Archive Semester (After Import)
-    let archive = <Button danger block size={'large'} className={styles.ToolItem}
-                          onClick={null}>
+    let archiveButton = <Button danger block size={'large'} onClick={this.onArchive}>
       Archive Semester
-    </Button>
+    </Button>;
+    let adjustArchive = <div className={styles.Adjust}>
+      <Space>
+        <Input onChange={this.onArchiveChange} value={this.state.archiveName}
+               maxLength={this.state.archiveNameLimit} placeholder={'Archive Name'}/>
+        <Button type={'primary'} onClick={this.onSaveArchive}
+                disabled={!this.state.archiveName} loading={this.state.savingArchive}>
+          Save
+        </Button>
+      </Space>
+    </div>;
+    let archiveWarning = null;
+    if (this.state.duplicateArchive) {
+      archiveWarning = <p className={styles.Warning}>
+        Duplicate archive name
+      </p>;
+    }
+    let archive;
+    if (!this.state.adjustingArchive) {
+      archive = <div className={styles.ToolItem}>{archiveButton}</div>;
+    } else {
+      archive = <div className={styles.ToolItem}>
+        {archiveButton}
+        {adjustArchive}
+        {archiveWarning}
+      </div>;
+    }
 
     return (
       <React.Fragment>
         {appBar}
         <div className={styles.SemesterTools}>
+          {importStudents}
           {students}
           {download}
           {size}

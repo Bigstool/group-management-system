@@ -25,5 +25,8 @@ class User(db.Model):
 
     comment = db.relationship("GroupComment", back_populates="author", uselist=True)
 
+    # semester
+    semester_id = db.Column("semester_uuid", db.BINARY(16), db.ForeignKey("semester.uuid"))
+
     def __repr__(self):
         return f"<User {self.uuid.hex()}: {self.email}>"

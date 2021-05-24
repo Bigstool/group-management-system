@@ -3,7 +3,6 @@ import PropTypes from "prop-types";
 import {LoadingOutlined} from '@ant-design/icons';
 import {boundMethod} from "autobind-decorator";
 import AppBar from "../components/AppBar";
-import './EditGroupProfile.scss';
 import {AuthContext} from "../utilities/AuthProvider";
 import {Redirect} from "react-router-dom";
 import GroupProfileForm from "../components/GroupProfileForm";
@@ -125,14 +124,10 @@ export default class CreateGroup extends React.Component {
           proposal: this.state.proposal,
         }
       });
-      // TODO: If success, redirect to Group Details
-      // this.setState({
-      //   redirect: `/group/${this.state.groupUuid}`,
-      //   push: false,
-      // });
-      // TODO: REMOVE: If success, redirect to Group List
+      // If success, redirect to Group Details
+      let userProfile = await this.context.getUserProfile(false);
       this.setState({
-        redirect: `/`,
+        redirect: `/group/${userProfile['created_group']['uuid']}`,
         push: false,
       });
     } catch (error) {  // If failed, set saving to false

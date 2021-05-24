@@ -305,6 +305,15 @@ export default class GroupConfig extends React.Component {
     }
   }
 
+  // On Transfer button clicked
+  @boundMethod
+  onTransfer() {
+    this.setState({
+      redirect: `/group/${this.state.groupUuid}/transfer`,
+      push: true,
+    });
+  }
+
   // On Dismiss button clicked
   @boundMethod
   async onDismiss() {
@@ -339,7 +348,7 @@ export default class GroupConfig extends React.Component {
     }
 
     // App Bar
-    let appBar = <AppBar/>;
+    let appBar = <AppBar backTo={`/group/${this.state.groupUuid}`}/>;
 
     if (this.state.error) {
       return (
@@ -360,8 +369,7 @@ export default class GroupConfig extends React.Component {
     }
 
     // All Set (Member) (After Grouping DDL)
-    // TODO: remove !this.state.isOwner (Wait for Issue #55 to be fixed)
-    if (!this.state.isOwner && this.state.isMember && this.state.afterGroupingDDL) return (
+    if (this.state.isMember && this.state.afterGroupingDDL) return (
       <React.Fragment>
         {appBar}
         <h1>You're all set!</h1>
@@ -394,21 +402,21 @@ export default class GroupConfig extends React.Component {
     }
 
 
-    // DELAYED: Showcase (Group Owner) (After Proposal DDL)
+    // TODO: DELAYED: Showcase (Group Owner) (After Proposal DDL)
     let showcase = null;
-    if (this.state.isOwner && this.state.afterProposalDDL) {
-      showcase = <React.Fragment>
-        <Button block size={'large'}>Manage Showcase</Button>
-        <br/>
-        <br/>
-      </React.Fragment>;
-    }
+    // if (this.state.isOwner && this.state.afterProposalDDL) {
+    //   showcase = <React.Fragment>
+    //     <Button block size={'large'}>Manage Showcase</Button>
+    //     <br/>
+    //     <br/>
+    //   </React.Fragment>;
+    // }
 
     // Caution Zone
     let cautionZone = [];
     cautionZone.push(
-      <div className={styles.CautionZone}>
-        <Divider orientation="center" plain key={'divider'}>
+      <div className={styles.CautionZone} key={'divider'}>
+        <Divider orientation="center" plain>
           Caution Zone
         </Divider>
       </div>
@@ -461,7 +469,8 @@ export default class GroupConfig extends React.Component {
     }
     // Transfer Ownership (Group Owner or Admin) (All stages)
     if (this.state.isOwner || this.state.isAdmin) {
-      cautionZone.push(<Button danger block size={'large'} key={'transfer-ownership'}>
+      cautionZone.push(<Button danger block size={'large'} key={'transfer-ownership'}
+                               onClick={this.onTransfer}>
         Transfer Group Owner
       </Button>);
     }

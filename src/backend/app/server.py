@@ -7,13 +7,16 @@ import uuid
 from datetime import datetime
 from hashlib import sha1
 
+from apscheduler.triggers.date import DateTrigger
+from flask_apscheduler import APScheduler
 from flasgger import Swagger
 from flask import Flask, request, g
+from sqlalchemy.orm.attributes import flag_modified
 from werkzeug.exceptions import HTTPException
 
 from blueprint.application_api import application_api
 from blueprint.auth_api import auth_api
-from blueprint.group_api import group_api
+from blueprint.group_api import group_api, post_grouping_ddl_job
 from blueprint.notification_api import notification_api
 from blueprint.semester_api import semester_api
 from blueprint.system_api import system_api
@@ -54,6 +57,7 @@ def after_request(response):
 # Exception handler
 @app.errorhandler(ApiException)  # controlled exception
 def err_handler(e):
+    db.session.rollback()
     return MyResponse(status_code=e.status_code,
                       msg=str(e)).build()
 
@@ -88,7 +92,20 @@ db.init_app(app)
 
 # init database
 with app.app_context():
-    db.drop_all() # TODO!!! remove line when in prod env
+    # TODO!!! remove block when in prod env
+    tables = db.session.execute("SELECT "
+                                "table_name "
+                                "FROM "
+                                "information_schema.tables "
+                                "WHERE "
+                                f"table_schema = :db_name;",
+                                {"db_name": config.get('mysql_database')})
+    db.session.execute("SET FOREIGN_KEY_CHECKS = 0;")
+    for table in tables:
+        logger.warning(f"Delete table {table[0]}")
+        db.session.execute(f"DROP TABLE `{table[0]}`;")
+    db.session.execute("SET FOREIGN_KEY_CHECKS = 1;")
+
     db.create_all()  # create if table not exists
     # if user table empty
     if not User.query.first():
@@ -102,152 +119,188 @@ with app.app_context():
                           alias="Admin",
                           password_salt=password_salt,
                           password_hash=password_hash,
-                          creation_time=int(time.time()),
-                          role="ADMIN")
+                          creation_time=0,
+                          role="ADMIN",
+                          initial_password=config["admin_password"])
         db.session.add(admin_user)
-        db.session.commit()
 
-        # Insert system config info
-        semester_uuid = uuid.uuid4().bytes
+        # insert semester
         semester = Semester(
-            uuid=semester_uuid,
+            uuid=uuid.uuid4().bytes,
+            name="CURRENT",
             start_time=int(time.time()),
             config={
-                "system_state": {"grouping_ddl": datetime(2021, 5, 15, 17).timestamp(),
-                                 "proposal_ddl": datetime(2021, 8, 15, 12).timestamp()},
+                "system_state": {
+                    "grouping_ddl": None,
+                    "proposal_ddl": None
+                },
                 "group_member_number": [7, 9]
             }
         )
         db.session.add(semester)
         db.session.commit()
 
-        # Insert dummy data TODO!!! remove line in prod env
-        # ----------------------
-        # Groups
-        # - Group A with name, title, description, proposal and some comments
-        # - Group B with name, title, description and proposal
-        #
-        # Users
-        # - User 1: a group owner of group A
-        # - User 2: a member of group A
-        # - User 3: a group owner of group B
-        # - User 4: a member of group B
-        # - User 5: a student that does not belong to any group
-        # - User 6: a student that does not belong to any group
-        groupA_uuid=uuid.uuid4().bytes
-        groupB_uuid=uuid.uuid4().bytes
-        user1_uuid=uuid.uuid4().bytes
-        user2_uuid=uuid.uuid4().bytes
-        user3_uuid=uuid.uuid4().bytes
-        user4_uuid=uuid.uuid4().bytes
-        user5_uuid=uuid.uuid4().bytes
-        user6_uuid=uuid.uuid4().bytes
-        password_salt = b'-\x93\x85\xcd\xd1\xd3?\xe5\x12U\x0e\x7f\x10u\xd8\xb2'
-        password = '5baa61e4c9b93f3f0682250b6cf8331b7ee68fd8'
-        password_hash = hmac.new(password_salt, bytes.fromhex(password), "sha1").digest()
-        group_A=Group(uuid=groupA_uuid,
-                      creation_time=time.time(),
-                      name="Team Yellow",
-                      title="IoT Teapot",
-                      description="Implement a teapot that gives status code 418.",
-                      proposal="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas placerat urna eu risus dignissim sagittis. Quisque lobortis, lacus sed bibendum blandit, erat nisi ornare mauris, ut euismod nibh elit in est. Curabitur suscipit nisi enim, quis vehicula nulla ornare et. Duis felis dolor, tempus nec odio a, facilisis maximus orci. Vivamus imperdiet mi vel interdum accumsan. Phasellus fringilla ut nulla at malesuada. Phasellus tristique finibus interdum. Phasellus eu hendrerit erat. Ut mauris sem, posuere non tincidunt eget, fringilla id justo.",
-                      proposal_state="PENDING",
-                      owner_uuid=user1_uuid,
-                      semester_name="CURRENT"
-                      )
-        db.session.add(group_A)
-        group_B = Group(uuid=groupB_uuid,
-                        creation_time=time.time(),
-                        name="Team Blue",
-                        title="IoT Coffee Machine",
-                        description="Implement a coffee machine that does not give status code 418.",
-                        proposal="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas placerat urna eu risus dignissim sagittis. Quisque lobortis, lacus sed bibendum blandit, erat nisi ornare mauris, ut euismod nibh elit in est. Curabitur suscipit nisi enim, quis vehicula nulla ornare et. Duis felis dolor, tempus nec odio a, facilisis maximus orci. Vivamus imperdiet mi vel interdum accumsan. Phasellus fringilla ut nulla at malesuada. Phasellus tristique finibus interdum. Phasellus eu hendrerit erat. Ut mauris sem, posuere non tincidunt eget, fringilla id justo.",
-                        proposal_state="PENDING",
-                        owner_uuid=user3_uuid,
-                        semester_name="CURRENT"
-                        )
-        db.session.add(group_B)
-        user_1=User(uuid=user1_uuid,
-                    creation_time=time.time(),
-                    email="user1@test.com",
-                    alias='Dolores Britton',
-                    password_salt=password_salt,
-                    password_hash=password_hash,
-                    role="USER",
-                    bio="During my own Google interview, I was asked the implications if P=NP were true. I said, \"P = 0 or N = 1\". Then, before the interviewer had even finished laughing, I examined Google's public certificate and wrote the private key on the whiteboard.",
-                    group_id=groupA_uuid,
-                    semester_id=semester_uuid
-                   )
-        db.session.add(user_1)
-        user_2 = User(uuid=user2_uuid,
-                      creation_time=time.time(),
-                      email="user2@test.com",
-                      alias='Ciara Philip',
-                      password_salt=password_salt,
-                      password_hash=password_hash,
-                      role="USER",
-                      bio="Compilers don't warn me. I warn compilers.",
-                      group_id=groupA_uuid,
-                      semester_id=semester_uuid
-                      )
-        db.session.add(user_2)
-        user_3 = User(uuid=user3_uuid,
-                      creation_time=time.time(),
-                      email="user3@test.com",
-                      alias='Imaani Person',
-                      password_salt=password_salt,
-                      password_hash=password_hash,
-                      role="USER",
-                      bio="The rate at which I produce code jumped by a factor of 40 in late 2000 when I upgraded my keyboard to USB 2.0.",
-                      group_id=groupB_uuid,
-                      semester_id = semester_uuid
-                      )
-        db.session.add(user_3)
-        user_4 = User(uuid=user4_uuid,
-                      creation_time=time.time(),
-                      email="user4@test.com",
-                      alias='Chandni Gonzalez',
-                      password_salt=password_salt,
-                      password_hash=password_hash,
-                      role="USER",
-                      bio="I build my code before committing it, but only to check for compiler and linker bugs.",
-                      group_id=groupB_uuid,
-                      semester_id=semester_uuid
-                      )
-        db.session.add(user_4)
-        user_5 = User(uuid=user5_uuid,
-                      creation_time=time.time(),
-                      email="user5@test.com",
-                      alias='Kurtis Peck',
-                      password_salt=password_salt,
-                      password_hash=password_hash,
-                      role="USER",
-                      bio="When I has an ergonomic evaluation, it is for the protection of his keyboard.",
-                      group_id=groupA_uuid,
-                     semester_id=semester_uuid
-                      )
-        db.session.add(user_5)
-        user_6 = User(uuid=user6_uuid,
-                      creation_time=time.time(),
-                      email="user6@test.com",
-                      alias='Layla-Mae Dudley',
-                      password_salt=password_salt,
-                      password_hash=password_hash,
-                      role="USER",
-                      bio="gcc -O4 emails your code to me for a rewrite.",
-                      group_id=groupA_uuid,
-                      semester_id=semester_uuid
-                      )
-        db.session.add(user_6)
-        comment1=GroupComment(
-            uuid=uuid.uuid4().bytes,
-            creation_time=time.time(),
-            author_uuid=user1_uuid,
-            group_uuid=groupA_uuid,
-            content="This is very good proposal!"
-        )
-        db.session.add(comment1)
-        db.session.commit()
+        if os.getenv("ENV", "DEV") == "PROD":
+            # Insert dummy data TODO!!! remove block in prod env
+            # ----------------------
+            # Groups
+            # - Group A with name, title, description, proposal and some comments
+            # - Group B with name, title, description and proposal
+            #
+            # Users
+            # - User 1: a group owner of group A
+            # - User 2: a member of group A
+            # - User 3: a group owner of group B
+            # - User 4: a member of group B
+            # - User 5: a student that does not belong to any group
+            # - User 6: a student that does not belong to any group
+
+            semester = Semester.query.filter_by(name="CURRENT").first()
+            semester.config = {
+                "system_state": {
+                    "grouping_ddl": int(datetime(2021, 5, 15, 17).timestamp()),
+                    # "grouping_ddl": int(time.time() + 5),
+                    "proposal_ddl": int(datetime(2021, 8, 15, 12).timestamp())
+                },
+                "group_member_number": [7, 9]
+            }
+            flag_modified(semester, "config")
+            db.session.commit()
+
+            groupA_uuid = uuid.uuid4().bytes
+            groupB_uuid = uuid.uuid4().bytes
+            user1_uuid = uuid.uuid4().bytes
+            user2_uuid = uuid.uuid4().bytes
+            user3_uuid = uuid.uuid4().bytes
+            user4_uuid = uuid.uuid4().bytes
+            user5_uuid = uuid.uuid4().bytes
+            user6_uuid = uuid.uuid4().bytes
+
+            password = "password"
+            import hashlib
+
+            password_sha1 = hashlib.sha1(password.encode()).digest()
+            password_salt = secrets.token_bytes(16)
+            password_hash = hmac.new(password_salt, password_sha1, "sha1").digest()
+
+            user_1 = User(uuid=user1_uuid,
+                          creation_time=time.time(),
+                          email="user1@test.com",
+                          alias='Dolores Britton',
+                          password_salt=password_salt,
+                          password_hash=password_hash,
+                          role="USER",
+                          bio="During my own Google interview, I was asked the implications if P=NP were true. I said, \"P = 0 or N = 1\". Then, before the interviewer had even finished laughing, I examined Google's public certificate and wrote the private key on the whiteboard.",
+                          initial_password="password")
+            db.session.add(user_1)
+            user_2 = User(uuid=user2_uuid,
+                          creation_time=time.time(),
+                          email="user2@test.com",
+                          alias='Ciara Philip',
+                          password_salt=password_salt,
+                          password_hash=password_hash,
+                          role="USER",
+                          bio="Compilers don't warn me. I warn compilers.",
+                          initial_password="password"
+                          )
+            db.session.add(user_2)
+            user_3 = User(uuid=user3_uuid,
+                          creation_time=time.time(),
+                          email="user3@test.com",
+                          alias='Imaani Person',
+                          password_salt=password_salt,
+                          password_hash=password_hash,
+                          role="USER",
+                          bio="The rate at which I produce code jumped by a factor of 40 in late 2000 when I upgraded my keyboard to USB 2.0.",
+                          initial_password="password")
+            db.session.add(user_3)
+            user_4 = User(uuid=user4_uuid,
+                          creation_time=time.time(),
+                          email="user4@test.com",
+                          alias='Chandni Gonzalez',
+                          password_salt=password_salt,
+                          password_hash=password_hash,
+                          role="USER",
+                          bio="I build my code before committing it, but only to check for compiler and linker bugs.",
+                          initial_password="password")
+            db.session.add(user_4)
+            user_5 = User(uuid=user5_uuid,
+                          creation_time=time.time(),
+                          email="user5@test.com",
+                          alias='Kurtis Peck',
+                          password_salt=password_salt,
+                          password_hash=password_hash,
+                          role="USER",
+                          bio="When I has an ergonomic evaluation, it is for the protection of his keyboard.",
+                          initial_password="password")
+            db.session.add(user_5)
+            user_6 = User(uuid=user6_uuid,
+                          creation_time=time.time(),
+                          email="user6@test.com",
+                          alias='Layla-Mae Dudley',
+                          password_salt=password_salt,
+                          password_hash=password_hash,
+                          role="USER",
+                          bio="gcc -O4 emails your code to me for a rewrite.",
+                          initial_password="password")
+            db.session.add(user_6)
+            db.session.commit()
+
+            group_A = Group(uuid=groupA_uuid,
+                            creation_time=time.time(),
+                            name="Team Yellow",
+                            title="IoT Teapot",
+                            description="Implement a teapot that gives status code 418.",
+                            proposal="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas placerat urna eu risus dignissim sagittis. Quisque lobortis, lacus sed bibendum blandit, erat nisi ornare mauris, ut euismod nibh elit in est. Curabitur suscipit nisi enim, quis vehicula nulla ornare et. Duis felis dolor, tempus nec odio a, facilisis maximus orci. Vivamus imperdiet mi vel interdum accumsan. Phasellus fringilla ut nulla at malesuada. Phasellus tristique finibus interdum. Phasellus eu hendrerit erat. Ut mauris sem, posuere non tincidunt eget, fringilla id justo.",
+                            proposal_state="PENDING",
+                            owner_uuid=user1_uuid
+                            )
+            db.session.add(group_A)
+            group_B = Group(uuid=groupB_uuid,
+                            creation_time=time.time(),
+                            name="Team Blue",
+                            title="IoT Coffee Machine",
+                            description="Implement a coffee machine that does not give status code 418.",
+                            proposal="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas placerat urna eu risus dignissim sagittis. Quisque lobortis, lacus sed bibendum blandit, erat nisi ornare mauris, ut euismod nibh elit in est. Curabitur suscipit nisi enim, quis vehicula nulla ornare et. Duis felis dolor, tempus nec odio a, facilisis maximus orci. Vivamus imperdiet mi vel interdum accumsan. Phasellus fringilla ut nulla at malesuada. Phasellus tristique finibus interdum. Phasellus eu hendrerit erat. Ut mauris sem, posuere non tincidunt eget, fringilla id justo.",
+                            proposal_state="PENDING",
+                            owner_uuid=user3_uuid
+                            )
+            db.session.add(group_B)
+
+            db.session.commit()
+
+            group_A.member.append(user_2)
+            group_B.member.append(user_4)
+
+            db.session.commit()
+
+            comment1 = GroupComment(
+                uuid=uuid.uuid4().bytes,
+                creation_time=time.time(),
+                author_uuid=user1_uuid,
+                group_uuid=groupA_uuid,
+                content="This is very good proposal!"
+            )
+            db.session.add(comment1)
+            db.session.commit()
+
+# Flask APSchedulers
+# initialize scheduler
+scheduler = APScheduler()
+# you can set options here:
+# scheduler.api_enabled = True
+scheduler.init_app(app)
+# scheduled task for ddl
+with app.app_context():
+    semester = Semester.query.filter_by(name="CURRENT").first()
+    if semester.config["system_state"]["grouping_ddl"]:
+        run_time = datetime.fromtimestamp(semester.config["system_state"]["grouping_ddl"])
+        logger.info(f"Grouping DDL set, post grouping DDL job scheduled at {run_time}")
+        scheduler.add_job(func=post_grouping_ddl_job,
+                          id="POST_GROUPING_DDL",
+                          replace_existing=True,
+                          trigger=DateTrigger(run_date=run_time))
+scheduler.start()
 
 # Swagger docs
 swagger_config = {

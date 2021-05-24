@@ -2,13 +2,16 @@ import hmac
 import secrets
 import time
 import uuid
+from datetime import datetime
 
 from flask import Blueprint, request
+from sqlalchemy import and_
 from sqlalchemy.orm.attributes import flag_modified
 from webargs import fields, validate
 from webargs.flaskparser import parser
 
 from model.Semester import Semester
+from model.User import User
 from shared import get_logger, db
 from utility import MyValidator
 from utility.ApiException import *
@@ -42,6 +45,10 @@ def get_sys_config():
             schema:
               type: object
               properties:
+                student_count:
+                  type: integer
+                  description: number of USER in current semester
+                  example: 223
                 system_state:
                   type: object
                   description: important time of current system
@@ -59,8 +66,11 @@ def get_sys_config():
                   description: range of group member
                   example: [7, 9]
     """
-    record = Semester.query.filter_by(name="CURRENT").first()
-    return MyResponse(data=record.config).build()
+    semester = Semester.query.filter_by(name="CURRENT").first()
+    semester.config["student_count"] = User.query.filter(
+        and_(User.creation_time >= semester.start_time, User.role == "USER")).count()
+
+    return MyResponse(data=semester.config).build()
 
 
 @system_api.route("/sysconfig", methods=["PATCH"])
@@ -119,16 +129,28 @@ def patch_sys_config():
     new_system_state = args_json["system_state"]
     new_group_member_number = args_json["group_member_number"]
 
-    record = Semester.query.filter_by(name="CURRENT").first()
+    semester = Semester.query.filter_by(name="CURRENT").first()
 
     if new_system_state is not None and new_system_state["grouping_ddl"] is not None:
-        record.config['system_state']['grouping_ddl'] = new_system_state["grouping_ddl"]
+        semester.config['system_state']['grouping_ddl'] = int(new_system_state["grouping_ddl"])
     if new_system_state is not None and new_system_state["proposal_ddl"] is not None:
-        record.config['system_state']['proposal_ddl'] = new_system_state["proposal_ddl"]
+        semester.config['system_state']['proposal_ddl'] = int(new_system_state["proposal_ddl"])
     if new_group_member_number is not None:
-        record.config['group_member_number'] = new_group_member_number
+        semester.config['group_member_number'] = new_group_member_number
 
-    flag_modified(record, "config")
+    flag_modified(semester, "config")
     db.session.commit()
 
-    return MyResponse(data=None, msg='query success').build()
+    # overwrite scheduled jobs
+    if new_system_state is not None and new_system_state["grouping_ddl"] is not None:
+        from blueprint.group_api import post_grouping_ddl_job
+        from server import scheduler
+        from apscheduler.triggers.date import DateTrigger
+        run_time = datetime.fromtimestamp(new_system_state["grouping_ddl"])
+        logger.info(f"Grouping DDL modified, post grouping DDL job scheduled at {run_time}")
+        scheduler.add_job(func=post_grouping_ddl_job,
+                          id="POST_GROUPING_DDL",
+                          replace_existing=True,
+                          trigger=DateTrigger(run_date=run_time))
+
+    return MyResponse().build()

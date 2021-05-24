@@ -108,14 +108,13 @@ def sign_in():
 
     # check semester
     current_semester = Semester.query.filter_by(name="CURRENT").first()
-    if user.creation_time < current_semester.start_time:
+    if user.role != "ADMIN" and user.creation_time < current_semester.start_time:
         logger.debug(f"Login fail: user not in current semester")
         raise ApiPermissionException("Permission denied: invalid credential")
 
     # check password
     password_hash = hmac.new(user.password_salt, bytes.fromhex(password), "sha1").digest()
     if password_hash != user.password_hash:
-        logger.debug(f"Login fail: password mismatch")
         raise ApiPermissionException("Permission denied: invalid credential")
 
     user_uuid = str(uuid.UUID(bytes=user.uuid))
@@ -214,6 +213,11 @@ def refresh_token():
 
     user_uuid: str = decoded.get("uuid")
     user_role: str = decoded.get("role")
+
+    # check user
+    user = User.query.filter_by(uuid=uuid.UUID(user_uuid).bytes).first()
+    if not user:
+        raise ApiPermissionException("Permission denied: token revoked")
 
     new_access_token: str = jwt_util.encode_token({
         "uuid": user_uuid,

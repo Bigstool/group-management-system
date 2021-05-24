@@ -4,25 +4,32 @@ from shared import db
 class Group(db.Model):
     __tablename__ = "group"
 
-    uuid = db.Column("uuid", db.BINARY(16), primary_key=True)  # PK
-    creation_time = db.Column("creation_time", db.Integer, nullable=False)
+    # attr
+    uuid: bytes = db.Column(db.BINARY(16), primary_key=True)  # PK
+    creation_time: int = db.Column(db.Integer, nullable=False)
+    name: str = db.Column(db.String(256))
+    title: str = db.Column(db.String(256))
+    description: str = db.Column(db.String(4096))
+    proposal: str = db.Column(db.String(4096))
+    proposal_update_time: int = db.Column(db.Integer)
+    proposal_state: str = db.Column(db.String(256), nullable=False)
+    proposal_late: int = db.Column(db.Integer)
+    application_enabled: bool = db.Column(db.Boolean(), default=True)
 
-    name = db.Column("name", db.String(256), nullable=False)
-    title = db.Column("title", db.String(256))
-    description = db.Column("description", db.String(4096), nullable=True)
-    proposal = db.Column("proposal", db.String(4096), nullable=True)
-    proposal_update_time = db.Column('proposal_update_time', db.Integer)
-    proposal_state = db.Column("proposal_state", db.String(256), nullable=False)  # PENDING/SUBMITTED/APPROVE/REJECT
-    proposal_late = db.Column("proposal_late", db.Integer, nullable=True)
-    application_enabled = db.Column("application_enabled", db.Boolean(), default=True)
+    # rel
+    owner_uuid: bytes = db.Column(db.BINARY(16),
+                                  db.ForeignKey("user.uuid", ondelete="CASCADE", onupdate="CASCADE", use_alter=True),
+                                  nullable=False)  # FK
+    owner: 'User' = db.relationship("User", back_populates="owned_group", uselist=False, foreign_keys=[owner_uuid])
 
-    # change
-    owner_uuid = db.Column("owner_uuid", db.BINARY(16), nullable=False)  # FK
-    member_num = db.Column('member_num', db.Integer, nullable=False, default=1)
+    member: list['User'] = db.relationship("User", back_populates="joined_group", uselist=True,
+                                           foreign_keys="User.joined_group_uuid")
 
-    # change 2
-    semester_name = db.Column("semester_name", db.String(256), db.ForeignKey("semester.name"), default="CURRENT")  # FK
+    application = db.relationship("GroupApplication", back_populates="group", uselist=True)
 
+    comment: list['GroupComment'] = db.relationship("GroupComment", back_populates="group", uselist=True)
+
+    favorite = db.relationship("GroupFavorite", back_populates="group", uselist=True)
 
     def __repr__(self):
         return f"<Group {self.uuid.hex()}: {self.name}>"

@@ -74,17 +74,18 @@ def get_user_notification(user_uuid):
     user_uuid: str = args_path["user_uuid"]
 
     token_info = Auth.get_payload(request)
-    uuid_in_token = token_info['uuid']
+
     # Check identity
-    if (user_uuid != uuid_in_token):
-        raise ApiPermissionException('Permission denied: you cannot check other user\'s notification!')
-    # Search corresponding notifications and return
+    if (user_uuid != token_info['uuid']):
+        raise ApiPermissionException('Permission denied: Not logged in as the requested user')
+
     notifications = Notification.query.filter_by(user_uuid=uuid.UUID(user_uuid).bytes).all()
-    response_list = []
+    ret = []
     for notification in notifications:
-        response_list.append({"title" : notification.title,
-                              "content": notification.content, "creation_time": notification.creation_time,
-                              "uuid": str(uuid.UUID(bytes=notification.uuid))})
-    return MyResponse(data=response_list, msg='query success').build()
-
-
+        ret.append({
+            "title": notification.title,
+            "content": notification.content,
+            "creation_time": notification.creation_time,
+            "uuid": str(uuid.UUID(bytes=notification.uuid))
+        })
+    return MyResponse(data=ret).build()

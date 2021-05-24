@@ -1,26 +1,20 @@
-import hmac
-import secrets
 import time
 import uuid
 
 from flask import Blueprint, request
-from sqlalchemy.orm.attributes import flag_modified
+from sqlalchemy import and_
 from webargs import fields, validate
 from webargs.flaskparser import parser
 
-from blueprint.group_api import group_api
-from model.GroupApplication import GroupApplication
-from model.GroupComment import GroupComment
-from model.GroupFavorite import GroupFavorite
-from model.Semester import Semester
 from model.Group import Group
+from model.GroupApplication import GroupApplication
+from model.Semester import Semester
 from model.User import User
 from shared import get_logger, db
 from utility import MyValidator
 from utility.ApiException import *
 from utility.Auth import Auth
 from utility.MyResponse import MyResponse
-from model.Group import Group
 
 logger = get_logger(__name__)
 semester_api = Blueprint("semester_api", __name__)
@@ -66,55 +60,48 @@ def archive_semester():
             schema:
               type: object
     """
-    pass  # TODO
-    #check the role
+    args_json = parser.parse({
+        "name": fields.Str(required=True, validate=validate.Length(min=1, max=256)),
+    }, request, location="json")
+    name: str = args_json["name"]
+
     token_info = Auth.get_payload(request)
-    uuid_in_token = token_info['uuid']
-    if not (token_info["role"] == "ADMIN"):
-        raise ApiPermissionException("You have no permission to archive the semester!")
+    if not token_info['role'] == 'ADMIN':
+        raise ApiPermissionException('Permission denied: Not logged in as admin')
 
-    #rename the current semester
-    args_json = parser.parse({
-        "name": fields.Str(required=True, validate=validate.Length(min=1, max=256))
-    }, request, location="json")
-    new_name: str = args_json["name"]
+    # check dup name
+    dup_semester = Semester.query.filter_by(name=name).first()
+    if dup_semester is not None:
+        raise ApiDuplicateResourceException("Resource conflict: name already used")
 
-    # foreign key constrains
+    # remove all applications
+    GroupApplication.query.delete()
+    # rename current semester and set end time
     semester = Semester.query.filter_by(name="CURRENT").first()
-    if new_name:
-        semester.name = new_name
-    semester.end_time = int(time.time())
-
-    #If there is no cascade setting
-    # group_list = Group.query.filter_by(semester_name="CURRENT").all()
-    # for each in group_list:
-    #     each.semester_name = new_name
-
-    #create a new semester
-    args_json = parser.parse({
-        "system_state": fields.Nested({
-                "grouping_ddl": fields.Number(missing=None),
-                "proposal_ddl": fields.Number(missing=None)}, missing=None),
-        "group_member_number": fields.List(fields.Int(), missing=None)
-    }, request, location="json")
-    new_system_state = args_json["system_state"]
-    new_group_member_number = args_json["group_member_number"]
-    new_config = {"system_state": new_system_state, "group_member_number": new_group_member_number}
-
-    new_semester = Semester(uuid=uuid.uuid4().bytes,
-                            name="CURRENT",
-                            start_time=int(time.time()),
-                            end_time=None,
-                            config=new_config)
-    db.session.add(new_semester)
+    semester.name = name
+    semester.end_time = time.time()
+    # create new semester
+    db.session.add(Semester(
+        uuid=uuid.uuid4().bytes,
+        name="CURRENT",
+        start_time=int(time.time()),
+        config={
+            "system_state": {
+                "grouping_ddl": None,
+                "proposal_ddl": None
+            },
+            "group_member_number": [7, 9]
+        }
+    ))
     db.session.commit()
-    return MyResponse(data=None, msg='query success').build()
+    # logout all users
+    Auth.valid_after = time.time()
 
-
+    return MyResponse().build()
 
 
 @semester_api.route("/semester", methods=["GET"])
-def get_semester_name_list():
+def get_semester_list():
     """Get list of semester
     ---
     tags:
@@ -153,18 +140,15 @@ def get_semester_name_list():
 
     """
     token_info = Auth.get_payload(request)
-    if token_info["role"] != "ADMIN":
-        raise ApiPermissionException("Permission denied: you are not the administrator!")
-    semester_list = Semester.query.all()
-    response_list = []
-    for semester in semester_list:
-        response_list.append({
-            "uuid": str(uuid.UUID(bytes=semester.uuid)),
-            "name": semester.name,
-            "start_time": semester.start_time,
-            "end_time": semester.end_time
-        })
-    return MyResponse(data=response_list, msg='query success').build()
+
+    semesters = Semester.query.filter(Semester.name != "CURRENT").all()
+
+    return MyResponse(data=[{
+        "uuid": str(uuid.UUID(bytes=semester.uuid)),
+        "name": semester.name,
+        "start_time": semester.start_time,
+        "end_time": semester.end_time
+    } for semester in semesters]).build()
 
 
 @semester_api.route("/semester/<semester_uuid>", methods=["PATCH"])
@@ -213,22 +197,28 @@ def rename_semester(semester_uuid):
     args_path = parser.parse({
         "semester_uuid": fields.Str(required=True, validate=MyValidator.Uuid())}, request, location="path")
     args_json = parser.parse({
-        "name": fields.Str(missing=None, validate=validate.Length(min=1, max=256)),
+        "name": fields.Str(required=True, validate=[validate.Length(min=1, max=256), validate.NoneOf(["CURRENT"])]),
     }, request, location="json")
     semester_uuid: str = args_path["semester_uuid"]
     new_name: str = args_json["name"]
+
     token_info = Auth.get_payload(request)
+
     if not token_info['role'] == 'ADMIN':
         raise ApiPermissionException('You have no permission to change the name of semester!')
+
     semester = Semester.query.filter_by(uuid=uuid.UUID(semester_uuid).bytes).first()
     if semester is None:
-        raise ApiResourceNotFoundException('No such semester!')
+        raise ApiResourceNotFoundException('Not found: invalid semester uuid')
     if semester.name == 'CURRENT':
-        raise ApiPermissionException('Cannot change the name of current semester')
+        raise ApiPermissionException('Permission denied: Current semester cannot be renamed')
     if new_name is not None:
+        old_semester = Semester.query.filter_by(name=new_name).first()
+        if old_semester is not None:
+            raise ApiDuplicateResourceException("Resource conflict: name already used")
         semester.name = new_name
     db.session.commit()
-    return MyResponse(data=None, msg='query success').build()
+    return MyResponse().build()
 
 
 @semester_api.route("/semester/<semester_uuid>", methods=["DELETE"])
@@ -260,43 +250,28 @@ def delete_semester(semester_uuid):
             schema:
               type: object
     """
-    token_info = Auth.get_payload(request)
-    if token_info["role"] != "ADMIN":
-        raise ApiPermissionException("Permission denied: you are not the administrator!")
-
     args_path = parser.parse({
         "semester_uuid": fields.Str(required=True, validate=MyValidator.Uuid())}, request, location="path")
     semester_uuid: str = args_path["semester_uuid"]
+
+    token_info = Auth.get_payload(request)
+
+    if not token_info['role'] == 'ADMIN':
+        raise ApiPermissionException('You have no permission to change the name of semester!')
+
     semester = Semester.query.filter_by(uuid=uuid.UUID(semester_uuid).bytes).first()
     if semester is None:
-        raise ApiResourceNotFoundException("No such semester!")
-    system_state = Semester.query.filter_by(name="CURRENT").first().config['system_state']
+        raise ApiResourceNotFoundException('Not found: invalid semester uuid')
+    if semester.name == 'CURRENT':
+        raise ApiPermissionException('Permission denied: Current semester cannot be deleted')
 
-    semester_name = Semester.name
-    groups = Group.query.filter_by(semester_name=semester_name).all()
-
-    for group in groups:
-
-        group_application = GroupApplication.query.filter_by(group_uuid=group.uuid).all()
-        for application in group_application:
-            db.session.delete(application)
-
-        group_comment = GroupComment.query.filter_by(group_uuid=group.uuid).all()
-        for comment in group_comment:
-            db.session.delete(comment)
-
-        group_Favorite = GroupFavorite.query.filter_by(group_uuid=group.uuid).all()
-        for favorite in group_Favorite:
-            db.session.delete(favorite)
-
-        #default: all students during the semester assigned to a group
-        users = User.query.filter_by(group_id=group.uuid).all()
-        for user in users:
-            db.session.delete(user)
-
-        db.session.delete(group)
-        db.session.commit()
+    # delete all within semester
+    User.query.filter(and_(
+        User.creation_time.between(semester.start_time, semester.end_time),
+        User.role != "ADMIN"
+    )).delete(synchronize_session=False)
 
     db.session.delete(semester)
     db.session.commit()
-    return MyResponse(data=None).build()
+
+    return MyResponse().build()

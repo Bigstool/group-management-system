@@ -4,25 +4,26 @@ from shared import db
 class User(db.Model):
     __tablename__ = "user"
 
-    uuid = db.Column("uuid", db.BINARY(16), primary_key=True)   # PK
-    creation_time = db.Column("creation_time", db.Integer, nullable=False)
-    email = db.Column("email", db.String(256))
-    alias = db.Column("alias", db.String(256), nullable=True)
-    bio = db.Column("bio", db.Text, nullable=True)
-    password_salt = db.Column("password_salt", db.BINARY(16), nullable=False)
-    password_hash = db.Column("password_hash", db.BINARY(20), nullable=False)
-    role = db.Column("role", db.String(256), default="USER", nullable=False)
-    # r_group = db.relationship("Group", backref="owner", lazy=True, uselist=False)
-    r_group_comment = db.relationship("GroupComment", backref="author", lazy=True)
-    r_group_application = db.relationship("GroupApplication", backref="applicant", lazy=True)
+    # attr
+    uuid: bytes = db.Column(db.BINARY(16), primary_key=True)   # PK
+    creation_time: int = db.Column(db.Integer, nullable=False)
+    email: str = db.Column(db.String(256))
+    alias: str = db.Column(db.String(256))
+    bio: str = db.Column(db.Text)
+    password_salt: bytes = db.Column(db.BINARY(16), nullable=False)
+    password_hash: bytes = db.Column(db.BINARY(20), nullable=False)
+    role: str = db.Column(db.String(256), default="USER", nullable=False)
+    initial_password: str = db.Column(db.String(256), nullable=False)
 
-    #change
-    group_id = db.Column("group_id", db.BINARY(16), db.ForeignKey("group.uuid"))
-    r_group_favorite = db.relationship("GroupFavorite", backref="follower", lazy=True)
-    group = db.relationship("Group", backref ="member", lazy=True)
+    # rel
+    owned_group: 'Group' = db.relationship("Group", back_populates="owner", uselist=False, foreign_keys="Group.owner_uuid")
 
-    # semester
-    semester_id = db.Column("semester_uuid", db.BINARY(16), db.ForeignKey("semester.uuid"))
+    joined_group_uuid: bytes = db.Column(db.BINARY(16), db.ForeignKey("group.uuid", ondelete="SET NULL", onupdate="CASCADE", use_alter=True))   # FK
+    joined_group: 'Group' = db.relationship("Group", back_populates="member", uselist=False, foreign_keys=[joined_group_uuid])
+
+    application = db.relationship("GroupApplication", back_populates="applicant", uselist=True)
+
+    comment = db.relationship("GroupComment", back_populates="author", uselist=True)
 
     def __repr__(self):
         return f"<User {self.uuid.hex()}: {self.email}>"

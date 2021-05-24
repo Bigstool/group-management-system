@@ -15,7 +15,6 @@ from utility import MyValidator
 from utility.ApiException import *
 from utility.Auth import Auth
 from utility.MyResponse import MyResponse
-from model.Group import Group
 
 logger = get_logger(__name__)
 semester_api = Blueprint("semester_api", __name__)

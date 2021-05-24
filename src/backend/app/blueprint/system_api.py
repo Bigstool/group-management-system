@@ -142,7 +142,7 @@ def patch_sys_config():
     db.session.commit()
 
     # overwrite scheduled jobs
-    if new_system_state["grouping_ddl"] is not None:
+    if new_system_state is not None and new_system_state["grouping_ddl"] is not None:
         from blueprint.group_api import post_grouping_ddl_job
         from server import scheduler
         from apscheduler.triggers.date import DateTrigger

@@ -19,7 +19,7 @@ services:
   backend:
     image: gms/backend
     environment:
-      ENV: PROD
+      ENV: DEV
     build:
       context: ..
       dockerfile: docker/backend.dockerfile

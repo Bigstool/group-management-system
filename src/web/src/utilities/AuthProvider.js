@@ -5,7 +5,7 @@ import SHA1 from "crypto-js/sha1";
 import axios from "axios";
 import {boundMethod} from "autobind-decorator";
 
-const API_URL = "https://gms.bigstool.com/api";
+const API_URL = "/api";
 const TOKEN_EXPIRE_MARGIN = 30; // seconds
 
 export const AuthContext = React.createContext();

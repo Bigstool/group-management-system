@@ -158,9 +158,9 @@ with app.app_context():
             semester = Semester.query.filter_by(name="CURRENT").first()
             semester.config = {
                 "system_state": {
-                    "grouping_ddl": int((datetime.now() + timedelta(days=1)).timestamp()),
+                    "grouping_ddl": int((datetime.now() + timedelta(days=30)).timestamp()),
                     # "grouping_ddl": int(time.time() + 5),
-                    "proposal_ddl": int((datetime.now() + timedelta(days=2)).timestamp())
+                    "proposal_ddl": int((datetime.now() + timedelta(days=60)).timestamp())
                 },
                 "group_member_number": [7, 9]
             }

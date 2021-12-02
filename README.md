@@ -1,36 +1,63 @@
-# CPT202_GMS
-Official repository of the CPT202 Group Management System
+# Group Management System
+![Banner](readme/banner.png)
 
-## Code style hint
+Form groups and submit project proposals for your software engineering group project, all in one platform.
 
-* format before commit (Code > Auto format code)
+## Features
 
-* Use raise to break long if else for better readability and compatibility for future change
-    Example:
-    ```
-    # Better practice
-    if user_should_not_do_this_due_to_a:
-        raise Exception("No, you can't because A")
-        
-    if user_should_not_do_this_due_to_b:
-        raise Exception("No, you can't because B")
-        
-    result = continue_normal_procedure()
-    return result
-    
-    # Not so good
-    if user_can_do_this:
-        result = continue_normal_procedure()
-        return result
-    elif case_a:
-        raise Exception("No, you can't because A")
-    elif case_b:
-        raise Exception("No, you can't because B")
-    ```
-    
-* Remove TODO keyword from comment if task completed
+📕 __Students__
 
-## Deployment instruction
+- 🚩 Create groups
+- ⚙ Manage group members
+- ✉ Apply to join groups
+- 📝 Edit & submit project proposals
+
+📚 __Administrators__
+
+- ⏰ Set deadlines
+- ✏ Import students
+- 🚧 Set group size limits
+- 🔍 View reports (grouping/proposal status of students and groups)
+- 🎟 Allocate groups for ungrouped students
+- ⭕ Approve/Reject proposals
+- 📦 Archive the current semester & start a new one
+
+💡 __Everyone__
+
+- 💬 Comment on the proposal
+- ⭐ Add groups to favorite
+- 👤 Edit bio
+- 🔑 Change password
+
+📋 __TODO__
+
+- 🖼 Showcase project results
+- 🗺 Explore projects of archived semesters
+- 🔔 Receive & view notifications
+
+## Important time frames
+
+- 🚀 At the start of the semester
+
+  This is the time for the administrators to set the deadlines and group size limits of the semester in the `Semester Tools`. Students can be imported by clicking the `Import Students` button and uploading a file in the same format as the [sample student list](docs/sample%20student%20list.csv). The initial passwords of the students can be downloaded by clicking the `Download Student Credentials` button. Students can change their passwords once they've logged in using the initial passwords.
+
+- 📢 Before the grouping deadline
+
+  This is the time for the students to form groups. A student can either choose to create a group or apply to a group. The grouping status of each student can be viewed by the administrators by downloading the `student report` on the `Reports` page.
+
+- 💭 Before the proposal deadline (After the grouping deadline)
+
+  This is the time for the students to work on and refine their project proposals. Once a group is satisfied with its proposal, the group owner can submit it. Administrators can allocate groups for the ungrouped students. They can also visit different groups and comment on their current proposals.
+
+- 🎯 After the proposal deadline
+
+  This is the time for the administrators to review the submitted proposals. For each submitted proposal, they can either accept it or reject it. If the proposal is rejected, the group will be given the chance to edit and resubmit the proposal without penalties. However, if a group did not submit their proposal, or they made a late submission, their late status will be shown on their group's page and also on the `group report` available to the administrators.
+  
+- 🏁 After the semester
+
+  This is the time for the administrators to archive the semester in the `Semester Tools` and perhaps plan for the new semester.
+
+## Deployment instructions
 
 The project is docker ready, using [docker-compose](https://docs.docker.com/compose/) for deployment by default. 
 
